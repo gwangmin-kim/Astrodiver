@@ -1,0 +1,102 @@
+root = true
+
+# 모든 파일 기본 설정 (유니티 권장 설정 포함)
+[*]
+indent_style = space
+indent_size = 4
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+# C# 파일 적용 규칙
+[*.cs]
+
+# ==========================================
+# 1. 포맷팅 및 구문 규칙
+# ==========================================
+
+# 중괄호는 항상 새 줄에서 열기 (Allman style)
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_catch = true
+csharp_new_line_before_else = true
+csharp_new_line_before_finally = true
+csharp_new_line_before_members_in_object_initializers = true
+csharp_new_line_before_members_in_anonymous_types = true
+
+# 접근 제한자 반드시 명시
+dotnet_style_require_accessibility_modifiers = always:warning
+
+# C# 및 유니티 기본 관행: this. 생략 선호
+dotnet_style_qualification_for_field = false:suggestion
+dotnet_style_qualification_for_property = false:suggestion
+dotnet_style_qualification_for_method = false:suggestion
+dotnet_style_qualification_for_event = false:suggestion
+
+# 내장 타입(string, int 등) 사용 선호 (String, Int32 대신)
+dotnet_style_predefined_type_for_locals_parameters_members = true:suggestion
+dotnet_style_predefined_type_for_member_access = true:suggestion
+
+# using 지시문을 네임스페이스 밖에 배치
+csharp_using_directive_placement = outside_namespace:suggestion
+
+# ==========================================
+# 2. 명명 규칙 (Naming Conventions)
+# ==========================================
+
+# --- [스타일 정의] ---
+dotnet_naming_style.underscore_camel_case_style.capitalization = camel_case
+dotnet_naming_style.underscore_camel_case_style.required_prefix = _
+
+dotnet_naming_style.camel_case_style.capitalization = camel_case
+
+dotnet_naming_style.pascal_case_style.capitalization = pascal_case
+
+dotnet_naming_style.i_pascal_case_style.capitalization = pascal_case
+dotnet_naming_style.i_pascal_case_style.required_prefix = I
+
+# --- [심볼 그룹 정의] ---
+# 인터페이스
+dotnet_naming_symbols.interface_symbols.applicable_kinds = interface
+dotnet_naming_symbols.interface_symbols.applicable_accessibilities = *
+
+# 클래스, 구조체, 열거형, 델리게이트
+dotnet_naming_symbols.type_symbols.applicable_kinds = class, struct, enum, delegate
+dotnet_naming_symbols.type_symbols.applicable_accessibilities = *
+
+# 함수, 프로퍼티, 이벤트
+dotnet_naming_symbols.method_and_property_symbols.applicable_kinds = method, property, event
+dotnet_naming_symbols.method_and_property_symbols.applicable_accessibilities = *
+
+# 프라이빗/프로텍티드 필드 (Private/Protected members)
+dotnet_naming_symbols.private_field_symbols.applicable_kinds = field
+dotnet_naming_symbols.private_field_symbols.applicable_accessibilities = private, protected, private_protected
+
+# 퍼블릭/인터널 필드 (Public members)
+dotnet_naming_symbols.public_field_symbols.applicable_kinds = field
+dotnet_naming_symbols.public_field_symbols.applicable_accessibilities = public, internal, protected_internal
+
+# --- [규칙 적용 (심볼 + 스타일)] ---
+# 1) 인터페이스는 I로 시작 (예: IInteractable)
+dotnet_naming_rule.interface_rule.symbols = interface_symbols
+dotnet_naming_rule.interface_rule.style = i_pascal_case_style
+dotnet_naming_rule.interface_rule.severity = warning
+
+# 2) 클래스, 구조체 등은 PascalCase (예: PlayerController)
+dotnet_naming_rule.type_rule.symbols = type_symbols
+dotnet_naming_rule.type_rule.style = pascal_case_style
+dotnet_naming_rule.type_rule.severity = warning
+
+# 3) 함수, 프로퍼티 등은 PascalCase (예: MoveSpeed, CalculateVelocity())
+dotnet_naming_rule.method_and_property_rule.symbols = method_and_property_symbols
+dotnet_naming_rule.method_and_property_rule.style = pascal_case_style
+dotnet_naming_rule.method_and_property_rule.severity = warning
+
+# 4) 프라이빗 멤버는 _ + camelCase (예: _moveSpeed)
+dotnet_naming_rule.private_field_rule.symbols = private_field_symbols
+dotnet_naming_rule.private_field_rule.style = underscore_camel_case_style
+dotnet_naming_rule.private_field_rule.severity = warning
+
+# 5) 퍼블릭 멤버는 camelCase (예: moveSpeed)
+dotnet_naming_rule.public_field_rule.symbols = public_field_symbols
+dotnet_naming_rule.public_field_rule.style = camel_case_style
+dotnet_naming_rule.public_field_rule.severity = warning
