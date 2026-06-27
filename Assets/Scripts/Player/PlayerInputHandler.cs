@@ -141,6 +141,7 @@ public class PlayerInputHandler : MonoBehaviour
     {
         Gizmos.color = Color.gray;
         Gizmos.DrawWireSphere(transform.position, _mouseAimThreshold);
+        Gizmos.color = Color.darkRed;
         Gizmos.DrawSphere(transform.position + (Vector3)AimInput, 0.05f);
     }
 #endif

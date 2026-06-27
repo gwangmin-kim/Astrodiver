@@ -8,7 +8,7 @@ public class PlayerMovementController : MonoBehaviour
     [SerializeField] private Rigidbody2D _rigidbody;
     [SerializeField] private PlayerInputHandler _inputHandler;
 
-    [Header("Movemet")]
+    [Header("Movement")]
     [SerializeField] private PlayerMovementData _movementData;
     private Vector2 _currentVelocity;
     private Vector2 _smoothDampVelocity; // SmoothDamp 내부 계산용 변수
