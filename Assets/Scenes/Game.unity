@@ -308,7 +308,7 @@ MonoBehaviour:
   _handTransform: {fileID: 1723436011}
   _handOffset: {x: 0, y: -0.1}
   _handRange: 1.2
-  _handMoveDampingTime: 0.5
+  _handDampingTime: 0.2
 --- !u!1 &116805153
 GameObject:
   m_ObjectHideFlags: 0

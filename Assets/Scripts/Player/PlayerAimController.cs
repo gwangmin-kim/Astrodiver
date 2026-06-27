@@ -28,7 +28,7 @@ public class PlayerAimController : MonoBehaviour
     {
         Vector2 aimInput = _inputHandler.AimInput;
         SetHeadingDirection(aimInput);
-        SetHandPosition(aimInput, Time.deltaTime);
+        SetHandTransform(aimInput, Time.deltaTime);
     }
 
     private void SetHeadingDirection(Vector2 aimInput)
@@ -39,7 +39,7 @@ public class PlayerAimController : MonoBehaviour
         _handTransform.localScale = nextScale;
     }
 
-    private void SetHandPosition(Vector2 aimInput, float deltaTime)
+    private void SetHandTransform(Vector2 aimInput, float deltaTime)
     {
         Vector2 handOrigin = (Vector2)transform.position + _handOffset;
         Vector2 targetPosition = handOrigin + _handRange * aimInput;
