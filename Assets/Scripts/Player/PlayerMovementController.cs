@@ -47,11 +47,11 @@ public class PlayerMovementController : MonoBehaviour
 [System.Serializable]
 public struct PlayerMovementData
 {
-    [Header("Speed")]
+    [Header("Speed Settings")]
     [Tooltip("플레이어의 기본 이동 속도")]
     [Min(0.1f)] public float moveSpeed;
 
-    [Header("Inertia")]
+    [Header("Inertia Settings")]
     [Tooltip("이동을 시작할 때 속도를 부드럽게 증가시키는 지연 시간")]
     [Min(0.01f)] public float moveDampingTime;
     [Tooltip("이동을 멈출 때 속도를 부드럽게 감소시키는 지연 시간")]
