@@ -8,17 +8,20 @@ public class PlayerInputHandler : MonoBehaviour
     [SerializeField] private string _playerMapName = "Player";
     [SerializeField] private string _moveActionName = "Move";
     [SerializeField] private string _aimActionName = "Aim";
+    [SerializeField] private string _dashActionName = "Dash"; // 스페이스바/B
     [SerializeField] private string _captureActionName = "Capture"; // 좌클릭/Right Button
     [SerializeField] private string _attackActionName = "Attack"; // 우클릭/Right Trigger
 
     [Header("Mouse Aim Settings")]
     [Tooltip("마우스 사용 시 임계 조준 거리\n마우스 포인터가 이 거리(월드 좌표 기준)를 넘어가면 벡터 크기가 1이 됨")]
-    [SerializeField] private float _mouseAimThreshold = 5f;
+    [SerializeField] private float _mouseAimThreshold;
 
     [Header("Input Buffer Settings")]
-    [Tooltip("Capture 입력이 캐싱되어 유지되는 시간(초)")]
-    [SerializeField] private float _captureBufferTime = 0.15f;
-    private float _captureBufferTimer = 0f; // 버퍼링 타이머
+    [Tooltip("버튼 입력이 캐싱되어 유지되는 시간(초)")]
+    [SerializeField] private float _inputBufferTime;
+    // 버퍼링 타이머
+    private float _dashBufferTimer = 0f;
+    private float _captureBufferTimer = 0f;
 
     private Camera _mainCamera; // Camera.main을 매 프레임 호출하면 성능에 좋지 않으므로 캐싱
 
@@ -28,8 +31,19 @@ public class PlayerInputHandler : MonoBehaviour
     public Vector2 AimInput { get; private set; }
 
     // 버튼 타입
+    public bool DashInput { get; private set; }
+    public bool ConsumeDashInput() // 인풋 버퍼링으로 인한 오작동 방지를 위한 소비 함수
+    {
+        if (DashInput)
+        {
+            DashInput = false;
+            _dashBufferTimer = 0f;
+            return true;
+        }
+        else return false;
+    }
     public bool CaptureInput { get; private set; }
-    public bool GetCaptureInput() // 인풋 버퍼링으로 인한 오작동 방지를 위한 소비 함수
+    public bool ConsumeCaptureInput() // 인풋 버퍼링으로 인한 오작동 방지를 위한 소비 함수
     {
         if (CaptureInput)
         {
@@ -46,6 +60,7 @@ public class PlayerInputHandler : MonoBehaviour
     // 입력 액션
     private InputAction _moveAction;
     private InputAction _aimAction;
+    private InputAction _dashAction;
     private InputAction _captureAction;
     private InputAction _attackAction;
 
@@ -53,6 +68,7 @@ public class PlayerInputHandler : MonoBehaviour
     {
         _moveAction = BindAction(_moveActionName);
         _aimAction = BindAction(_aimActionName);
+        _dashAction = BindAction(_dashActionName);
         _captureAction = BindAction(_captureActionName);
         _attackAction = BindAction(_attackActionName);
 
@@ -81,12 +97,28 @@ public class PlayerInputHandler : MonoBehaviour
             AimInput = GetAimInput();
         }
 
+        if (_dashAction != null)
+        {
+            // 입력 버퍼링
+            if (_dashAction.WasPressedThisFrame())
+            {
+                _dashBufferTimer = _inputBufferTime;
+            }
+
+            if (_dashBufferTimer > 0f)
+            {
+                DashInput = true;
+                _dashBufferTimer -= Time.deltaTime;
+            }
+            else DashInput = false;
+        }
+
         if (_captureAction != null)
         {
             // 입력 버퍼링
             if (_captureAction.WasPressedThisFrame())
             {
-                _captureBufferTimer = _captureBufferTime;
+                _captureBufferTimer = _inputBufferTime;
             }
 
             if (_captureBufferTimer > 0f)

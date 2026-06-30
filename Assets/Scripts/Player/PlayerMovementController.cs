@@ -9,7 +9,7 @@ public class PlayerMovementController : MonoBehaviour
     [SerializeField] private PlayerInputHandler _inputHandler;
 
     [Header("Movement")]
-    [SerializeField] private PlayerMovementData _movementData;
+    [SerializeField] private PlayerMovementData _data;
     private Vector2 _currentVelocity;
     private Vector2 _smoothDampVelocity; // SmoothDamp 내부 계산용 변수
 
@@ -27,9 +27,9 @@ public class PlayerMovementController : MonoBehaviour
 
     private void Move(Vector2 moveInput, float deltaTime)
     {
-        Vector2 targetVelocity = _movementData.moveSpeed * moveInput;
+        Vector2 targetVelocity = _data.moveSpeed * moveInput;
         bool isMoving = moveInput.sqrMagnitude > Mathf.Epsilon;
-        float dampingTime = isMoving ? _movementData.moveDampingTime : _movementData.stopDampingTime;
+        float dampingTime = isMoving ? _data.moveDampingTime : _data.stopDampingTime;
 
         _currentVelocity = Vector2.SmoothDamp(
             _currentVelocity,
