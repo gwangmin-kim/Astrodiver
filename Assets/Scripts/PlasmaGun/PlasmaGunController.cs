@@ -34,6 +34,8 @@ public class PlasmaGunController : MonoBehaviour
     public bool isAttacking; // 외부 제어 상태
     [SerializeField] private ChargeState _chargeState = ChargeState.Uncharged; // 내부 제어 상태
 
+    public void SetData(PlasmaGunData data) => _data = data;
+
     private void Awake()
     {
         // 대상 탐색용 필터 초기화
@@ -142,9 +144,22 @@ public class PlasmaGunController : MonoBehaviour
     /// </summary>
     private void AttackTarget()
     {
-        foreach (Transform target in _currentTargetList)
+        for (int i = 0; i < _currentTargetList.Count; i++)
         {
-            // TODO: 공격 대상 인터페이스 구현 후, _currentTargetSet으로부터 컴포넌트를 가져와 공격 수행
+            Transform target = _currentTargetList[i];
+
+            if (target == null || !target.TryGetComponent<IDamagable>(out var damagable)) continue;
+
+            float damageRate = Mathf.Pow(_data.chainedDamageRate, i);
+            float currentDamage = _data.tickDamage * damageRate;
+
+            AttackData attackData = new()
+            {
+                damage = currentDamage,
+                source = DamageSource.Player
+            };
+
+            damagable.ApplyDamage(attackData);
         }
     }
 
@@ -198,11 +213,15 @@ public class PlasmaGunController : MonoBehaviour
 
             if (_currentTargetList.Count == 0)
                 points.Add(_shootOrigin.position + _data.attackRange * _shootOrigin.up);
-            else points.Add(_currentTargetList[0].position);
-
-            for (int i = 1; i < _currentTargetList.Count; i++)
+            else if (_currentTargetList[0] != null)
             {
-                points.Add(_currentTargetList[i].position);
+                points.Add(_currentTargetList[0].position);
+
+                for (int i = 1; i < _currentTargetList.Count; i++)
+                {
+                    if (_currentTargetList[i] == null) break;
+                    points.Add(_currentTargetList[i].position);
+                }
             }
 
             // 선 그리기

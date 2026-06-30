@@ -137,7 +137,7 @@ public class PlayerInputHandler : MonoBehaviour
     }
 
 #if UNITY_EDITOR
-    private void OnDrawGizmos()
+    private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.gray;
         Gizmos.DrawWireSphere(transform.position, _mouseAimThreshold);

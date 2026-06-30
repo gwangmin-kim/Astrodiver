@@ -70,9 +70,9 @@ public class PlayerAimController : MonoBehaviour
     }
 
 #if UNITY_EDITOR
-    private void OnDrawGizmos()
+    private void OnDrawGizmosSelected()
     {
-        Gizmos.color = Color.yellowNice;
+        Gizmos.color = Color.skyBlue;
         Gizmos.DrawWireSphere(transform.position + (Vector3)_handOffset, _handRange);
     }
 #endif
