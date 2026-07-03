@@ -12,6 +12,7 @@ public class PlasmaGunController : MonoBehaviour
     [Tooltip("첫 목표 탐색 시 수행하는 CircleCast의 반지름")]
     [SerializeField, Min(0.01f)] private float _initialCastRadius = 0.05f;
 
+    private ContactFilter2D _targetFilter;
     private readonly List<Collider2D> _overlapBuffer = new(10);
 
     // 중복 검색 방지
@@ -19,7 +20,6 @@ public class PlasmaGunController : MonoBehaviour
     // 크기가 작은 컨테이너이므로 List 사용
     private readonly List<Transform> _currentTargetList = new();
 
-    private ContactFilter2D _targetFilter;
     private float _attackTickTimer;
     private float _chargeTimer;
     private float _chargedRetentionTimer;
@@ -33,8 +33,7 @@ public class PlasmaGunController : MonoBehaviour
     }
     public bool isAttacking; // 외부 제어 상태
     [SerializeField] private ChargeState _chargeState = ChargeState.Uncharged; // 내부 제어 상태
-
-    public void SetData(PlasmaGunData data) => _data = data;
+    public bool IsSwitchable => !isAttacking;
 
     private void Awake()
     {
@@ -177,7 +176,8 @@ public class PlasmaGunController : MonoBehaviour
         float minSqrDistance = Mathf.Infinity;
         Transform nearestTarget = null;
 
-        int count = Physics2D.OverlapCircle(point, radius, _targetFilter, _overlapBuffer);
+        int count = Physics2D.OverlapCircle(
+            point, radius, _targetFilter, _overlapBuffer);
 
         for (int i = 0; i < count; i++)
         {

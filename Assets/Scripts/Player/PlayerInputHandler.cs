@@ -21,7 +21,6 @@ public class PlayerInputHandler : MonoBehaviour
     [SerializeField] private float _inputBufferTime;
     // 버퍼링 타이머
     private float _dashBufferTimer = 0f;
-    private float _captureBufferTimer = 0f;
 
     private Camera _mainCamera; // Camera.main을 매 프레임 호출하면 성능에 좋지 않으므로 캐싱
 
@@ -42,17 +41,9 @@ public class PlayerInputHandler : MonoBehaviour
         }
         else return false;
     }
-    public bool CaptureInput { get; private set; }
-    public bool ConsumeCaptureInput() // 인풋 버퍼링으로 인한 오작동 방지를 위한 소비 함수
-    {
-        if (CaptureInput)
-        {
-            CaptureInput = false;
-            _captureBufferTimer = 0f;
-            return true;
-        }
-        else return false;
-    }
+    public bool CaptureInput { get; private set; }// Pass Through 타입으로 별도의 소비 함수 필요 없음
+    public Action pressCaptureEvent;
+    public Action releaseCaptureEvent;
     public bool AttackInput { get; private set; } // Pass Through 타입으로 별도의 소비 함수 필요 없음
     public Action pressAttackEvent;
     public Action releaseAttackEvent;
@@ -115,17 +106,12 @@ public class PlayerInputHandler : MonoBehaviour
 
         if (_captureAction != null)
         {
-            // 입력 버퍼링
             if (_captureAction.WasPressedThisFrame())
-            {
-                _captureBufferTimer = _inputBufferTime;
-            }
+                pressCaptureEvent?.Invoke();
 
-            if (_captureBufferTimer > 0f)
-            {
-                CaptureInput = true;
-                _captureBufferTimer -= Time.deltaTime;
-            }
+            if (_captureAction.WasReleasedThisFrame())
+                releaseCaptureEvent?.Invoke();
+
             else CaptureInput = false;
         }
 

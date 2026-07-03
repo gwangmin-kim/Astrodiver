@@ -40,7 +40,9 @@ public class FragmentMagnetManager : MonoBehaviour
             if (sqrDistance > sqrMagnetRadius) continue;
 
             // 자석 범위 내의 파티클은 플레이어 쪽으로 끌어당김
-            _particles[i].position = Vector3.MoveTowards(particlePosition, playerPosition, magnetData.pullSpeed * Time.deltaTime);
+            float distanceFactor = sqrDistance / sqrMagnetRadius;
+            float pullSpeed = Mathf.Lerp(magnetData.pullSpeedRange.y, magnetData.pullSpeedRange.x, distanceFactor);
+            _particles[i].position = Vector3.MoveTowards(particlePosition, playerPosition, pullSpeed * Time.deltaTime);
 
             // 수집 범위 안의 파티클은 즉시 수집
             if (sqrDistance < sqrCollectRadius)
@@ -58,11 +60,11 @@ public class FragmentMagnetManager : MonoBehaviour
 public struct MagnetData
 {
     [Tooltip("자석 효과가 적용되는 수집 범위")]
-    public float radius;
+    [Min(0.1f)] public float radius;
 
-    [Tooltip("자석에 이끌리는 속도")]
-    public float pullSpeed;
+    [Tooltip("자석에 이끌리는 속력 범위. 유도 속력은 거리의 제곱에 반비례")]
+    public Vector2 pullSpeedRange;
 
     [Tooltip("파편을 획득하는 판정 반경")]
-    public float collectRadius;
+    [Range(0.1f, 0.5f)] public float collectRadius;
 }
