@@ -13,18 +13,19 @@ public class NetGunController : MonoBehaviour
 
     [Header("Inertia Settings")]
     [SerializeField] private Ease _shootEase;
-    [SerializeField] private float _retractDampingTime;
+    [SerializeField][Range(0f, 1f)] private float _dampingTime;
 
-    private readonly List<NetRuntime> _netList = new();
+    private readonly List<NetRuntime> _netRuntimeList = new();
+    private readonly NetMovementManager _movementManager = new();
     private float _chargingTime;
     private NetRuntime _chargingNet;
     private NetRuntime _retractingNet;
 
     private enum NetGunState
     {
-        Idle,
-        Charging,
-        Retracting
+        Idle, // 대기 상태
+        Charging, // 발사 전 충전 중
+        Retracting // 회수 중
     }
 
     private NetGunState _netGunState = NetGunState.Idle;
@@ -43,10 +44,11 @@ public class NetGunController : MonoBehaviour
 
     private void OnDisable()
     {
-        for (int i = 0; i < _netList.Count; i++)
+        for (int i = 0; i < _netRuntimeList.Count; i++)
         {
-            _netList[i].shootTween.Stop();
-            _netList[i].net.ResetFolded();
+            _movementManager.Reset(_netRuntimeList[i].net);
+            _netRuntimeList[i].shootTween.Stop();
+            _netRuntimeList[i].net.ResetFolded();
         }
     }
 
@@ -70,6 +72,10 @@ public class NetGunController : MonoBehaviour
                 StartShooting();
                 return true;
 
+            case NetGunState.Retracting:
+                CancelRetracting();
+                return true;
+
             default:
                 return false;
         }
@@ -88,15 +94,15 @@ public class NetGunController : MonoBehaviour
                 break;
         }
 
-        UpdateDeployedNets(Time.deltaTime);
+        _movementManager.Update(Time.deltaTime, _dampingTime);
     }
 
     private void BuildNetPool()
     {
-        _netList.Clear();
+        _netRuntimeList.Clear();
         if (_netPrefab == null) return;
 
-        int maxNetCount = _data.maxNetCount;
+        int maxNetCount = Mathf.Max(1, _data.netCount);
 
         for (int i = 0; i < maxNetCount; i++)
         {
@@ -113,8 +119,10 @@ public class NetGunController : MonoBehaviour
             net = net
         };
 
+        net.Initialize(_data.netData);
         net.FoldCompleted += () => HandleNetFoldCompleted(runtime);
-        _netList.Add(runtime);
+        _netRuntimeList.Add(runtime);
+        _movementManager.Register(net);
     }
 
     private bool TryHandleIdleCapturePress()
@@ -142,8 +150,6 @@ public class NetGunController : MonoBehaviour
         _netGunState = NetGunState.Charging;
         _chargingNet = net;
         _chargingTime = 0f;
-        net.velocity = Vector2.zero;
-        net.smoothDampVelocity = Vector2.zero;
     }
 
     private void StartShooting()
@@ -163,14 +169,15 @@ public class NetGunController : MonoBehaviour
         float chargeRatio = (_data.chargeTime <= 0f)
             ? 1f
             : Mathf.Clamp01(_chargingTime / _data.chargeTime);
-        float shootDistance = Mathf.Lerp(0.5f, 1f, chargeRatio) * _data.shootRange;
+        float shootDistance = (_data.shootRangeRatioWithNoCharge >= 1f)
+            ? _data.maxShootRange
+            : Mathf.Lerp(_data.shootRangeRatioWithNoCharge, 1f, chargeRatio) * _data.maxShootRange;
 
         Vector2 startPosition = _shootOrigin.position;
         Vector2 shootDirection = _shootOrigin.up;
         Vector2 endPosition = startPosition + shootDirection * shootDistance;
 
-        net.net.transform.position = startPosition;
-        net.net.transform.rotation = _shootOrigin.rotation;
+        net.net.transform.SetPositionAndRotation(startPosition, _shootOrigin.rotation);
         net.net.transform.SetParent(null, true);
         net.net.ResetFolded();
         net.net.PrepareForLaunch();
@@ -188,13 +195,7 @@ public class NetGunController : MonoBehaviour
 
     private void StartSpreading(NetRuntime net)
     {
-        NetSpreadData spreadData = new()
-        {
-            radius = _data.netRadius,
-            time = _data.spreadDelay
-        };
-
-        net.net.BeginSpread(spreadData);
+        net.net.BeginSpread();
     }
 
     private bool TryStartRetracting(NetRuntime net)
@@ -204,7 +205,6 @@ public class NetGunController : MonoBehaviour
         net.shootTween.Stop();
         _retractingNet = net;
         _netGunState = NetGunState.Retracting;
-        net.smoothDampVelocity = Vector2.zero;
         return true;
     }
 
@@ -218,38 +218,34 @@ public class NetGunController : MonoBehaviour
         }
 
         Vector2 diff = (Vector2)_shootOrigin.position - (Vector2)_retractingNet.net.transform.position;
-        Vector2 direction = diff.normalized;
-        Vector2 targetVelocity = _data.collectSpeed * direction;
-
-        _retractingNet.velocity = Vector2.SmoothDamp(
-            _retractingNet.velocity,
-            targetVelocity,
-            ref _retractingNet.smoothDampVelocity,
-            _retractDampingTime,
-            Mathf.Infinity,
-            deltaTime);
-
-        _retractingNet.net.transform.position += (Vector3)(_retractingNet.velocity * deltaTime);
-        _retractingNet.net.UpdateCapturedTargets(_retractingNet.velocity, deltaTime);
-
         if (diff.sqrMagnitude <= _collectRadiusThreshold * _collectRadiusThreshold)
         {
             FinishRetracting(_retractingNet);
+            return;
         }
+
+        Vector2 targetVelocity = _data.collectSpeed * diff.normalized;
+        _movementManager.SetTargetVelocity(_retractingNet.net, targetVelocity);
+    }
+
+    private void CancelRetracting()
+    {
+        _retractingNet = null;
+        _netGunState = NetGunState.Idle;
     }
 
     private void FinishRetracting(NetRuntime net)
     {
         net.shootTween.Stop();
-        net.velocity = Vector2.zero;
-        net.smoothDampVelocity = Vector2.zero;
+        _movementManager.Reset(net.net);
 
-        net.net.BeginFold(0.1f, CaptureReleaseReason.Collected);
+        net.net.BeginFold(CaptureReleaseReason.Collected);
     }
 
     private void ResetNetToPool(NetRuntime net)
     {
         net.shootTween.Stop();
+        _movementManager.Reset(net.net);
         net.net.transform.SetParent(transform, false);
         net.net.ResetFolded();
         net.net.gameObject.SetActive(false);
@@ -257,25 +253,14 @@ public class NetGunController : MonoBehaviour
 
     private void ResetAllNetsToIdle()
     {
-        for (int i = 0; i < _netList.Count; i++)
+        for (int i = 0; i < _netRuntimeList.Count; i++)
         {
-            ResetNetToPool(_netList[i]);
+            ResetNetToPool(_netRuntimeList[i]);
         }
 
         _chargingNet = null;
         _retractingNet = null;
         _netGunState = NetGunState.Idle;
-    }
-
-    private void UpdateDeployedNets(float deltaTime)
-    {
-        for (int i = 0; i < _netList.Count; i++)
-        {
-            NetRuntime net = _netList[i];
-            if (net == _retractingNet || !net.net.IsDeployed) continue;
-
-            net.net.UpdateCapturedTargets(Vector2.zero, deltaTime);
-        }
     }
 
     private bool HasAvailableNet()
@@ -285,11 +270,11 @@ public class NetGunController : MonoBehaviour
 
     private NetRuntime FindAvailableNet()
     {
-        for (int i = 0; i < _netList.Count; i++)
+        for (int i = 0; i < _netRuntimeList.Count; i++)
         {
-            if (_netList[i].net.IsFolded)
+            if (_netRuntimeList[i].net.IsFolded)
             {
-                return _netList[i];
+                return _netRuntimeList[i];
             }
         }
 
@@ -302,9 +287,9 @@ public class NetGunController : MonoBehaviour
         float closestSqrDistance = Mathf.Infinity;
         Vector2 origin = _shootOrigin.position;
 
-        for (int i = 0; i < _netList.Count; i++)
+        for (int i = 0; i < _netRuntimeList.Count; i++)
         {
-            NetRuntime net = _netList[i];
+            NetRuntime net = _netRuntimeList[i];
             if (!net.net.IsRecallable) continue;
 
             float sqrDistance = ((Vector2)net.net.transform.position - origin).sqrMagnitude;
@@ -323,17 +308,17 @@ public class NetGunController : MonoBehaviour
         float closestProjection = Mathf.Infinity;
         Vector2 origin = _shootOrigin.position;
         Vector2 direction = _shootOrigin.up;
-        float radiusSqr = _data.netRadius * _data.netRadius;
+        float radiusSqr = _data.netData.radius * _data.netData.radius;
 
-        for (int i = 0; i < _netList.Count; i++)
+        for (int i = 0; i < _netRuntimeList.Count; i++)
         {
-            NetRuntime net = _netList[i];
+            NetRuntime net = _netRuntimeList[i];
             if (!net.net.IsRecallable) continue;
 
             Vector2 toNet = (Vector2)net.net.transform.position - origin;
             float projection = Vector2.Dot(toNet, direction);
             if (projection <= 0f && toNet.sqrMagnitude > radiusSqr) continue;
-            if (projection > _data.shootRange) continue;
+            if (projection > _data.maxShootRange) continue;
 
             float perpendicularSqr = Mathf.Max(0f, toNet.sqrMagnitude - projection * projection);
             if (perpendicularSqr > radiusSqr) continue;
@@ -345,33 +330,6 @@ public class NetGunController : MonoBehaviour
 
         return aimedNet;
     }
-
-#if UNITY_EDITOR
-    private void OnDrawGizmos()
-    {
-        if (_shootOrigin == null) return;
-
-        Gizmos.color = Color.orange;
-        switch (_netGunState)
-        {
-            case NetGunState.Charging:
-                float chargeRatio = (_data.chargeTime <= 0f)
-                    ? 1f
-                    : Mathf.Clamp01(_chargingTime / _data.chargeTime);
-                float shootDistance = Mathf.Lerp(0.5f, 1f, chargeRatio) * _data.shootRange;
-                Gizmos.DrawWireSphere(_shootOrigin.position, shootDistance);
-                break;
-
-            case NetGunState.Retracting:
-                Gizmos.DrawWireSphere(_shootOrigin.position, _collectRadiusThreshold);
-                break;
-        }
-
-        Gizmos.DrawLine(
-            _shootOrigin.position,
-            _shootOrigin.position + _shootOrigin.up * _data.shootRange);
-    }
-#endif
 
     private void HandleNetFoldCompleted(NetRuntime net)
     {
@@ -386,22 +344,61 @@ public class NetGunController : MonoBehaviour
     {
         public NetCaptureController net;
         public Tween shootTween;
-        public Vector2 velocity;
-        public Vector2 smoothDampVelocity;
     }
+
+#if UNITY_EDITOR
+    private void OnDrawGizmos()
+    {
+        if (_shootOrigin == null) return;
+
+        Gizmos.color = Color.orange;
+        switch (_netGunState)
+        {
+            case NetGunState.Charging:
+                float chargeRatio = (_data.chargeTime <= 0f)
+                    ? 1f
+                    : Mathf.Clamp01(_chargingTime / _data.chargeTime);
+                float shootDistance = (_data.shootRangeRatioWithNoCharge >= 1f)
+                    ? _data.maxShootRange
+                    : Mathf.Lerp(_data.shootRangeRatioWithNoCharge, 1f, chargeRatio) * _data.maxShootRange;
+
+                Gizmos.DrawWireSphere(_shootOrigin.position, shootDistance);
+                break;
+
+            case NetGunState.Retracting:
+                Gizmos.DrawWireSphere(_shootOrigin.position, _collectRadiusThreshold);
+                break;
+        }
+
+        Gizmos.DrawLine(
+            _shootOrigin.position,
+            _shootOrigin.position + _shootOrigin.up * _data.maxShootRange);
+    }
+#endif
 }
 
 [System.Serializable]
 public struct NetGunData
 {
+    [Header("Net Settings")]
+    public NetData netData;
+
     [Header("Shoot Settings")]
-    [Min(1)] public int maxNetCount;
-    public float shootDuration;
-    public float shootRange;
-    public float chargeTime;
-    public float spreadDelay;
-    public float netRadius;
+    [Min(1)] public int netCount;
+    [Range(0.1f, 5f)] public float shootDuration;
+    [Min(0.1f)] public float maxShootRange;
+    [Range(0f, 1f)] public float shootRangeRatioWithNoCharge;
+    [Range(0f, 3f)] public float chargeTime;
 
     [Header("Collect Settings")]
     public float collectSpeed;
+}
+
+[System.Serializable]
+public struct NetData
+{
+    [Min(1)] public int captureCount;
+    [Range(0f, 0.5f)] public float spreadDuration;
+    [Range(0f, 0.5f)] public float foldDuration;
+    [Min(0.1f)] public float radius;
 }

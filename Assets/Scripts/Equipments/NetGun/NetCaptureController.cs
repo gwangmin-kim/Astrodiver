@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,24 +6,30 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]
 public sealed class NetCaptureController : MonoBehaviour
 {
+    [Header("Capture Settings")]
     [SerializeField] private Collider2D _captureCollider;
+    [Tooltip("그물 두께. 생물이 충분히 그물 안쪽으로 들어가도록 해주는 장치")]
+    [SerializeField][Range(0f, 1f)] private float _netThickness;
+    [Tooltip("그물이 움직일 때 내부 생물들이 그물에 딸려가는 정도\n"
+            + "그물의 속도에 이 비율이 곱해진 속도가 내부 생물에게 적용됨")]
+    [SerializeField][Range(0f, 1f)] private float _followDampingRatio;
 
     private readonly List<ICapturable> _capturedTargets = new();
 
-    private Vector2 _lastNetCenter;
-    private float _netRadius;
+    private Vector2 _lastNetCenter; // 움직임 delta를 계산하기 위한 포지션 캐싱
+    private NetData _data;
 
     private enum NetState
     {
-        Folded,
-        Spreading,
-        Deployed
+        Folded, // 접힌 상태
+        Spreading, // 펼쳐지는 중
+        Deployed // 펼쳐짐
     }
 
     [SerializeField] private NetState _netState = NetState.Folded;
 
-    public event Action<NetSpreadData> SpreadStarted;
-    public event Action<NetFoldData> FoldStarted;
+    public event Action SpreadStarted;
+    public event Action FoldStarted;
     public event Action FoldReset;
     public event Action FoldCompleted;
 
@@ -32,6 +38,9 @@ public sealed class NetCaptureController : MonoBehaviour
     public bool IsDeployed => _netState == NetState.Deployed;
     public bool IsRecallable => IsDeployed;
     public bool CanCapture => IsDeployed;
+    public float Radius => Mathf.Max(0f, _data.radius);
+    public float SpreadDuration => Mathf.Max(0f, _data.spreadDuration);
+    public float FoldDuration => Mathf.Max(0f, _data.foldDuration);
 
     private void Awake()
     {
@@ -65,19 +74,22 @@ public sealed class NetCaptureController : MonoBehaviour
         TryCapture(other);
     }
 
+    public void Initialize(NetData data)
+    {
+        _data = data;
+    }
+
     public void PrepareForLaunch()
     {
         Release(CaptureReleaseReason.Interrupted);
         _netState = NetState.Spreading;
     }
 
-    public void BeginSpread(NetSpreadData spreadData)
+    public void BeginSpread()
     {
         Release(CaptureReleaseReason.Interrupted);
-        _netRadius = Mathf.Max(0f, spreadData.radius);
         _netState = NetState.Spreading;
-        gameObject.SetActive(true);
-        SpreadStarted?.Invoke(spreadData);
+        SpreadStarted?.Invoke();
     }
 
     public void CompleteSpread()
@@ -86,20 +98,16 @@ public sealed class NetCaptureController : MonoBehaviour
 
         _lastNetCenter = transform.position;
         _netState = NetState.Deployed;
-        ApplyColliderRadius(_netRadius);
+        ApplyColliderRadius(Radius);
         SetColliderEnabled(true);
     }
 
-    public void BeginFold(float duration, CaptureReleaseReason releaseReason)
+    public void BeginFold(CaptureReleaseReason releaseReason)
     {
         Release(releaseReason);
         _netState = NetState.Folded;
-        gameObject.SetActive(true);
 
-        FoldStarted?.Invoke(new NetFoldData
-        {
-            duration = duration
-        });
+        FoldStarted?.Invoke();
     }
 
     public void CompleteFold()
@@ -122,12 +130,7 @@ public sealed class NetCaptureController : MonoBehaviour
 
         Vector2 netCenter = transform.position;
         Vector2 netDelta = netCenter - _lastNetCenter;
-        float radiusSqr = _netRadius * _netRadius;
-        NetCaptureContext context = new()
-        {
-            netCenter = netCenter,
-            netRadius = _netRadius
-        };
+        float innerRadius = Radius - _netThickness;
 
         for (int i = _capturedTargets.Count - 1; i >= 0; i--)
         {
@@ -138,19 +141,22 @@ public sealed class NetCaptureController : MonoBehaviour
                 continue;
             }
 
-            if (!target.CanBeCaptured(context))
+            if (IsInactive(target))
             {
                 target.OnCaptureReleased(CaptureReleaseReason.Interrupted);
                 _capturedTargets.RemoveAt(i);
                 continue;
             }
 
-            Vector2 targetPosition = target.CapturePosition + netDelta;
+            Vector2 targetPosition = target.Position + _followDampingRatio * netDelta;
             Vector2 offset = targetPosition - netCenter;
+
+            float validRadius = Mathf.Max(0f, innerRadius - target.Radius);
+            float radiusSqr = validRadius * validRadius;
 
             if (offset.sqrMagnitude > radiusSqr)
             {
-                targetPosition = netCenter + offset.normalized * _netRadius;
+                targetPosition = netCenter + offset.normalized * validRadius;
             }
 
             target.OnCapturedMove(targetPosition, netVelocity, deltaTime);
@@ -190,12 +196,15 @@ public sealed class NetCaptureController : MonoBehaviour
             target = other.GetComponentInParent<ICapturable>();
         }
 
+        if (target == null) return;
+
         if (IsMissing(target) || _capturedTargets.Contains(target)) return;
+        if (_capturedTargets.Count >= GetCaptureCapacity()) return;
 
         NetCaptureContext context = new()
         {
             netCenter = transform.position,
-            netRadius = _netRadius
+            netRadius = Radius
         };
 
         if (!target.CanBeCaptured(context)) return;
@@ -224,15 +233,28 @@ public sealed class NetCaptureController : MonoBehaviour
     {
         return target == null || target is UnityEngine.Object unityObject && unityObject == null;
     }
+
+    private static bool IsInactive(ICapturable target)
+    {
+        return target is Behaviour behaviour && !behaviour.isActiveAndEnabled;
+    }
+
+    private int GetCaptureCapacity()
+    {
+        return Mathf.Max(1, _data.captureCount);
+    }
+
+#if UNITY_EDITOR
+    private void OnDrawGizmos()
+    {
+        if (_netState == NetState.Deployed)
+        {
+            Gizmos.color = Color.darkRed;
+            Gizmos.DrawWireSphere(transform.position, Radius);
+            Gizmos.color = Color.softRed;
+            Gizmos.DrawWireSphere(transform.position, Radius - _netThickness);
+        }
+    }
+#endif
 }
 
-public struct NetSpreadData
-{
-    public float radius;
-    public float time;
-}
-
-public struct NetFoldData
-{
-    public float duration;
-}

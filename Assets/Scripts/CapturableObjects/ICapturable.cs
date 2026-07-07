@@ -2,7 +2,8 @@ using UnityEngine;
 
 public interface ICapturable
 {
-    public Vector2 CapturePosition { get; }
+    public Vector2 Position { get; }
+    public float Radius { get; }
     public CreatureCaptureData CaptureData { get; }
 
     public bool CanBeCaptured(NetCaptureContext context);

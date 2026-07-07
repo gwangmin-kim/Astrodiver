@@ -13,12 +13,13 @@ public class PlayerInputHandler : MonoBehaviour
     [SerializeField] private string _attackActionName = "Attack"; // 우클릭/Right Trigger
 
     [Header("Mouse Aim Settings")]
-    [Tooltip("마우스 사용 시 임계 조준 거리\n마우스 포인터가 이 거리(월드 좌표 기준)를 넘어가면 벡터 크기가 1이 됨")]
-    [SerializeField] private float _mouseAimThreshold;
+    [Tooltip("마우스 사용 시 임계 조준 거리\n"
+            + "마우스 포인터가 이 거리(월드 좌표 기준)를 넘어가면 벡터 크기가 1이 됨")]
+    [SerializeField][Range(0.1f, 10f)] private float _mouseAimThreshold;
 
     [Header("Input Buffer Settings")]
     [Tooltip("버튼 입력이 캐싱되어 유지되는 시간(초)")]
-    [SerializeField] private float _inputBufferTime;
+    [SerializeField][Range(0f, 1f)] private float _inputBufferTime;
     // 버퍼링 타이머
     private float _dashBufferTimer = 0f;
 

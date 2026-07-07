@@ -7,7 +7,8 @@ public class CreatureController : MonoBehaviour, ICapturable
     private Vector2 _captureSmoothVelocity;
     private bool _isCaptured;
 
-    public Vector2 CapturePosition => transform.position;
+    public Vector2 Position => transform.position;
+    public float Radius => _data.radius;
     public CreatureCaptureData CaptureData => _data;
 
     private void OnDisable()
@@ -18,7 +19,7 @@ public class CreatureController : MonoBehaviour, ICapturable
 
     public bool CanBeCaptured(NetCaptureContext context)
     {
-        return isActiveAndEnabled;
+        return isActiveAndEnabled && !_isCaptured;
     }
 
     public void OnCaptureStarted(NetCaptureContext context)
@@ -31,8 +32,7 @@ public class CreatureController : MonoBehaviour, ICapturable
     {
         if (!_isCaptured) return;
 
-        float dampingTime = _data.GetFollowDampingTime();
-        float maxSpeed = _data.GetMaxFollowSpeed();
+        float dampingTime = _data.followDampingTime;
 
         Vector2 nextPosition = (dampingTime <= 0f)
             ? targetPosition
@@ -41,7 +41,7 @@ public class CreatureController : MonoBehaviour, ICapturable
                 targetPosition,
                 ref _captureSmoothVelocity,
                 dampingTime,
-                maxSpeed,
+                Mathf.Infinity,
                 deltaTime);
 
         transform.position = nextPosition;
@@ -52,21 +52,26 @@ public class CreatureController : MonoBehaviour, ICapturable
         _isCaptured = false;
         _captureSmoothVelocity = Vector2.zero;
     }
+
+#if UNITY_EDITOR
+    private void OnDrawGizmos()
+    {
+        if (isActiveAndEnabled)
+        {
+            Gizmos.color = Color.green;
+            Gizmos.DrawWireSphere(transform.position, _data.radius);
+        }
+    }
+#endif
 }
 
 [System.Serializable]
 public struct CreatureCaptureData
 {
-    [SerializeField] private float _followDampingTime;
-    [SerializeField] private float _maxFollowSpeed;
+    [Tooltip("대략적인 생물체의 크기를 결정\n"
+            + "그물에 잡혔을 때 이 값을 고려하여 그물 내부에 위치하도록 조정됨")]
+    [Min(0f)] public float radius;
 
-    public float GetFollowDampingTime()
-    {
-        return _followDampingTime > 0f ? _followDampingTime : 0.08f;
-    }
-
-    public float GetMaxFollowSpeed()
-    {
-        return _maxFollowSpeed > 0f ? _maxFollowSpeed : Mathf.Infinity;
-    }
+    [Tooltip("그물에 잡혔을 때 그물에 부드럽게 끌려가는 관성 시간")]
+    [Range(0f, 1f)] public float followDampingTime;
 }

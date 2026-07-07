@@ -44,26 +44,26 @@ public class NetAnimationController : MonoBehaviour
         _currentTween.Stop();
     }
 
-    private void HandleSpreadStarted(NetSpreadData spreadData)
+    private void HandleSpreadStarted()
     {
         _currentTween.Stop();
 
         _currentTween = Tween.Scale(
                 _netSprite,
-                endValue: spreadData.radius,
-                duration: Mathf.Max(spreadData.time, 0.01f),
+                endValue: _captureController.Radius,
+                duration: Mathf.Max(_captureController.SpreadDuration, 0.01f),
                 ease: _spreadEase)
             .OnComplete(_captureController.CompleteSpread);
     }
 
-    private void HandleFoldStarted(NetFoldData foldData)
+    private void HandleFoldStarted()
     {
         _currentTween.Stop();
 
         _currentTween = Tween.Scale(
                 _netSprite,
                 endValue: _foldedRadius,
-                duration: Mathf.Max(foldData.duration, 0.01f))
+                duration: Mathf.Max(_captureController.FoldDuration, 0.01f))
             .OnComplete(_captureController.CompleteFold);
     }
 
