@@ -7,9 +7,12 @@ public class CreatureController : MonoBehaviour, ICapturable
     private Vector2 _captureSmoothVelocity;
     private bool _isCaptured;
 
+    public CreatureCaptureData CaptureData => _data;
     public Vector2 Position => transform.position;
     public float Radius => _data.radius;
-    public CreatureCaptureData CaptureData => _data;
+
+    public Vector2 BehaviorVector => Vector2.zero;
+
 
     private void OnDisable()
     {

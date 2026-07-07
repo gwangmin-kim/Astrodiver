@@ -13,8 +13,16 @@ public sealed class NetCaptureController : MonoBehaviour
     [Tooltip("그물이 움직일 때 내부 생물들이 그물에 딸려가는 정도\n"
             + "그물의 속도에 이 비율이 곱해진 속도가 내부 생물에게 적용됨")]
     [SerializeField][Range(0f, 1f)] private float _followDampingRatio;
+    [Tooltip("포획된 생물들이 서로 떨어져 있으려고 하는 거리 보정값")]
+    [SerializeField][Min(0f)] private float _repulsionDistancePadding = 0.1f;
+    [Tooltip("포획된 생물 간 척력의 강도")]
+    [SerializeField][Range(0f, 1f)] private float _repulsionStrength = 0.5f;
+    [Tooltip("한 프레임 안에서 생물 간 척력 보정을 반복하는 횟수")]
+    [SerializeField][Range(1, 8)] private int _repulsionIterations = 2;
 
     private readonly List<ICapturable> _capturedTargets = new();
+    private readonly List<ICapturable> _activeTargets = new();
+    private readonly List<Vector2> _targetPositions = new();
 
     private Vector2 _lastNetCenter; // 움직임 delta를 계산하기 위한 포지션 캐싱
     private NetData _data;
@@ -132,6 +140,20 @@ public sealed class NetCaptureController : MonoBehaviour
         Vector2 netDelta = netCenter - _lastNetCenter;
         float innerRadius = Radius - _netThickness;
 
+        CollectActiveCapturedTargets();
+        CalculateBehaviorTargetPositions(deltaTime);
+        ApplyRepulsionToTargetPositions();
+        ApplyNetFollowToTargetPositions(netDelta);
+        ClampTargetPositionsInsideNet(netCenter, innerRadius);
+        MoveCapturedTargets(netVelocity, deltaTime);
+
+        _lastNetCenter = netCenter;
+    }
+
+    private void CollectActiveCapturedTargets()
+    {
+        _activeTargets.Clear();
+
         for (int i = _capturedTargets.Count - 1; i >= 0; i--)
         {
             ICapturable target = _capturedTargets[i];
@@ -148,21 +170,125 @@ public sealed class NetCaptureController : MonoBehaviour
                 continue;
             }
 
-            Vector2 targetPosition = target.Position + _followDampingRatio * netDelta;
-            Vector2 offset = targetPosition - netCenter;
+            _activeTargets.Add(target);
+        }
+    }
 
-            float validRadius = Mathf.Max(0f, innerRadius - target.Radius);
-            float radiusSqr = validRadius * validRadius;
+    private void CalculateBehaviorTargetPositions(float deltaTime)
+    {
+        _targetPositions.Clear();
 
-            if (offset.sqrMagnitude > radiusSqr)
-            {
-                targetPosition = netCenter + offset.normalized * validRadius;
-            }
+        for (int i = 0; i < _activeTargets.Count; i++)
+        {
+            ICapturable target = _activeTargets[i];
+            _targetPositions.Add(target.Position + CalculateBehaviorMovement(target, deltaTime));
+        }
+    }
 
-            target.OnCapturedMove(targetPosition, netVelocity, deltaTime);
+    private Vector2 CalculateBehaviorMovement(ICapturable target, float deltaTime)
+    {
+        if (target == null || deltaTime <= 0f)
+        {
+            return Vector2.zero;
         }
 
-        _lastNetCenter = netCenter;
+        return target.BehaviorVector * deltaTime;
+    }
+
+    private Vector2 CalculateNetFollowMovement(Vector2 netDelta)
+    {
+        return _followDampingRatio * netDelta;
+    }
+
+    private void ApplyRepulsionToTargetPositions()
+    {
+        int targetCount = _activeTargets.Count;
+        if (targetCount <= 1 || _repulsionStrength <= 0f) return;
+
+        int iterationCount = Mathf.Max(1, _repulsionIterations);
+        for (int iteration = 0; iteration < iterationCount; iteration++)
+        {
+            for (int i = 0; i < targetCount; i++)
+            {
+                for (int j = i + 1; j < targetCount; j++)
+                {
+                    Vector2 repulsion = CalculateRepulsionMovement(i, j);
+                    _targetPositions[i] += repulsion;
+                    _targetPositions[j] -= repulsion;
+                }
+            }
+        }
+    }
+
+    private Vector2 CalculateRepulsionMovement(int indexA, int indexB)
+    {
+        ICapturable targetA = _activeTargets[indexA];
+        ICapturable targetB = _activeTargets[indexB];
+        float minDistance = Mathf.Max(0f, targetA.Radius + targetB.Radius + _repulsionDistancePadding);
+        if (minDistance <= 0f) return Vector2.zero;
+
+        Vector2 offset = _targetPositions[indexA] - _targetPositions[indexB];
+        float distance = offset.magnitude;
+        if (distance >= minDistance) return Vector2.zero;
+
+        Vector2 direction = distance > Mathf.Epsilon
+            ? offset / distance
+            : GetFallbackRepulsionDirection(indexA, indexB);
+
+        float penetration = minDistance - distance;
+        return direction * (0.5f * penetration * _repulsionStrength);
+    }
+
+    private void ApplyNetFollowToTargetPositions(Vector2 netDelta)
+    {
+        Vector2 netFollowMovement = CalculateNetFollowMovement(netDelta);
+        if (netFollowMovement == Vector2.zero) return;
+
+        for (int i = 0; i < _targetPositions.Count; i++)
+        {
+            _targetPositions[i] += netFollowMovement;
+        }
+    }
+
+    private void ClampTargetPositionsInsideNet(Vector2 netCenter, float innerRadius)
+    {
+        for (int i = 0; i < _activeTargets.Count; i++)
+        {
+            _targetPositions[i] = ClampInsideNet(_activeTargets[i], _targetPositions[i], netCenter, innerRadius);
+        }
+    }
+
+    private void MoveCapturedTargets(Vector2 netVelocity, float deltaTime)
+    {
+        for (int i = 0; i < _activeTargets.Count; i++)
+        {
+            _activeTargets[i].OnCapturedMove(_targetPositions[i], netVelocity, deltaTime);
+        }
+    }
+
+    private static Vector2 ClampInsideNet(ICapturable target, Vector2 position, Vector2 netCenter, float innerRadius)
+    {
+        float validRadius = Mathf.Max(0f, innerRadius - target.Radius);
+        Vector2 offset = position - netCenter;
+        float radiusSqr = validRadius * validRadius;
+
+        if (offset.sqrMagnitude <= radiusSqr)
+        {
+            return position;
+        }
+
+        if (offset.sqrMagnitude <= Mathf.Epsilon)
+        {
+            return netCenter;
+        }
+
+        return netCenter + offset.normalized * validRadius;
+    }
+
+    private static Vector2 GetFallbackRepulsionDirection(int indexA, int indexB)
+    {
+        float angle = (indexA + 1) * 2.399963f + indexB * 0.916298f;
+        return new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
     }
 
     private void Release(CaptureReleaseReason reason)

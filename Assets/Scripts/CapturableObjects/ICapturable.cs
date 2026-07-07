@@ -2,9 +2,10 @@ using UnityEngine;
 
 public interface ICapturable
 {
+    public CreatureCaptureData CaptureData { get; }
     public Vector2 Position { get; }
     public float Radius { get; }
-    public CreatureCaptureData CaptureData { get; }
+    public Vector2 BehaviorVector { get; } // 대상의 행동패턴에 따른 움직임 벡터
 
     public bool CanBeCaptured(NetCaptureContext context);
     public void OnCaptureStarted(NetCaptureContext context);
