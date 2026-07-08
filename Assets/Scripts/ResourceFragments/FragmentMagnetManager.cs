@@ -47,7 +47,8 @@ public class FragmentMagnetManager : MonoBehaviour
             // 수집 범위 안의 파티클은 즉시 수집
             if (sqrDistance < sqrCollectRadius)
             {
-                _playerInventory.CollectResourceFragment();
+                FragementResourceData data = new();
+                _playerInventory.CollectResourceFragment(data);
                 _particles[i].remainingLifetime = 0f;
             }
         }

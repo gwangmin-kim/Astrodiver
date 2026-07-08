@@ -71,6 +71,8 @@ public class CreatureController : MonoBehaviour, ICapturable
 [System.Serializable]
 public struct CreatureCaptureData
 {
+    public CreatureResourceData resourceData;
+
     [Tooltip("대략적인 생물체의 크기를 결정\n"
             + "그물에 잡혔을 때 이 값을 고려하여 그물 내부에 위치하도록 조정됨")]
     [Min(0f)] public float radius;

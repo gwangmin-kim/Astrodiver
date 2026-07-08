@@ -4,6 +4,10 @@ using PrimeTween;
 
 public class NetGunController : MonoBehaviour
 {
+    [Header("Required Components")]
+    [SerializeField] private PlayerInventoryController _playerInventory;
+
+    [Header("Net Gun Settings")]
     [SerializeField] private NetGunData _data;
     [SerializeField] private NetCaptureController _netPrefab;
 
@@ -16,6 +20,7 @@ public class NetGunController : MonoBehaviour
     [SerializeField][Range(0f, 1f)] private float _dampingTime;
 
     private readonly List<NetRuntime> _netRuntimeList = new();
+    private readonly List<ICapturable> _collectedTargetsBuffer = new();
     private readonly NetMovementManager _movementManager = new();
     private float _chargingTime;
     private NetRuntime _chargingNet;
@@ -23,9 +28,9 @@ public class NetGunController : MonoBehaviour
 
     private enum NetGunState
     {
-        Idle, // 대기 상태
-        Charging, // 발사 전 충전 중
-        Retracting // 회수 중
+        Idle,
+        Charging,
+        Retracting
     }
 
     private NetGunState _netGunState = NetGunState.Idle;
@@ -39,6 +44,9 @@ public class NetGunController : MonoBehaviour
 
     private void Start()
     {
+        _playerInventory = PlayerContext.Instance != null
+                            ? PlayerContext.Instance.Inventory
+                            : null;
         ResetAllNetsToIdle();
     }
 
@@ -203,6 +211,7 @@ public class NetGunController : MonoBehaviour
         if (net == null || !net.net.IsRecallable) return false;
 
         net.shootTween.Stop();
+        _movementManager.Reset(net.net);
         _retractingNet = net;
         _netGunState = NetGunState.Retracting;
         return true;
@@ -210,36 +219,93 @@ public class NetGunController : MonoBehaviour
 
     private void UpdateRetracting(float deltaTime)
     {
-        if (_retractingNet == null || !_retractingNet.net.IsRecallable)
+        if (_retractingNet == null)
+        {
+            _netGunState = NetGunState.Idle;
+            return;
+        }
+
+        if (!_retractingNet.net.IsRecallable)
+        {
+            return;
+        }
+
+        if (_shootOrigin == null)
+        {
+            StartFold(_retractingNet);
+            return;
+        }
+
+        Vector2 diff = (Vector2)_shootOrigin.position - (Vector2)_retractingNet.net.transform.position;
+        float collectRadius = Mathf.Max(0f, _collectRadiusThreshold);
+        if (diff.sqrMagnitude <= collectRadius * collectRadius)
+        {
+            StartFold(_retractingNet);
+            return;
+        }
+
+        Vector2 targetVelocity = Mathf.Max(0f, _data.collectSpeed) * diff.normalized;
+        _movementManager.SetTargetVelocity(_retractingNet.net, targetVelocity);
+    }
+
+    private void StartFold(NetRuntime net)
+    {
+        net.shootTween.Stop();
+        _movementManager.Reset(net.net);
+        net.net.BeginFold(CaptureReleaseReason.Collected);
+    }
+
+    private void CancelRetracting()
+    {
+        if (_retractingNet != null)
+        {
+            _movementManager.SetTargetVelocity(_retractingNet.net, Vector2.zero);
+        }
+
+        _retractingNet = null;
+        _netGunState = NetGunState.Idle;
+    }
+
+    private void StartFoldedNetRecall(NetRuntime net)
+    {
+        if (net == null)
         {
             _retractingNet = null;
             _netGunState = NetGunState.Idle;
             return;
         }
 
-        Vector2 diff = (Vector2)_shootOrigin.position - (Vector2)_retractingNet.net.transform.position;
-        if (diff.sqrMagnitude <= _collectRadiusThreshold * _collectRadiusThreshold)
+        net.shootTween.Stop();
+        _movementManager.Reset(net.net);
+        CollectCapturedTargets(net.net);
+
+        if (_shootOrigin == null)
         {
-            FinishRetracting(_retractingNet);
+            CompleteRetracting(net);
             return;
         }
 
-        Vector2 targetVelocity = _data.collectSpeed * diff.normalized;
-        _movementManager.SetTargetVelocity(_retractingNet.net, targetVelocity);
+        float recallDistance = Vector2.Distance(net.net.transform.position, _shootOrigin.position);
+        float recallSpeed = Mathf.Max(0.01f, _data.collectSpeed);
+        float recallDuration = Mathf.Max(0.01f, recallDistance / recallSpeed);
+
+        net.shootTween = Tween.Position(
+                net.net.transform,
+                endValue: _shootOrigin.position,
+                duration: recallDuration,
+                ease: _shootEase)
+            .OnComplete(() => CompleteRetracting(net));
     }
 
-    private void CancelRetracting()
+    private void CompleteRetracting(NetRuntime net)
     {
-        _retractingNet = null;
-        _netGunState = NetGunState.Idle;
-    }
+        ResetNetToPool(net);
 
-    private void FinishRetracting(NetRuntime net)
-    {
-        net.shootTween.Stop();
-        _movementManager.Reset(net.net);
-
-        net.net.BeginFold(CaptureReleaseReason.Collected);
+        if (net == _retractingNet)
+        {
+            _retractingNet = null;
+            _netGunState = NetGunState.Idle;
+        }
     }
 
     private void ResetNetToPool(NetRuntime net)
@@ -272,7 +338,7 @@ public class NetGunController : MonoBehaviour
     {
         for (int i = 0; i < _netRuntimeList.Count; i++)
         {
-            if (_netRuntimeList[i].net.IsFolded)
+            if (_netRuntimeList[i].net.IsAvailable)
             {
                 return _netRuntimeList[i];
             }
@@ -335,9 +401,48 @@ public class NetGunController : MonoBehaviour
     {
         if (net != _retractingNet) return;
 
-        ResetNetToPool(net);
-        _retractingNet = null;
-        _netGunState = NetGunState.Idle;
+        StartFoldedNetRecall(net);
+    }
+
+    private void CollectCapturedTargets(NetCaptureController net)
+    {
+        _collectedTargetsBuffer.Clear();
+        net.DrainCapturedTargets(CaptureReleaseReason.Collected, _collectedTargetsBuffer);
+
+        for (int i = 0; i < _collectedTargetsBuffer.Count; i++)
+        {
+            CollectCapturedTarget(_collectedTargetsBuffer[i]);
+        }
+
+        _collectedTargetsBuffer.Clear();
+    }
+
+    private void CollectCapturedTarget(ICapturable target)
+    {
+        if (IsMissing(target)) return;
+
+        CreatureResourceData resourceData = target.CaptureData.resourceData;
+        Component targetComponent = target as Component;
+        if (targetComponent == null)
+        {
+            _playerInventory.CollectCreature(resourceData);
+            return;
+        }
+
+        CaptureAnimationController animationController =
+            targetComponent.GetComponent<CaptureAnimationController>()
+            ?? targetComponent.gameObject.AddComponent<CaptureAnimationController>();
+
+        Transform collectTarget = _shootOrigin != null ? _shootOrigin : transform;
+        animationController.PlayCollectTo(collectTarget, () =>
+        {
+            _playerInventory.CollectCreature(resourceData);
+        });
+    }
+
+    private static bool IsMissing(ICapturable target)
+    {
+        return target == null || target is Object unityObject && unityObject == null;
     }
 
     private sealed class NetRuntime

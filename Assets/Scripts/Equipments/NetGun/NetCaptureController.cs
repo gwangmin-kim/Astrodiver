@@ -31,7 +31,8 @@ public sealed class NetCaptureController : MonoBehaviour
     {
         Folded, // 접힌 상태
         Spreading, // 펼쳐지는 중
-        Deployed // 펼쳐짐
+        Deployed, // 펼쳐짐
+        Folding // 접히는 중
     }
 
     [SerializeField] private NetState _netState = NetState.Folded;
@@ -44,6 +45,8 @@ public sealed class NetCaptureController : MonoBehaviour
     public bool IsFolded => _netState == NetState.Folded;
     public bool IsSpreading => _netState == NetState.Spreading;
     public bool IsDeployed => _netState == NetState.Deployed;
+    public bool IsFolding => _netState == NetState.Folding;
+    public bool IsAvailable => !gameObject.activeSelf;
     public bool IsRecallable => IsDeployed;
     public bool CanCapture => IsDeployed;
     public float Radius => Mathf.Max(0f, _data.radius);
@@ -112,16 +115,23 @@ public sealed class NetCaptureController : MonoBehaviour
 
     public void BeginFold(CaptureReleaseReason releaseReason)
     {
-        Release(releaseReason);
-        _netState = NetState.Folded;
+        SetColliderEnabled(false);
+
+        if (releaseReason != CaptureReleaseReason.Collected)
+        {
+            Release(releaseReason);
+        }
+
+        _netState = NetState.Folding;
 
         FoldStarted?.Invoke();
     }
 
     public void CompleteFold()
     {
-        if (_netState != NetState.Folded) return;
+        if (_netState != NetState.Folding) return;
 
+        _netState = NetState.Folded;
         FoldCompleted?.Invoke();
     }
 
@@ -293,6 +303,11 @@ public sealed class NetCaptureController : MonoBehaviour
 
     private void Release(CaptureReleaseReason reason)
     {
+        DrainCapturedTargets(reason, null);
+    }
+
+    public void DrainCapturedTargets(CaptureReleaseReason reason, List<ICapturable> drainedTargets)
+    {
         SetColliderEnabled(false);
 
         if (_capturedTargets.Count == 0)
@@ -305,6 +320,7 @@ public sealed class NetCaptureController : MonoBehaviour
             ICapturable target = _capturedTargets[i];
             if (!IsMissing(target))
             {
+                drainedTargets?.Add(target);
                 target.OnCaptureReleased(reason);
             }
         }
@@ -316,11 +332,7 @@ public sealed class NetCaptureController : MonoBehaviour
     {
         if (!CanCapture) return;
 
-        ICapturable target = other.GetComponent<ICapturable>();
-        if (target == null)
-        {
-            target = other.GetComponentInParent<ICapturable>();
-        }
+        if (!other.TryGetComponent<ICapturable>(out var target)) return;
 
         if (target == null) return;
 
@@ -383,4 +395,3 @@ public sealed class NetCaptureController : MonoBehaviour
     }
 #endif
 }
-

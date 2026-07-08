@@ -4,7 +4,12 @@ public class PlayerInventoryController : MonoBehaviour
 {
     public MagnetData magnetData;
 
-    public void CollectResourceFragment()
+    public void CollectCreature(CreatureResourceData data)
+    {
+
+    }
+
+    public void CollectResourceFragment(FragementResourceData data)
     {
 
     }
@@ -19,4 +24,16 @@ public class PlayerInventoryController : MonoBehaviour
         Gizmos.DrawWireSphere(transform.position, magnetData.collectRadius);
     }
 #endif
+}
+
+[System.Serializable]
+public struct CreatureResourceData
+{
+
+}
+
+[System.Serializable]
+public struct FragementResourceData
+{
+
 }
