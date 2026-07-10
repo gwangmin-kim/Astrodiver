@@ -1,0 +1,118 @@
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+[DisallowMultipleComponent]
+public sealed class ResourceFragmentListUI : MonoBehaviour
+{
+    [SerializeField] private Vector2 _anchoredPosition = new(-32f, 24f);
+    [SerializeField] private Vector2 _size = new(190f, 240f);
+    [SerializeField][Min(0f)] private float _entrySpacing = 4f;
+
+    private readonly Dictionary<ResourceDefinition, ResourceFragmentEntryUI> _entries = new();
+
+    private void OnEnable()
+    {
+        EnsureLayout();
+
+        if (Application.isPlaying)
+        {
+            InventoryEvents.ResourceAmountChanged += OnResourceAmountChanged;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (Application.isPlaying)
+        {
+            InventoryEvents.ResourceAmountChanged -= OnResourceAmountChanged;
+        }
+    }
+
+    private void OnResourceAmountChanged(ResourceDefinition definition, int amount)
+    {
+        if (definition == null) return;
+
+        EnsureLayout();
+
+        if (amount <= 0)
+        {
+            RemoveEntry(definition);
+            return;
+        }
+
+        ResourceFragmentEntryUI entry = GetOrCreateEntry(definition);
+        entry.SetResource(definition, amount);
+    }
+
+    private void EnsureLayout()
+    {
+        RectTransform rectTransform = EnsureComponent<RectTransform>(gameObject);
+        rectTransform.anchorMin = new Vector2(1f, 0f);
+        rectTransform.anchorMax = new Vector2(1f, 0f);
+        rectTransform.pivot = new Vector2(1f, 0f);
+        rectTransform.anchoredPosition = _anchoredPosition;
+        rectTransform.sizeDelta = _size;
+
+        VerticalLayoutGroup layoutGroup = EnsureComponent<VerticalLayoutGroup>(gameObject);
+        layoutGroup.childAlignment = TextAnchor.LowerRight;
+        layoutGroup.childControlHeight = true;
+        layoutGroup.childControlWidth = true;
+        layoutGroup.childForceExpandHeight = false;
+        layoutGroup.childForceExpandWidth = false;
+        layoutGroup.spacing = _entrySpacing;
+    }
+
+    private ResourceFragmentEntryUI GetOrCreateEntry(ResourceDefinition definition)
+    {
+        if (_entries.TryGetValue(definition, out ResourceFragmentEntryUI entry) && entry != null)
+        {
+            return entry;
+        }
+
+        GameObject entryObject = new(GetEntryName(definition), typeof(RectTransform));
+        entryObject.transform.SetParent(transform, false);
+
+        LayoutElement layoutElement = entryObject.AddComponent<LayoutElement>();
+        layoutElement.preferredWidth = _size.x;
+        layoutElement.preferredHeight = 28f;
+
+        entry = entryObject.AddComponent<ResourceFragmentEntryUI>();
+        _entries[definition] = entry;
+        return entry;
+    }
+
+    private void RemoveEntry(ResourceDefinition definition)
+    {
+        if (!_entries.TryGetValue(definition, out ResourceFragmentEntryUI entry)) return;
+
+        _entries.Remove(definition);
+        if (entry == null) return;
+
+        DestroyUiObject(entry.gameObject);
+    }
+
+    private static string GetEntryName(ResourceDefinition definition)
+    {
+        string id = string.IsNullOrWhiteSpace(definition.Id) ? definition.name : definition.Id;
+        return $"Resource Fragment {id}";
+    }
+
+    private static void DestroyUiObject(Object target)
+    {
+        if (Application.isPlaying)
+        {
+            Destroy(target);
+        }
+        else
+        {
+            DestroyImmediate(target);
+        }
+    }
+
+    private static T EnsureComponent<T>(GameObject target) where T : Component
+    {
+        T component = target.GetComponent<T>();
+        return component != null ? component : target.AddComponent<T>();
+    }
+}

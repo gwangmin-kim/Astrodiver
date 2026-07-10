@@ -2,12 +2,12 @@ using UnityEngine;
 
 public class CreatureController : MonoBehaviour, ICapturable
 {
-    [SerializeField] private CreatureCaptureData _data;
+    [SerializeField] private CaptureData _data;
 
     private Vector2 _captureSmoothVelocity;
     private bool _isCaptured;
 
-    public CreatureCaptureData CaptureData => _data;
+    public CaptureData CaptureData => _data;
     public Vector2 Position => transform.position;
     public float Radius => _data.radius;
 
@@ -66,17 +66,4 @@ public class CreatureController : MonoBehaviour, ICapturable
         }
     }
 #endif
-}
-
-[System.Serializable]
-public struct CreatureCaptureData
-{
-    public CreatureResourceData resourceData;
-
-    [Tooltip("대략적인 생물체의 크기를 결정\n"
-            + "그물에 잡혔을 때 이 값을 고려하여 그물 내부에 위치하도록 조정됨")]
-    [Min(0f)] public float radius;
-
-    [Tooltip("그물에 잡혔을 때 그물에 부드럽게 끌려가는 관성 시간")]
-    [Range(0f, 1f)] public float followDampingTime;
 }

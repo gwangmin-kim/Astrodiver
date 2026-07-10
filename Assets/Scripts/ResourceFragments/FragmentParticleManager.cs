@@ -3,11 +3,14 @@ using UnityEngine;
 [RequireComponent(typeof(ParticleSystem))]
 public class FragmentParticleManager : MonoBehaviour
 {
-    // 싱글톤
-    public static FragmentParticleManager Instance { get; private set; }
+    [SerializeField] private ResourceDefinition _resource;
 
     private ParticleSystem _masterParticleSystem;
     private ParticleSystem.EmitParams _emitParams;
+
+    public static FragmentParticleManager Instance { get; private set; }
+
+    public ResourceDefinition Resource => _resource;
 
     public void DropFragment(Vector3 position, FragmentDropData data)
     {
@@ -23,15 +26,20 @@ public class FragmentParticleManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance == null)
+        if (Instance != null && Instance != this)
         {
-            Instance = this;
-
-            _masterParticleSystem = GetComponent<ParticleSystem>();
+            Debug.LogWarning($"{nameof(FragmentParticleManager)} already exists. Replacing singleton instance.", this);
         }
-        else
+
+        Instance = this;
+        _masterParticleSystem = GetComponent<ParticleSystem>();
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
         {
-            Destroy(gameObject);
+            Instance = null;
         }
     }
 }

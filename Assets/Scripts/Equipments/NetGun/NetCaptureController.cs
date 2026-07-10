@@ -306,6 +306,22 @@ public sealed class NetCaptureController : MonoBehaviour
         DrainCapturedTargets(reason, null);
     }
 
+    public void DrainCapturedTargets(List<ICapturable> drainedTargets)
+    {
+        SetColliderEnabled(false);
+
+        for (int i = _capturedTargets.Count - 1; i >= 0; i--)
+        {
+            ICapturable target = _capturedTargets[i];
+            if (!IsMissing(target))
+            {
+                drainedTargets?.Add(target);
+            }
+        }
+
+        _capturedTargets.Clear();
+    }
+
     public void DrainCapturedTargets(CaptureReleaseReason reason, List<ICapturable> drainedTargets)
     {
         SetColliderEnabled(false);

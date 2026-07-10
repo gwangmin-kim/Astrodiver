@@ -407,7 +407,7 @@ public class NetGunController : MonoBehaviour
     private void CollectCapturedTargets(NetCaptureController net)
     {
         _collectedTargetsBuffer.Clear();
-        net.DrainCapturedTargets(CaptureReleaseReason.Collected, _collectedTargetsBuffer);
+        net.DrainCapturedTargets(_collectedTargetsBuffer);
 
         for (int i = 0; i < _collectedTargetsBuffer.Count; i++)
         {
@@ -422,10 +422,20 @@ public class NetGunController : MonoBehaviour
         if (IsMissing(target)) return;
 
         CreatureResourceData resourceData = target.CaptureData.resourceData;
+        CollectionResult result = _playerInventory != null
+            ? _playerInventory.CollectCreature(resourceData)
+            : new CollectionResult(Mathf.Max(0, resourceData.amount), 0);
+
+        if (!result.IsFullyCollected)
+        {
+            target.OnCaptureReleased(CaptureReleaseReason.Interrupted);
+            return;
+        }
+
+        target.OnCaptureReleased(CaptureReleaseReason.Collected);
         Component targetComponent = target as Component;
         if (targetComponent == null)
         {
-            _playerInventory.CollectCreature(resourceData);
             return;
         }
 
@@ -434,10 +444,7 @@ public class NetGunController : MonoBehaviour
             ?? targetComponent.gameObject.AddComponent<CaptureAnimationController>();
 
         Transform collectTarget = _shootOrigin != null ? _shootOrigin : transform;
-        animationController.PlayCollectTo(collectTarget, () =>
-        {
-            _playerInventory.CollectCreature(resourceData);
-        });
+        animationController.PlayCollectTo(collectTarget, null);
     }
 
     private static bool IsMissing(ICapturable target)

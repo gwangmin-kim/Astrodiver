@@ -41,6 +41,9 @@ public class FloatageController : MonoBehaviour, IDamagable
 [System.Serializable]
 public struct FragmentDropData
 {
+    [Tooltip("파괴 시 드롭할 자원의 종류")]
+    public ResourceDefinition resource;
+
     [Tooltip("파티클 생성 범위 반지름")]
     [Min(0f)] public float radius;
 
