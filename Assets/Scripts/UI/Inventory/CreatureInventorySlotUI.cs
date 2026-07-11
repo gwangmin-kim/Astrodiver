@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -6,12 +7,12 @@ public sealed class CreatureInventorySlotUI : MonoBehaviour
 {
     [SerializeField] private Image _backgroundImage;
     [SerializeField] private Image _iconImage;
-    [SerializeField] private Text _countText;
+    [SerializeField] private TextMeshProUGUI _countText;
     [SerializeField] private Color _backgroundColor = new(0.08f, 0.1f, 0.13f, 0.82f);
     [SerializeField] private Color _emptyIconColor = new(1f, 1f, 1f, 0f);
     [SerializeField] private Color _filledIconColor = Color.white;
     [SerializeField] private Color _countColor = Color.white;
-    [SerializeField][Min(8)] private int _countFontSize = 16;
+    [SerializeField][Range(8, 64)] private int _countFontSize = 16;
 
     public void SetSlot(CreatureInventorySlot slot)
     {
@@ -74,14 +75,10 @@ public sealed class CreatureInventorySlotUI : MonoBehaviour
         countRect.pivot = new Vector2(1f, 0f);
         countRect.anchoredPosition = new Vector2(-4f, 4f);
         countRect.sizeDelta = new Vector2(52f, 22f);
-        _countText.alignment = TextAnchor.LowerRight;
+        _countText.alignment = TextAlignmentOptions.BottomRight;
         _countText.color = _countColor;
         _countText.fontSize = _countFontSize;
         _countText.raycastTarget = false;
-        if (_countText.font == null)
-        {
-            _countText.font = GetDefaultFont();
-        }
     }
 
     private Image EnsureChildImage(Image current, string childName)
@@ -93,13 +90,13 @@ public sealed class CreatureInventorySlotUI : MonoBehaviour
         return EnsureComponent<Image>(null, childObject);
     }
 
-    private Text EnsureChildText(Text current, string childName)
+    private TextMeshProUGUI EnsureChildText(TextMeshProUGUI current, string childName)
     {
         if (current != null) return current;
 
         Transform child = transform.Find(childName);
         GameObject childObject = child != null ? child.gameObject : CreateChild(childName);
-        return EnsureComponent<Text>(null, childObject);
+        return EnsureComponent<TextMeshProUGUI>(null, childObject);
     }
 
     private static T EnsureComponent<T>(T current, GameObject target) where T : Component
@@ -123,9 +120,4 @@ public sealed class CreatureInventorySlotUI : MonoBehaviour
         return rectTransform != null ? rectTransform : target.AddComponent<RectTransform>();
     }
 
-    private static Font GetDefaultFont()
-    {
-        Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        return font != null ? font : Resources.GetBuiltinResource<Font>("Arial.ttf");
-    }
 }

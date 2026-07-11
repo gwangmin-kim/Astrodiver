@@ -2,6 +2,7 @@
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using System.IO;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
@@ -13,6 +14,7 @@ public static class InventoryHudSceneBuilder
     private const string CreatureBarName = "Creature Inventory Bar";
     private const string ResourceListName = "Resource Fragment List";
     private const string CreatureSlotPrefabPath = "Assets/Prefabs/UI/CreatureInventorySlot.prefab";
+    private const string ResourceEntryPrefabPath = "Assets/Prefabs/UI/ResourceFragmentEntry.prefab";
     private const float CreatureSlotSize = 64f;
     private const float CreatureSlotSpacing = 8f;
 
@@ -95,6 +97,8 @@ public static class InventoryHudSceneBuilder
 
     private static void BuildResourceFragmentList(Transform parent)
     {
+        ResourceFragmentEntryUI entryPrefab = GetOrCreateResourceEntryPrefab();
+
         GameObject listObject = FindOrCreateChild(parent, ResourceListName);
         RectTransform rectTransform = EnsureRectTransform(listObject);
         rectTransform.anchorMin = new Vector2(1f, 0f);
@@ -111,7 +115,15 @@ public static class InventoryHudSceneBuilder
         layoutGroup.childForceExpandWidth = false;
         layoutGroup.spacing = 4f;
 
-        EnsureComponent<ResourceFragmentListUI>(listObject);
+        ResourceFragmentListUI list = EnsureComponent<ResourceFragmentListUI>(listObject);
+        SerializedObject serializedList = new(list);
+        serializedList.FindProperty("_entryPrefab").objectReferenceValue = entryPrefab;
+        serializedList.ApplyModifiedPropertiesWithoutUndo();
+
+        for (int i = listObject.transform.childCount - 1; i >= 0; i--)
+        {
+            Object.DestroyImmediate(listObject.transform.GetChild(i).gameObject);
+        }
     }
 
     private static void EnsureEventSystem()
@@ -160,18 +172,30 @@ public static class InventoryHudSceneBuilder
 
     private static CreatureInventorySlotUI GetOrCreateCreatureSlotPrefab()
     {
-        CreatureInventorySlotUI prefab = AssetDatabase.LoadAssetAtPath<CreatureInventorySlotUI>(CreatureSlotPrefabPath);
-        if (prefab != null) return prefab;
-
         Directory.CreateDirectory(Path.GetDirectoryName(CreatureSlotPrefabPath));
 
         GameObject slotObject = new("CreatureInventorySlot", typeof(RectTransform));
         CreatureInventorySlotUI slot = EnsureComponent<CreatureInventorySlotUI>(slotObject);
         slot.SetEmpty();
+        RemoveLegacyTextComponents(slotObject);
 
         GameObject savedPrefab = PrefabUtility.SaveAsPrefabAsset(slotObject, CreatureSlotPrefabPath);
         Object.DestroyImmediate(slotObject);
         return savedPrefab.GetComponent<CreatureInventorySlotUI>();
+    }
+
+    private static ResourceFragmentEntryUI GetOrCreateResourceEntryPrefab()
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(ResourceEntryPrefabPath));
+
+        GameObject entryObject = new("ResourceFragmentEntry", typeof(RectTransform));
+        ResourceFragmentEntryUI entry = EnsureComponent<ResourceFragmentEntryUI>(entryObject);
+        entry.SetResource(null, 0);
+        RemoveLegacyTextComponents(entryObject);
+
+        GameObject savedPrefab = PrefabUtility.SaveAsPrefabAsset(entryObject, ResourceEntryPrefabPath);
+        Object.DestroyImmediate(entryObject);
+        return savedPrefab.GetComponent<ResourceFragmentEntryUI>();
     }
 
     private static GameObject InstantiateSlotPrefab(CreatureInventorySlotUI slotPrefab, Transform parent, string slotName)
@@ -188,6 +212,19 @@ public static class InventoryHudSceneBuilder
 
         slotObject.name = slotName;
         return slotObject;
+    }
+
+    private static void RemoveLegacyTextComponents(GameObject root)
+    {
+        foreach (Text text in root.GetComponentsInChildren<Text>(true))
+        {
+            Object.DestroyImmediate(text);
+        }
+
+        foreach (TextMeshProUGUI text in root.GetComponentsInChildren<TextMeshProUGUI>(true))
+        {
+            text.raycastTarget = false;
+        }
     }
 }
 #endif

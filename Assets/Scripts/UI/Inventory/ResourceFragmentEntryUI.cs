@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -5,15 +6,13 @@ using UnityEngine.UI;
 public sealed class ResourceFragmentEntryUI : MonoBehaviour
 {
     [SerializeField] private Image _iconImage;
-    [SerializeField] private Text _amountText;
+    [SerializeField] private TextMeshProUGUI _amountText;
     [SerializeField][Min(12f)] private float _iconSize = 22f;
-    [SerializeField][Min(8)] private int _amountFontSize = 16;
+    [SerializeField][Range(8, 32)] private int _amountFontSize = 16;
     [SerializeField] private Color _amountColor = Color.white;
 
     public void SetResource(ResourceDefinition definition, int amount)
     {
-        EnsureLayout();
-
         _iconImage.sprite = definition != null ? definition.Icon : null;
         _iconImage.enabled = _iconImage.sprite != null;
         _amountText.text = amount.ToString();
@@ -45,14 +44,10 @@ public sealed class ResourceFragmentEntryUI : MonoBehaviour
         iconLayout.preferredHeight = _iconSize;
 
         _amountText = EnsureChildText(_amountText, "Amount");
-        _amountText.alignment = TextAnchor.MiddleLeft;
+        _amountText.alignment = TextAlignmentOptions.MidlineLeft;
         _amountText.color = _amountColor;
         _amountText.fontSize = _amountFontSize;
         _amountText.raycastTarget = false;
-        if (_amountText.font == null)
-        {
-            _amountText.font = GetDefaultFont();
-        }
 
         LayoutElement textLayout = EnsureComponent<LayoutElement>(_amountText.gameObject);
         textLayout.preferredWidth = 76f;
@@ -68,13 +63,13 @@ public sealed class ResourceFragmentEntryUI : MonoBehaviour
         return EnsureComponent<Image>(childObject);
     }
 
-    private Text EnsureChildText(Text current, string childName)
+    private TextMeshProUGUI EnsureChildText(TextMeshProUGUI current, string childName)
     {
         if (current != null) return current;
 
         Transform child = transform.Find(childName);
         GameObject childObject = child != null ? child.gameObject : CreateChild(childName);
-        return EnsureComponent<Text>(childObject);
+        return EnsureComponent<TextMeshProUGUI>(childObject);
     }
 
     private GameObject CreateChild(string childName)
@@ -82,12 +77,6 @@ public sealed class ResourceFragmentEntryUI : MonoBehaviour
         GameObject childObject = new(childName, typeof(RectTransform));
         childObject.transform.SetParent(transform, false);
         return childObject;
-    }
-
-    private static Font GetDefaultFont()
-    {
-        Font font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        return font != null ? font : Resources.GetBuiltinResource<Font>("Arial.ttf");
     }
 
     private static T EnsureComponent<T>(GameObject target) where T : Component

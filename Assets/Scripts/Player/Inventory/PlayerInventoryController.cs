@@ -152,43 +152,10 @@ public class PlayerInventoryController : MonoBehaviour
 }
 
 [System.Serializable]
-public struct CreatureResourceData
-{
-    public CreatureDefinition definition;
-    [Min(1)] public int amount;
-}
-
-[System.Serializable]
 public struct FragmentResourceData
 {
     public ResourceDefinition definition;
     [Min(1)] public int amount;
-}
-
-[System.Serializable]
-public struct CreatureInventorySlot
-{
-    [SerializeField] private CreatureDefinition _definition;
-    [SerializeField] private int _count;
-
-    public readonly CreatureDefinition Definition => _definition;
-    public readonly int Count => _count;
-    public readonly bool IsEmpty => _definition == null || _count <= 0;
-
-    public void Set(CreatureDefinition definition, int count)
-    {
-        _definition = definition;
-        _count = Mathf.Clamp(count, 0, definition == null ? 0 : definition.MaxStackCount);
-    }
-
-    public int Add(int amount)
-    {
-        if (_definition == null || amount <= 0) return 0;
-
-        int addedAmount = Mathf.Min(amount, _definition.MaxStackCount - _count);
-        _count += addedAmount;
-        return addedAmount;
-    }
 }
 
 /// <summary>

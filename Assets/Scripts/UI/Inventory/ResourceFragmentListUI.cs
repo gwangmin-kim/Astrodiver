@@ -5,6 +5,7 @@ using UnityEngine.UI;
 [DisallowMultipleComponent]
 public sealed class ResourceFragmentListUI : MonoBehaviour
 {
+    [SerializeField] private ResourceFragmentEntryUI _entryPrefab;
     [SerializeField] private Vector2 _anchoredPosition = new(-32f, 24f);
     [SerializeField] private Vector2 _size = new(190f, 240f);
     [SerializeField][Min(0f)] private float _entrySpacing = 4f;
@@ -32,8 +33,6 @@ public sealed class ResourceFragmentListUI : MonoBehaviour
     private void OnResourceAmountChanged(ResourceDefinition definition, int amount)
     {
         if (definition == null) return;
-
-        EnsureLayout();
 
         if (amount <= 0)
         {
@@ -70,16 +69,26 @@ public sealed class ResourceFragmentListUI : MonoBehaviour
             return entry;
         }
 
-        GameObject entryObject = new(GetEntryName(definition), typeof(RectTransform));
-        entryObject.transform.SetParent(transform, false);
-
-        LayoutElement layoutElement = entryObject.AddComponent<LayoutElement>();
+        GameObject entryObject = CreateEntryObject(definition);
+        LayoutElement layoutElement = EnsureComponent<LayoutElement>(entryObject);
         layoutElement.preferredWidth = _size.x;
         layoutElement.preferredHeight = 28f;
 
-        entry = entryObject.AddComponent<ResourceFragmentEntryUI>();
+        entry = EnsureComponent<ResourceFragmentEntryUI>(entryObject);
         _entries[definition] = entry;
         return entry;
+    }
+
+    private GameObject CreateEntryObject(ResourceDefinition definition)
+    {
+        string entryName = GetEntryName(definition);
+        GameObject entryObject = _entryPrefab != null
+            ? Instantiate(_entryPrefab.gameObject)
+            : new GameObject(entryName, typeof(RectTransform));
+
+        entryObject.name = entryName;
+        entryObject.transform.SetParent(transform, false);
+        return entryObject;
     }
 
     private void RemoveEntry(ResourceDefinition definition)
