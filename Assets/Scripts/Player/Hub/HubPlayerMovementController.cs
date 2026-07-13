@@ -21,14 +21,20 @@ public class HubPlayerMovementController : MonoBehaviour
 
     // 점프 판정
     private bool _isGrounded = true;
+    private Coroutine _ungroundedCoroutine;
 
     [Header("Body Orientation Settings")]
     [SerializeField] private Transform _bodyTransform;
 
     private void Awake()
     {
-        if (_rigidbody == null) GetComponent<Rigidbody2D>();
-        if (_inputHandler == null) GetComponent<PlayerInputHandler>();
+        if (_rigidbody == null) _rigidbody = GetComponent<Rigidbody2D>();
+        if (_inputHandler == null) _inputHandler = GetComponent<PlayerInputHandler>();
+    }
+
+    private void OnDisable()
+    {
+        CancelUngroundedReservation();
     }
 
     private void Update()
@@ -85,16 +91,17 @@ public class HubPlayerMovementController : MonoBehaviour
     {
         yield return new WaitForSeconds(second);
         _isGrounded = false;
+        _ungroundedCoroutine = null;
     }
 
     private void OnCollisionStay2D(Collision2D collision)
     {
-        if (_isGrounded) return;
         foreach (ContactPoint2D contact in collision.contacts)
         {
             if (contact.normal.y > _groundNormalThreshold)
             {
                 _isGrounded = true;
+                CancelUngroundedReservation();
                 return;
             }
         }
@@ -102,8 +109,18 @@ public class HubPlayerMovementController : MonoBehaviour
 
     private void OnCollisionExit2D(Collision2D collision)
     {
-        if (!_isGrounded) return;
-        StartCoroutine(ReserveUngrounded(_coyoteTime));
+        if (!isActiveAndEnabled || !_isGrounded) return;
+
+        CancelUngroundedReservation();
+        _ungroundedCoroutine = StartCoroutine(ReserveUngrounded(_coyoteTime));
+    }
+
+    private void CancelUngroundedReservation()
+    {
+        if (_ungroundedCoroutine == null) return;
+
+        StopCoroutine(_ungroundedCoroutine);
+        _ungroundedCoroutine = null;
     }
 }
 

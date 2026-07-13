@@ -412,7 +412,8 @@ GameObject:
   - component: {fileID: 738188103}
   - component: {fileID: 738188102}
   - component: {fileID: 738188101}
-  m_Layer: 0
+  - component: {fileID: 738188106}
+  m_Layer: 3
   m_Name: Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -456,6 +457,7 @@ MonoBehaviour:
   _playerMapName: Player
   _moveActionName: Move
   _aimActionName: Aim
+  _interactActionName: Interact
   _dashActionName: Dash
   _captureActionName: Capture
   _attackActionName: Attack
@@ -541,6 +543,22 @@ Transform:
   - {fileID: 728936238}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &738188106
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 738188100}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: acafa6ce03363214bbdf67e1913967a4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerInteractionController
+  _inputHandler: {fileID: 738188102}
+  _interactableLayer:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!1 &915798699
 GameObject:
   m_ObjectHideFlags: 0
@@ -691,6 +709,7 @@ GameObject:
   - component: {fileID: 1249093813}
   - component: {fileID: 1249093812}
   - component: {fileID: 1249093814}
+  - component: {fileID: 1249093815}
   m_Layer: 8
   m_Name: Gate
   m_TagString: Untagged
@@ -745,7 +764,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: -1
   m_MaskInteraction: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
   m_Color: {r: 0.6226415, g: 0.6226415, b: 0.6226415, a: 1}
@@ -819,6 +838,20 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &1249093815
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1249093811}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a38cb0640174a39804a1668ca733eb7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SceneGate
+  _destinationSceneName: Game
+  _transitionSequence: {fileID: 0}
 --- !u!1 &1893828271
 GameObject:
   m_ObjectHideFlags: 0

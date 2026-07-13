@@ -33,7 +33,7 @@ public class NetGunController : MonoBehaviour
         Retracting
     }
 
-    private NetGunState _netGunState = NetGunState.Idle;
+    [SerializeField] private NetGunState _netGunState = NetGunState.Idle;
 
     public bool IsSwitchable => _netGunState == NetGunState.Idle;
 
