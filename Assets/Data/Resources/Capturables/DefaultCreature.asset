@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CreatureDefinition
   _id: default_creature
   _displayName: Default Creature
-  _icon: {fileID: -2413806693520163455, guid: d8a89370979c6cb4aa46808ec257a9cb, type: 3}
+  _icon: {fileID: 21300000, guid: d8a89370979c6cb4aa46808ec257a9cb, type: 3}
   _maxStackCount: 20

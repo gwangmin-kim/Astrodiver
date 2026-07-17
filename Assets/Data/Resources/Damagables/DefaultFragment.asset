@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ResourceDefinition
   _id: default_fragment
   _displayName: Default Fragment
-  _icon: {fileID: 7482667652216324306, guid: 74020ef60a6b7534fb1ee8cb5179ecdc, type: 3}
+  _icon: {fileID: 21300000, guid: 74020ef60a6b7534fb1ee8cb5179ecdc, type: 3}

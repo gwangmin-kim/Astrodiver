@@ -1,4 +1,3 @@
-using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
@@ -21,7 +20,7 @@ public class HubPlayerMovementController : MonoBehaviour
 
     // 점프 판정
     private bool _isGrounded = true;
-    private Coroutine _ungroundedCoroutine;
+    private float _ungroundedTime = -1f;
 
     [Header("Body Orientation Settings")]
     [SerializeField] private Transform _bodyTransform;
@@ -34,11 +33,13 @@ public class HubPlayerMovementController : MonoBehaviour
 
     private void OnDisable()
     {
-        CancelUngroundedReservation();
+        _ungroundedTime = -1f;
     }
 
     private void Update()
     {
+        UpdateGroundedState();
+
         Vector2 moveInput = _inputHandler.MoveInput;
         Move(moveInput, Time.deltaTime);
         SetHeadingDirection(moveInput);
@@ -76,6 +77,7 @@ public class HubPlayerMovementController : MonoBehaviour
         float verticalVelocity = Mathf.Sqrt(-2 * gravity * _data.jumpHeight);
         _rigidbody.linearVelocityY = verticalVelocity;
         _isGrounded = false;
+        _ungroundedTime = -1f;
     }
 
     private void SetHeadingDirection(Vector2 moveInput)
@@ -87,11 +89,12 @@ public class HubPlayerMovementController : MonoBehaviour
         _bodyTransform.localScale = nextScale;
     }
 
-    private IEnumerator ReserveUngrounded(float second)
+    private void UpdateGroundedState()
     {
-        yield return new WaitForSeconds(second);
+        if (_ungroundedTime < 0f || Time.time < _ungroundedTime) return;
+
         _isGrounded = false;
-        _ungroundedCoroutine = null;
+        _ungroundedTime = -1f;
     }
 
     private void OnCollisionStay2D(Collision2D collision)
@@ -101,7 +104,7 @@ public class HubPlayerMovementController : MonoBehaviour
             if (contact.normal.y > _groundNormalThreshold)
             {
                 _isGrounded = true;
-                CancelUngroundedReservation();
+                _ungroundedTime = -1f;
                 return;
             }
         }
@@ -109,18 +112,9 @@ public class HubPlayerMovementController : MonoBehaviour
 
     private void OnCollisionExit2D(Collision2D collision)
     {
-        if (!isActiveAndEnabled || !_isGrounded) return;
+        if (!_isGrounded) return;
 
-        CancelUngroundedReservation();
-        _ungroundedCoroutine = StartCoroutine(ReserveUngrounded(_coyoteTime));
-    }
-
-    private void CancelUngroundedReservation()
-    {
-        if (_ungroundedCoroutine == null) return;
-
-        StopCoroutine(_ungroundedCoroutine);
-        _ungroundedCoroutine = null;
+        _ungroundedTime = Time.time + _coyoteTime;
     }
 }
 
