@@ -5,12 +5,32 @@ public class SceneGate : MonoBehaviour, IInteractable
 {
     [SerializeField] private string _destinationSceneName;
     [SerializeField] private TransitionSequence _transitionSequence;
+    [SerializeField] private bool _finishExploreSession;
 
     private bool _isTransitioning;
 
     public void Interact()
     {
-        if (_isTransitioning || string.IsNullOrWhiteSpace(_destinationSceneName))
+        if (_isTransitioning)
+        {
+            return;
+        }
+
+        if (_finishExploreSession)
+        {
+            if (SessionManager.Instance != null)
+            {
+                SessionManager.Instance.FinishSessionByReturn();
+            }
+            else
+            {
+                Debug.LogError("SceneGate: Explore session gate requires a SessionManager in the scene.", this);
+            }
+
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(_destinationSceneName))
         {
             return;
         }

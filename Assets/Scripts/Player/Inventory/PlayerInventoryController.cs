@@ -120,6 +120,45 @@ public class PlayerInventoryController : MonoBehaviour
         return true;
     }
 
+    public void LoseSessionInventory(float lossRatio)
+    {
+        float clampedLossRatio = Mathf.Clamp01(lossRatio);
+        if (clampedLossRatio <= 0f)
+        {
+            return;
+        }
+
+        EnsureCreatureSlots();
+        for (int i = 0; i < _creatureSlots.Length; i++)
+        {
+            CreatureInventorySlot slot = _creatureSlots[i];
+            if (slot.IsEmpty)
+            {
+                continue;
+            }
+
+            int lostAmount = Mathf.CeilToInt(slot.Count * clampedLossRatio);
+            int remainingAmount = Mathf.Max(0, slot.Count - lostAmount);
+            slot.Set(remainingAmount > 0 ? slot.Definition : null, remainingAmount);
+            _creatureSlots[i] = slot;
+            CreatureSlotChanged?.Invoke(i, slot);
+            InventoryEvents.RaiseCreatureSlotChanged(i, slot);
+        }
+
+        ResourceDefinition[] definitions = new ResourceDefinition[_resourceAmounts.Count];
+        _resourceAmounts.Keys.CopyTo(definitions, 0);
+
+        foreach (ResourceDefinition definition in definitions)
+        {
+            int currentAmount = _resourceAmounts[definition];
+            int lostAmount = Mathf.CeilToInt(currentAmount * clampedLossRatio);
+            int remainingAmount = Mathf.Max(0, currentAmount - lostAmount);
+            _resourceAmounts[definition] = remainingAmount;
+            ResourceAmountChanged?.Invoke(definition, remainingAmount);
+            InventoryEvents.RaiseResourceAmountChanged(definition, remainingAmount);
+        }
+    }
+
     private void EnsureCreatureSlots()
     {
         int slotCount = Mathf.Max(1, _creatureSlotCount);

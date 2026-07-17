@@ -78,6 +78,7 @@ public sealed class CreatureInventoryBarUI : MonoBehaviour
 
         if (_playerInventory == null)
         {
+            Debug.LogWarning("CreatureInventoryBarUI: PlayerContext is not found");
             _playerInventory = FindAnyObjectByType<PlayerInventoryController>();
         }
 
