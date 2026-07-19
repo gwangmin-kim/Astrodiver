@@ -69,17 +69,13 @@ public sealed class CreatureInventoryBarUI : MonoBehaviour
 
     private PlayerInventoryController ResolvePlayerInventory()
     {
-        if (_playerInventory != null) return _playerInventory;
+        if (_playerInventory != null && _playerInventory == PlayerInventoryController.Instance)
+            return _playerInventory;
 
-        if (PlayerContext.Instance != null)
-        {
-            _playerInventory = PlayerContext.Instance.Inventory;
-        }
-
+        _playerInventory = PlayerInventoryController.Instance;
         if (_playerInventory == null)
         {
-            Debug.LogWarning("CreatureInventoryBarUI: PlayerContext is not found");
-            _playerInventory = FindAnyObjectByType<PlayerInventoryController>();
+            Debug.LogWarning("CreatureInventoryBarUI: PlayerInventoryController is not initialized.", this);
         }
 
         return _playerInventory;

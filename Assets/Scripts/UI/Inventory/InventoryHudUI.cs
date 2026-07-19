@@ -51,22 +51,16 @@ public sealed class InventoryHudUI : MonoBehaviour
         {
             _creatureInventoryBar.Initialize(inventory);
         }
+
+        if (_resourceFragmentList != null)
+        {
+            _resourceFragmentList.Initialize(inventory);
+        }
     }
 
     private PlayerInventoryController ResolvePlayerInventory()
     {
-        if (_playerInventory != null) return _playerInventory;
-
-        if (PlayerContext.Instance != null)
-        {
-            _playerInventory = PlayerContext.Instance.Inventory;
-        }
-
-        if (_playerInventory == null)
-        {
-            _playerInventory = FindAnyObjectByType<PlayerInventoryController>();
-        }
-
+        _playerInventory = PlayerInventoryController.Instance;
         return _playerInventory;
     }
 

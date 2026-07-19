@@ -19,6 +19,11 @@ public class SessionManager : MonoBehaviour
 
     public bool IsSessionFinished { get; private set; }
 
+    private void OnValidate()
+    {
+        EnsureSessionEndUi();
+    }
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -30,7 +35,6 @@ public class SessionManager : MonoBehaviour
         Instance = this;
         // _explorationSceneName = gameObject.scene.name;
 
-        EnsureSessionEndUi();
         _sessionEndPanel.SetActive(false);
 
         _returnButton.onClick.AddListener(ReturnToHub);
@@ -69,9 +73,17 @@ public class SessionManager : MonoBehaviour
 
         IsSessionFinished = true;
 
+        PlayerInventoryController inventory = PlayerInventoryController.Instance;
+
+        if (inventory == null)
+        {
+            Debug.LogWarning("SessionManager: Player inventory not found.", this);
+            IsSessionFinished = false;
+            return;
+        }
+
         if (isTimeout)
         {
-            PlayerInventoryController inventory = PlayerContext.Instance.Inventory;
             inventory.LoseSessionInventory(_timeoutInventoryLossRatio);
         }
 

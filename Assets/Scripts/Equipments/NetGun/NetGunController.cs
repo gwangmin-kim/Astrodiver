@@ -44,9 +44,7 @@ public class NetGunController : MonoBehaviour
 
     private void Start()
     {
-        _playerInventory = PlayerContext.Instance != null
-                            ? PlayerContext.Instance.Inventory
-                            : null;
+        _playerInventory = PlayerInventoryController.Instance;
         ResetAllNetsToIdle();
     }
 

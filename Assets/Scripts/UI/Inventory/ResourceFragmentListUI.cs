@@ -15,10 +15,35 @@ public sealed class ResourceFragmentListUI : MonoBehaviour
     private void OnEnable()
     {
         EnsureLayout();
+        Initialize(PlayerInventoryController.Instance);
 
         if (Application.isPlaying)
         {
             InventoryEvents.ResourceAmountChanged += OnResourceAmountChanged;
+        }
+    }
+
+    public void Initialize(PlayerInventoryController inventory)
+    {
+        ResourceDefinition[] displayedDefinitions = new ResourceDefinition[_entries.Count];
+        _entries.Keys.CopyTo(displayedDefinitions, 0);
+
+        foreach (ResourceDefinition definition in displayedDefinitions)
+        {
+            if (inventory == null || inventory.GetResourceAmount(definition) <= 0)
+            {
+                RemoveEntry(definition);
+            }
+        }
+
+        if (inventory == null)
+        {
+            return;
+        }
+
+        foreach (KeyValuePair<ResourceDefinition, int> entry in inventory.ResourceAmounts)
+        {
+            OnResourceAmountChanged(entry.Key, entry.Value);
         }
     }
 

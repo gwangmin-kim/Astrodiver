@@ -36,7 +36,7 @@ public static class InventoryHudSceneBuilder
         EnsureComponent<GraphicRaycaster>(hud);
         InventoryHudUI hudUi = EnsureComponent<InventoryHudUI>(hud);
         SerializedObject serializedHud = new(hudUi);
-        serializedHud.FindProperty("_playerInventory").objectReferenceValue = Object.FindAnyObjectByType<PlayerInventoryController>();
+        serializedHud.FindProperty("_playerInventory").objectReferenceValue = null;
         serializedHud.ApplyModifiedPropertiesWithoutUndo();
 
         BuildCreatureInventoryBar(hud.transform);
@@ -50,7 +50,7 @@ public static class InventoryHudSceneBuilder
     private static void BuildCreatureInventoryBar(Transform parent)
     {
         CreatureInventorySlotUI slotPrefab = GetOrCreateCreatureSlotPrefab();
-        PlayerInventoryController playerInventory = Object.FindAnyObjectByType<PlayerInventoryController>();
+        PlayerInventoryController playerInventory = null;
 
         GameObject barObject = FindOrCreateChild(parent, CreatureBarName);
         RectTransform rectTransform = EnsureRectTransform(barObject);

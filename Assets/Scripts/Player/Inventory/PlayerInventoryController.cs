@@ -4,12 +4,11 @@ using UnityEngine;
 
 public class PlayerInventoryController : MonoBehaviour
 {
-    [Header("Creature Inventory")]
-    [SerializeField][Min(1)] private int _creatureSlotCount;
-    [SerializeField] private CreatureInventorySlot[] _creatureSlots;
+    public static PlayerInventoryController Instance { get; private set; }
 
-    [Header("Fragment Magnet")]
-    public MagnetData magnetData;
+    [Header("Creature Inventory")]
+    [SerializeField][Min(1)] private int _creatureSlotCount = 4;
+    [SerializeField] private CreatureInventorySlot[] _creatureSlots;
 
     // Resource inventory
     private readonly Dictionary<ResourceDefinition, int> _resourceAmounts = new();
@@ -18,10 +17,32 @@ public class PlayerInventoryController : MonoBehaviour
     public event Action<ResourceDefinition, int> ResourceAmountChanged; // (자원 종류, 자원 수)
 
     public IReadOnlyList<CreatureInventorySlot> CreatureSlots => _creatureSlots;
+    public IReadOnlyDictionary<ResourceDefinition, int> ResourceAmounts => _resourceAmounts;
+
+    private void OnValidate()
+    {
+        EnsureCreatureSlots();
+    }
 
     private void Awake()
     {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(this);
+            return;
+        }
+
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
         EnsureCreatureSlots();
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+        {
+            Instance = null;
+        }
     }
 
     /// <summary>
@@ -172,22 +193,6 @@ public class PlayerInventoryController : MonoBehaviour
 
         _creatureSlots = resizedSlots;
     }
-
-#if UNITY_EDITOR
-    private void OnValidate()
-    {
-        EnsureCreatureSlots();
-    }
-
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, magnetData.radius);
-
-        Gizmos.color = Color.orange;
-        Gizmos.DrawWireSphere(transform.position, magnetData.collectRadius);
-    }
-#endif
 }
 
 [System.Serializable]

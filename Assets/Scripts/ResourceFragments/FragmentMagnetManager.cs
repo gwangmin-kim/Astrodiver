@@ -3,6 +3,9 @@ using UnityEngine;
 [RequireComponent(typeof(ParticleSystem))]
 public class FragmentMagnetManager : MonoBehaviour
 {
+    [Header("Magnet Settings")]
+    [SerializeField] private MagnetData _magnetData;
+
     private ParticleSystem _particleSystem;
     private ParticleSystem.Particle[] _particles;
 
@@ -16,20 +19,19 @@ public class FragmentMagnetManager : MonoBehaviour
 
     private void Start()
     {
-        // 플레이어 캐싱
-        _playerInventory = PlayerContext.Instance.Inventory;
+        _playerInventory = PlayerInventoryController.Instance;
     }
 
     private void Update()
     {
-        if (_playerInventory == null) return;
+        if (_playerInventory == null || PlayerContext.Instance == null) return;
 
         int activeCount = _particleSystem.GetParticles(_particles);
 
-        Vector3 playerPosition = _playerInventory.transform.position;
-        MagnetData magnetData = _playerInventory.magnetData;
-        float sqrMagnetRadius = magnetData.radius * magnetData.radius;
-        float sqrCollectRadius = magnetData.collectRadius * magnetData.collectRadius;
+        Vector3 playerPosition = PlayerContext.Instance.transform.position;
+
+        float sqrMagnetRadius = _magnetData.radius * _magnetData.radius;
+        float sqrCollectRadius = _magnetData.collectRadius * _magnetData.collectRadius;
 
         for (int i = 0; i < activeCount; i++)
         {
@@ -41,7 +43,7 @@ public class FragmentMagnetManager : MonoBehaviour
 
             // 자석 범위 내의 파티클은 플레이어 쪽으로 끌어당김
             float distanceFactor = sqrDistance / sqrMagnetRadius;
-            float pullSpeed = Mathf.Lerp(magnetData.pullSpeedRange.y, magnetData.pullSpeedRange.x, distanceFactor);
+            float pullSpeed = Mathf.Lerp(_magnetData.pullSpeedRange.y, _magnetData.pullSpeedRange.x, distanceFactor);
             _particles[i].position = Vector3.MoveTowards(particlePosition, playerPosition, pullSpeed * Time.deltaTime);
 
             // 수집 범위 안의 파티클은 즉시 수집
@@ -61,6 +63,23 @@ public class FragmentMagnetManager : MonoBehaviour
 
         _particleSystem.SetParticles(_particles, activeCount);
     }
+
+#if UNITY_EDITOR
+    private void OnDrawGizmosSelected()
+    {
+        if (PlayerContext.Instance == null)
+        {
+            return;
+        }
+
+        Vector3 playerPosition = PlayerContext.Instance.transform.position;
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(playerPosition, _magnetData.radius);
+
+        Gizmos.color = Color.orange;
+        Gizmos.DrawWireSphere(playerPosition, _magnetData.collectRadius);
+    }
+#endif
 }
 
 [System.Serializable]
