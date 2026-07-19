@@ -120,13 +120,13 @@ public sealed class BatteryBarUI : MonoBehaviour
         ConfigureSlider();
         if (_slider == null)
         {
-            Debug.LogWarning("BatteryBarUI: slider not found");
+            Debug.LogWarning("BatteryBarUI: slider not found.", this);
         }
         else _slider.SetValueWithoutNotify(Mathf.Clamp01(value));
 
         if (_text == null)
         {
-            Debug.LogWarning("BatteryBarUI: text not found");
+            Debug.LogWarning("BatteryBarUI: text not found.", this);
         }
         else _text.text = $"{value * 100f:00}";
     }

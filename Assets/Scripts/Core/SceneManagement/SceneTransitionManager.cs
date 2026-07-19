@@ -7,15 +7,6 @@ public class SceneTransitionManager : MonoBehaviour
 
     private bool _isLoading;
 
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-    private static void Bootstrap()
-    {
-        if (Instance == null)
-        {
-            new GameObject(nameof(SceneTransitionManager)).AddComponent<SceneTransitionManager>();
-        }
-    }
-
     private void Awake()
     {
         if (Instance != null && Instance != this)
