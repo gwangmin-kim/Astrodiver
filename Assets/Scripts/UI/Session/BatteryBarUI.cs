@@ -128,7 +128,7 @@ public sealed class BatteryBarUI : MonoBehaviour
         {
             Debug.LogWarning("BatteryBarUI: text not found.", this);
         }
-        else _text.text = $"{value * 100f:00}";
+        else _text.text = $"{value * 100f:00.0}%";
     }
 
 #if UNITY_EDITOR

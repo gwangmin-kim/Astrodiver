@@ -5,13 +5,8 @@ using UnityEngine.UI;
 public sealed class InventoryHudUI : MonoBehaviour
 {
     [SerializeField] private PlayerInventoryController _playerInventory;
-    [SerializeField] private Canvas _canvas;
-    [SerializeField] private CanvasScaler _canvasScaler;
-    [SerializeField] private GraphicRaycaster _graphicRaycaster;
     [SerializeField] private CreatureInventoryBarUI _creatureInventoryBar;
     [SerializeField] private ResourceFragmentListUI _resourceFragmentList;
-    [SerializeField] private Vector2 _referenceResolution = new(1920f, 1080f);
-    [SerializeField] private int _sortingOrder = 10;
 
     private void OnEnable()
     {
@@ -27,18 +22,6 @@ public sealed class InventoryHudUI : MonoBehaviour
     private void EnsureLayout()
     {
         EnsureRectTransform(gameObject);
-
-        _canvas = EnsureComponent<Canvas>(gameObject);
-        _canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        _canvas.sortingOrder = _sortingOrder;
-
-        _canvasScaler = EnsureComponent<CanvasScaler>(gameObject);
-        _canvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        _canvasScaler.referenceResolution = _referenceResolution;
-        _canvasScaler.matchWidthOrHeight = 0.5f;
-
-        _graphicRaycaster = EnsureComponent<GraphicRaycaster>(gameObject);
-        _graphicRaycaster.enabled = true;
 
         _creatureInventoryBar = EnsureChildComponent(_creatureInventoryBar, "Creature Inventory Bar");
         _resourceFragmentList = EnsureChildComponent(_resourceFragmentList, "Resource Fragment List");
