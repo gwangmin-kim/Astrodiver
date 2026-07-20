@@ -67,6 +67,11 @@ dotnet_naming_symbols.type_symbols.applicable_accessibilities = *
 dotnet_naming_symbols.method_and_property_symbols.applicable_kinds = method, property, event
 dotnet_naming_symbols.method_and_property_symbols.applicable_accessibilities = *
 
+# 상수를 위한 심볼 (const 멤버)
+dotnet_naming_symbols.constant_field_symbols.applicable_kinds = field
+dotnet_naming_symbols.constant_field_symbols.applicable_accessibilities = *
+dotnet_naming_symbols.constant_field_symbols.required_modifiers = const
+
 # 프라이빗/프로텍티드 필드 (Private/Protected members)
 dotnet_naming_symbols.private_field_symbols.applicable_kinds = field
 dotnet_naming_symbols.private_field_symbols.applicable_accessibilities = private, protected, private_protected
@@ -91,12 +96,17 @@ dotnet_naming_rule.method_and_property_rule.symbols = method_and_property_symbol
 dotnet_naming_rule.method_and_property_rule.style = pascal_case_style
 dotnet_naming_rule.method_and_property_rule.severity = warning
 
-# 4) 프라이빗 멤버는 _ + camelCase (예: _moveSpeed)
+# 4) const 상수는 PascalCase (예: MaxPlayerHealth)
+dotnet_naming_rule.constant_field_rule.symbols = constant_field_symbols
+dotnet_naming_rule.constant_field_rule.style = pascal_case_style
+dotnet_naming_rule.constant_field_rule.severity = warning
+
+# 5) 프라이빗 멤버는 _ + camelCase (예: _moveSpeed)
 dotnet_naming_rule.private_field_rule.symbols = private_field_symbols
 dotnet_naming_rule.private_field_rule.style = underscore_camel_case_style
 dotnet_naming_rule.private_field_rule.severity = warning
 
-# 5) 퍼블릭 멤버는 camelCase (예: moveSpeed)
+# 6) 퍼블릭 멤버는 camelCase (예: moveSpeed)
 dotnet_naming_rule.public_field_rule.symbols = public_field_symbols
 dotnet_naming_rule.public_field_rule.style = camel_case_style
 dotnet_naming_rule.public_field_rule.severity = warning
