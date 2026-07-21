@@ -37,6 +37,8 @@ public class PlasmaGunController : MonoBehaviour
 
     private void Awake()
     {
+        _data = GameDataManager.Instance.GetOrInitializePlasmaGun(_data);
+
         // 대상 탐색용 필터 초기화
         _targetFilter = new ContactFilter2D();
         _targetFilter.SetLayerMask(_targetLayer);

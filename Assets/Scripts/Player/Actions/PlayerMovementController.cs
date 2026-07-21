@@ -15,8 +15,10 @@ public class PlayerMovementController : MonoBehaviour
 
     private void Awake()
     {
-        if (_rigidbody == null) GetComponent<Rigidbody2D>();
-        if (_inputHandler == null) GetComponent<PlayerInputHandler>();
+        if (_rigidbody == null) _rigidbody = GetComponent<Rigidbody2D>();
+        if (_inputHandler == null) _inputHandler = GetComponent<PlayerInputHandler>();
+
+        _data = GameDataManager.Instance.GetOrInitializeMovement(_data);
     }
 
     private void Update()

@@ -87,6 +87,8 @@ public class SessionManager : MonoBehaviour
             inventory.LoseSessionInventory(_timeoutInventoryLossRatio);
         }
 
+        inventory.CommitToGameDataAndSave();
+
         Time.timeScale = 0f;
         _sessionEndPanel.SetActive(true);
     }

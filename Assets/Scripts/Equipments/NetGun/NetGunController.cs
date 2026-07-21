@@ -39,6 +39,7 @@ public class NetGunController : MonoBehaviour
 
     private void Awake()
     {
+        _data = GameDataManager.Instance.GetOrInitializeNetGun(_data);
         BuildNetPool();
     }
 

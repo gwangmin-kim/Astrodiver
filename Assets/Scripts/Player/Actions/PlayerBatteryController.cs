@@ -15,6 +15,7 @@ public class PlayerBatteryController : MonoBehaviour
 
     private void Awake()
     {
+        _batteryData = GameDataManager.Instance.GetOrInitializeBattery(_batteryData);
         _currentBatteryAmount = MaxBatteryAmount;
     }
 
