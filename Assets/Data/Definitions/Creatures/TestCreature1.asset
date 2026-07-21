@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ab34b6d5769017744ba0210555817114, type: 3}
-  m_Name: DefaultCreature
+  m_Name: TestCreature1
   m_EditorClassIdentifier: Assembly-CSharp::CreatureDefinition
-  _id: default_creature
-  _displayName: Default Creature
-  _icon: {fileID: 21300000, guid: d8a89370979c6cb4aa46808ec257a9cb, type: 3}
+  _id: test_creature_1
+  _displayName: Test Creature 1
+  _icon: {fileID: 21300000, guid: 847c5b8713469eb41b3339142f3bf11e, type: 3}
   _maxStackCount: 20
