@@ -11,6 +11,7 @@ public sealed class GameDataDefaults : ScriptableObject
     [Header("Player Stats")]
     [SerializeField] private PlayerMovementData _movement;
     [SerializeField] private BatteryData _battery;
+    [SerializeField] private MagnetData _magnet;
 
     [Header("Equipment")]
     [SerializeField] private NetGunData _netGun;
@@ -35,6 +36,8 @@ public sealed class GameDataDefaults : ScriptableObject
         data.playerStats.movement = _movement;
         data.playerStats.batteryInitialized = true;
         data.playerStats.battery = _battery;
+        data.playerStats.magnetInitialized = true;
+        data.playerStats.magnet = _magnet;
 
         data.equipment.netGunInitialized = true;
         data.equipment.netGun = _netGun;

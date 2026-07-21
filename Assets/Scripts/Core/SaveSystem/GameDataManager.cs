@@ -147,6 +147,25 @@ public class GameDataManager : MonoBehaviour
         MarkDirty();
     }
 
+    public MagnetData GetOrInitializeMagnet(MagnetData fallback)
+    {
+        if (!Data.playerStats.magnetInitialized)
+        {
+            Data.playerStats.magnet = fallback;
+            Data.playerStats.magnetInitialized = true;
+            MarkDirty();
+        }
+
+        return Data.playerStats.magnet;
+    }
+
+    public void SetMagnet(MagnetData value)
+    {
+        Data.playerStats.magnet = value;
+        Data.playerStats.magnetInitialized = true;
+        MarkDirty();
+    }
+
     public NetGunData GetOrInitializeNetGun(NetGunData fallback)
     {
         if (!Data.equipment.netGunInitialized)

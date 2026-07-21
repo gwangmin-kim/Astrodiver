@@ -5,7 +5,7 @@ using UnityEngine;
 [Serializable]
 public sealed class GameSaveData
 {
-    public const int CurrentSchemaVersion = 1;
+    public const int CurrentSchemaVersion = 2;
 
     public int schemaVersion = CurrentSchemaVersion;
     public InventorySaveData inventory = new();
@@ -16,7 +16,7 @@ public sealed class GameSaveData
 
     public void Normalize()
     {
-        schemaVersion = Mathf.Max(1, schemaVersion);
+        schemaVersion = Mathf.Max(CurrentSchemaVersion, schemaVersion);
         inventory ??= new InventorySaveData();
         playerStats ??= new PlayerStatsSaveData();
         equipment ??= new EquipmentSaveData();
@@ -130,6 +130,8 @@ public sealed class PlayerStatsSaveData
     public PlayerMovementData movement;
     public bool batteryInitialized;
     public BatteryData battery;
+    public bool magnetInitialized;
+    public MagnetData magnet;
 }
 
 [Serializable]

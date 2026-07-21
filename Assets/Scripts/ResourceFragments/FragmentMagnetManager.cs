@@ -15,6 +15,7 @@ public class FragmentMagnetManager : MonoBehaviour
     {
         _particleSystem = GetComponent<ParticleSystem>();
         _particles = new ParticleSystem.Particle[_particleSystem.main.maxParticles];
+        _magnetData = GameDataManager.Instance.GetOrInitializeMagnet(_magnetData);
     }
 
     private void Start()

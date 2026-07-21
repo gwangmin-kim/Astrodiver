@@ -64,6 +64,11 @@ public static class GameDataSaveSystemSmokeTest
             Require(loaded.inventory.resourceAmounts[0].amount == 42, "Resource amount changed.");
             Require(loaded.playerStats.movement.moveSpeed == 5f, "Movement data changed.");
             Require(loaded.playerStats.battery.amount == 60f, "Battery data changed.");
+            Require(loaded.playerStats.magnet.radius == 3f, "Magnet radius changed.");
+            Require(
+                loaded.playerStats.magnet.pullSpeedRange == new Vector2(1f, 10f),
+                "Magnet pull speed range changed.");
+            Require(loaded.playerStats.magnet.collectRadius == 0.5f, "Magnet collect radius changed.");
             Require(loaded.equipment.netGun.netData.captureCount == 4, "Net gun data changed.");
             Require(loaded.equipment.plasmaGun.tickDamage == 1f, "Plasma gun data changed.");
             Require(loaded.unlockedUpgradeIds.Contains("movement.speed"), "Upgrade id was not preserved.");

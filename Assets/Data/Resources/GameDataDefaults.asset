@@ -19,6 +19,10 @@ MonoBehaviour:
     stopDampingTime: 0.8
   _battery:
     amount: 60
+  _magnet:
+    radius: 3
+    pullSpeedRange: {x: 1, y: 10}
+    collectRadius: 0.5
   _netGun:
     netData:
       captureCount: 4
