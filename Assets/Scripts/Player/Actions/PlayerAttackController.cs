@@ -25,8 +25,8 @@ public class PlayerAttackController : MonoBehaviour
     private void Start()
     {
         _currentEquipment = HandEquipment.NetGun;
-        _netGun.gameObject.SetActive(true);
-        _plasmaGun.gameObject.SetActive(false);
+        SetEquipmentEquipped(_netGun, true);
+        SetEquipmentEquipped(_plasmaGun, false);
     }
 
     private void OnEnable()
@@ -56,15 +56,15 @@ public class PlayerAttackController : MonoBehaviour
             case HandEquipment.NetGun:
                 if (!_plasmaGun.IsSwitchable) return false;
 
-                _netGun.gameObject.SetActive(true);
-                _plasmaGun.gameObject.SetActive(false);
+                SetEquipmentEquipped(_netGun, true);
+                SetEquipmentEquipped(_plasmaGun, false);
                 break;
 
             case HandEquipment.PlasmaGun:
                 if (!_netGun.IsSwitchable) return false;
 
-                _netGun.gameObject.SetActive(false);
-                _plasmaGun.gameObject.SetActive(true);
+                SetEquipmentEquipped(_netGun, false);
+                SetEquipmentEquipped(_plasmaGun, true);
                 break;
         }
 
@@ -80,7 +80,7 @@ public class PlayerAttackController : MonoBehaviour
 
     private void OnReleaseCapture()
     {
-        if (!_netGun.gameObject.activeSelf) return;
+        if (_currentEquipment != HandEquipment.NetGun) return;
         _netGun.OnReleaseCapture();
     }
 
@@ -92,7 +92,21 @@ public class PlayerAttackController : MonoBehaviour
 
     private void OnReleaseAttack()
     {
-        if (!_plasmaGun.gameObject.activeSelf) return;
+        if (_currentEquipment != HandEquipment.PlasmaGun) return;
         _plasmaGun.isAttacking = false;
+    }
+
+    private static void SetEquipmentEquipped(MonoBehaviour equipment, bool isEquipped)
+    {
+        // Controllers must remain active so world objects they own (such as launched nets)
+        // can continue their lifecycle while another hand equipment is selected.
+        equipment.gameObject.SetActive(true);
+
+        // TODO: Sprite 루트 오브젝트를 할당해주고, 해당 오브젝트를 켜고 끄는 방식으로 변경 (런타임에 컴포넌트를 찾을 필요 없도록)
+        Renderer[] renderers = equipment.GetComponentsInChildren<Renderer>(true);
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            renderers[i].enabled = isEquipped;
+        }
     }
 }
