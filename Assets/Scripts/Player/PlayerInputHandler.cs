@@ -27,6 +27,14 @@ public class PlayerInputHandler : MonoBehaviour
 
     private Camera _mainCamera; // Camera.main을 매 프레임 호출하면 성능에 좋지 않으므로 캐싱
 
+    // 입력 액션
+    private InputAction _moveAction;
+    private InputAction _aimAction;
+    private InputAction _interactAction;
+    private InputAction _dashAction;
+    private InputAction _captureAction;
+    private InputAction _attackAction;
+
     // 캐싱된 입력값
     // 값 타입
     public Vector2 MoveInput { get; private set; }
@@ -62,42 +70,59 @@ public class PlayerInputHandler : MonoBehaviour
     public Action pressAttackEvent;
     public Action releaseAttackEvent;
 
-    // 입력 액션
-    private InputAction _moveAction;
-    private InputAction _aimAction;
-    private InputAction _interactAction;
-    private InputAction _dashAction;
-    private InputAction _captureAction;
-    private InputAction _attackAction;
+    public bool InputEnabled { get; private set; } = true;
 
     private void Start()
     {
-        _moveAction = BindAction(_moveActionName);
-        _aimAction = BindAction(_aimActionName);
-        _interactAction = BindAction(_interactActionName);
-        _dashAction = BindAction(_dashActionName);
-        _captureAction = BindAction(_captureActionName);
-        _attackAction = BindAction(_attackActionName);
+        _moveAction = FindAction(_moveActionName);
+        _aimAction = FindAction(_aimActionName);
+        _interactAction = FindAction(_interactActionName);
+        _dashAction = FindAction(_dashActionName);
+        _captureAction = FindAction(_captureActionName);
+        _attackAction = FindAction(_attackActionName);
 
         _mainCamera = Camera.main;
     }
 
-    private InputAction BindAction(string actionName)
+    public void SetInputEnabled(bool enabled)
+    {
+        InputEnabled = enabled;
+        ResetInputState();
+
+        InputActionMap map = InputSystem.actions.FindActionMap(_playerMapName);
+        if (map == null) return;
+
+        if (enabled) map.Enable();
+        else map.Disable();
+    }
+
+    public void ResetInputState()
+    {
+        MoveInput = Vector2.zero;
+        AimInput = Vector2.zero;
+        InteractInput = false;
+        DashInput = false;
+        CaptureInput = false;
+        AttackInput = false;
+        _interactBufferTimer = 0f;
+        _dashBufferTimer = 0f;
+    }
+
+    private InputAction FindAction(string actionName)
     {
         InputAction action = InputSystem.actions.FindAction($"{_playerMapName}/{actionName}");
 
         if (action != null) action.Enable();
-        else Debug.LogError($"전역 Input Actions에서 '{actionName}' 액션을 찾을 수 없습니다.");
+        else Debug.LogError($"전역 Input Actions에서 '{actionName}' 액션을 찾을 수 없습니다.", this);
 
         return action;
     }
 
     private void Update()
     {
-        if (_moveAction != null)
-        {
-            MoveInput = _moveAction.ReadValue<Vector2>();
-        }
+        if (!InputEnabled) return;
+
+        MoveInput = _moveAction?.ReadValue<Vector2>() ?? Vector2.zero;
 
         if (_aimAction != null)
         {
@@ -144,7 +169,7 @@ public class PlayerInputHandler : MonoBehaviour
             if (_captureAction.WasReleasedThisFrame())
                 releaseCaptureEvent?.Invoke();
 
-            else CaptureInput = false;
+            CaptureInput = _captureAction.IsPressed();
         }
 
         if (_attackAction != null)
