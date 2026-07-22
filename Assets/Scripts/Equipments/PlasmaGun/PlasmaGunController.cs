@@ -127,7 +127,7 @@ public class PlasmaGunController : MonoBehaviour
         _currentTargetList.Add(hit.transform);
 
         // 연쇄 공격이 해금되었다면, 추가 타격 대상 검색
-        if (!_data.isChainingUnlocked) return;
+        if (_data.chainCount <= 0) return;
 
         Vector2 chainOrigin = hit.transform.position;
         for (int i = 0; i < _data.chainCount; i++)
@@ -258,8 +258,6 @@ public struct PlasmaGunData
     [Min(0.1f)] public float attackRange;
 
     [Header("Chaining Settings")]
-    [Tooltip("연쇄 공격 해금 여부")]
-    public bool isChainingUnlocked;
     [Tooltip("첫 타격 이후 연쇄 가능한 최대 횟수")]
     [Min(0)] public int chainCount;
     [Tooltip("매 연쇄 당 변화되는 피해량 비율: 초기엔 감소하지만, 후반엔 오히려 증가하도록 설계")]
