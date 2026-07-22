@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.UI;
 
 [DisallowMultipleComponent]
 public sealed class InventoryHudUI : MonoBehaviour
@@ -8,14 +7,21 @@ public sealed class InventoryHudUI : MonoBehaviour
     [SerializeField] private CreatureInventoryBarUI _creatureInventoryBar;
     [SerializeField] private ResourceFragmentListUI _resourceFragmentList;
 
+    private bool _hasStarted;
+
     private void OnEnable()
     {
         EnsureLayout();
-        InitializeInventoryViews();
+
+        if (_hasStarted)
+        {
+            InitializeInventoryViews();
+        }
     }
 
     private void Start()
     {
+        _hasStarted = true;
         InitializeInventoryViews();
     }
 
@@ -43,7 +49,15 @@ public sealed class InventoryHudUI : MonoBehaviour
 
     private PlayerInventoryController ResolvePlayerInventory()
     {
+        if (_playerInventory != null && _playerInventory == PlayerInventoryController.Instance)
+            return _playerInventory;
+
         _playerInventory = PlayerInventoryController.Instance;
+        if (_playerInventory == null)
+        {
+            Debug.LogWarning("CreatureInventoryBarUI: PlayerInventoryController is not initialized.", this);
+        }
+
         return _playerInventory;
     }
 

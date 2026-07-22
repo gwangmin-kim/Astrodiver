@@ -15,8 +15,6 @@ public sealed class CreatureInventoryBarUI : MonoBehaviour
 
     private void OnEnable()
     {
-        InitializeFromPlayerInventory();
-
         if (Application.isPlaying)
         {
             InventoryEvents.CreatureSlotChanged += OnCreatureSlotChanged;
@@ -29,11 +27,6 @@ public sealed class CreatureInventoryBarUI : MonoBehaviour
         {
             InventoryEvents.CreatureSlotChanged -= OnCreatureSlotChanged;
         }
-    }
-
-    private void Start()
-    {
-        InitializeFromPlayerInventory();
     }
 
     public void Initialize(PlayerInventoryController playerInventory)
@@ -52,33 +45,18 @@ public sealed class CreatureInventoryBarUI : MonoBehaviour
 
     private void InitializeFromPlayerInventory()
     {
-        PlayerInventoryController inventory = ResolvePlayerInventory();
-        int slotCount = inventory != null && inventory.CreatureSlots != null
-            ? inventory.CreatureSlots.Count
+        int slotCount = _playerInventory != null && _playerInventory.CreatureSlots != null
+            ? _playerInventory.CreatureSlots.Count
             : 0;
 
         EnsureLayout(slotCount);
 
-        if (inventory == null || inventory.CreatureSlots == null) return;
+        if (_playerInventory == null || _playerInventory.CreatureSlots == null) return;
 
-        for (int i = 0; i < inventory.CreatureSlots.Count && i < _slots.Count; i++)
+        for (int i = 0; i < _playerInventory.CreatureSlots.Count && i < _slots.Count; i++)
         {
-            _slots[i].SetSlot(inventory.CreatureSlots[i]);
+            _slots[i].SetSlot(_playerInventory.CreatureSlots[i]);
         }
-    }
-
-    private PlayerInventoryController ResolvePlayerInventory()
-    {
-        if (_playerInventory != null && _playerInventory == PlayerInventoryController.Instance)
-            return _playerInventory;
-
-        _playerInventory = PlayerInventoryController.Instance;
-        if (_playerInventory == null)
-        {
-            Debug.LogWarning("CreatureInventoryBarUI: PlayerInventoryController is not initialized.", this);
-        }
-
-        return _playerInventory;
     }
 
     private void EnsureLayout(int slotCount)

@@ -803,7 +803,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameDataManager
   _definitionCatalog: {fileID: 11400000, guid: e66d60fb610d1e94388e235c1eca8885, type: 2}
-  _defaults: {fileID: 0}
+  _defaults: {fileID: 11400000, guid: 61fc40cdcb2a09342a1cc8715b19f500, type: 2}
 --- !u!4 &1023098766
 Transform:
   m_ObjectHideFlags: 0
@@ -1320,16 +1320,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3f7310e959d28b641b7f147e7fd43a30, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInventoryController
-  _creatureSlotCount: 4
-  _creatureSlots:
-  - _definition: {fileID: 0}
-    _count: 0
-  - _definition: {fileID: 0}
-    _count: 0
-  - _definition: {fileID: 0}
-    _count: 0
-  - _definition: {fileID: 0}
-    _count: 0
+  _creatureSlotCount: 0
+  _creatureSlots: []
 --- !u!4 &1498953820
 Transform:
   m_ObjectHideFlags: 0
@@ -1526,6 +1518,6 @@ SceneRoots:
   - {fileID: 1249093813}
   - {fileID: 1333477135}
   - {fileID: 920196525}
-  - {fileID: 105238799}
   - {fileID: 1498953820}
+  - {fileID: 105238799}
   - {fileID: 1023098766}

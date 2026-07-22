@@ -15,7 +15,6 @@ public sealed class ResourceFragmentListUI : MonoBehaviour
     private void OnEnable()
     {
         EnsureLayout();
-        Initialize(PlayerInventoryController.Instance);
 
         if (Application.isPlaying)
         {
