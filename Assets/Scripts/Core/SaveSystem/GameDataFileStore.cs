@@ -3,15 +3,20 @@ using System.IO;
 using System.Text;
 using UnityEngine;
 
+/// <summary>
+/// 실제 저장, 로드 API 제공
+/// </summary>
 public static class GameDataFileStore
 {
     public static bool TryLoad(string path, out GameSaveData data, out string error)
     {
+        // 파일 존재 시 그대로 사용
         if (TryLoadFile(path, out data, out error))
         {
             return true;
         }
 
+        // 없다면 백업 파일 확인
         string backupPath = GetBackupPath(path);
         if (!File.Exists(backupPath))
         {
@@ -31,7 +36,7 @@ public static class GameDataFileStore
 
     public static bool TrySave(string path, GameSaveData data, out string error)
     {
-        string temporaryPath = path + ".tmp";
+        string temporaryPath = GetTempPath(path);
         string backupPath = GetBackupPath(path);
 
         try
@@ -42,7 +47,12 @@ public static class GameDataFileStore
                 Directory.CreateDirectory(directory);
             }
 
-            data.Normalize();
+            if (!data.TryValidate(out string validationError))
+            {
+                error = $"Save data validation failed: {validationError}";
+                return false;
+            }
+
             string json = JsonUtility.ToJson(data, true);
             File.WriteAllText(temporaryPath, json, new UTF8Encoding(false));
 
@@ -86,7 +96,7 @@ public static class GameDataFileStore
                 return false;
             }
 
-            data.Normalize();
+            data.RepairAfterLoad();
             error = null;
             return true;
         }
@@ -124,6 +134,11 @@ public static class GameDataFileStore
         File.Copy(targetPath, backupPath, true);
         File.Copy(temporaryPath, targetPath, true);
         File.Delete(temporaryPath);
+    }
+
+    private static string GetTempPath(string path)
+    {
+        return path + ".tmp";
     }
 
     private static string GetBackupPath(string path)

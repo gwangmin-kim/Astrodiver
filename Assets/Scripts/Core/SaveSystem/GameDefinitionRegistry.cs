@@ -6,6 +6,7 @@ public sealed class GameDefinitionRegistry
 {
     private readonly Dictionary<string, ResourceDefinition> _resources;
     private readonly Dictionary<string, CreatureDefinition> _creatures;
+    private readonly Dictionary<string, UpgradeNodeDefinition> _upgrades;
 
     public GameDefinitionRegistry(GameDefinitionCatalog catalog)
     {
@@ -23,6 +24,7 @@ public sealed class GameDefinitionRegistry
 
         _resources = BuildLookup(catalog.Resources, definition => definition.Id);
         _creatures = BuildLookup(catalog.Creatures, definition => definition.Id);
+        _upgrades = BuildLookup(catalog.Upgrades, definition => definition.Id);
     }
 
     public bool TryGetResource(string id, out ResourceDefinition definition)
@@ -33,6 +35,11 @@ public sealed class GameDefinitionRegistry
     public bool TryGetCreature(string id, out CreatureDefinition definition)
     {
         return _creatures.TryGetValue(id ?? string.Empty, out definition);
+    }
+
+    public bool TryGetUpgrade(string id, out UpgradeNodeDefinition definition)
+    {
+        return _upgrades.TryGetValue(id ?? string.Empty, out definition);
     }
 
     private static Dictionary<string, T> BuildLookup<T>(

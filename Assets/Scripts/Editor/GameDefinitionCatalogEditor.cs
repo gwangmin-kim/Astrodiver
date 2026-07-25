@@ -47,9 +47,10 @@ public sealed class GameDefinitionCatalogEditor : Editor
     {
         ResourceDefinition[] resources = FindAll<ResourceDefinition>();
         CreatureDefinition[] creatures = FindAll<CreatureDefinition>();
+        UpgradeNodeDefinition[] upgrades = FindAll<UpgradeNodeDefinition>();
 
         Undo.RecordObject(catalog, "Refresh Game Definition Catalog");
-        catalog.SetDefinitionsForEditor(resources, creatures);
+        catalog.SetDefinitionsForEditor(resources, creatures, upgrades);
         EditorUtility.SetDirty(catalog);
         AssetDatabase.SaveAssets();
 
@@ -57,7 +58,8 @@ public sealed class GameDefinitionCatalogEditor : Editor
         {
             Debug.Log(
                 $"Refreshed '{catalog.name}': " +
-                $"{resources.Length} resources, {creatures.Length} creatures.",
+                $"{resources.Length} resources, {creatures.Length} creatures, " +
+                $"{upgrades.Length} upgrades.",
                 catalog);
         }
         else

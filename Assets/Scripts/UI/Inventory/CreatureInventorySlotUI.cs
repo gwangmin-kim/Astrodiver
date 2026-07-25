@@ -14,19 +14,19 @@ public sealed class CreatureInventorySlotUI : MonoBehaviour
     [SerializeField] private Color _countColor = Color.white;
     [SerializeField][Range(8, 64)] private int _countFontSize = 16;
 
-    public void SetSlot(CreatureInventorySlot slot)
+    public void SetSlot(CreatureInventorySlot slot, CreatureDefinition definition)
     {
         EnsureLayout();
 
-        if (slot.IsEmpty)
+        if (slot == null || slot.IsEmpty || definition == null)
         {
             SetEmpty();
             return;
         }
 
-        _iconImage.sprite = slot.Definition.Icon;
+        _iconImage.sprite = definition.Icon;
         _iconImage.color = _filledIconColor;
-        _iconImage.enabled = slot.Definition.Icon != null;
+        _iconImage.enabled = definition.Icon != null;
         _countText.text = slot.Count.ToString();
         _countText.enabled = true;
     }

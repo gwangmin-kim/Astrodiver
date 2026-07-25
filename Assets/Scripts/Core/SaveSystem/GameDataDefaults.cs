@@ -5,45 +5,25 @@ using UnityEngine;
     menuName = "Astrodiver/Save System/Game Data Defaults")]
 public sealed class GameDataDefaults : ScriptableObject
 {
-    [Header("Inventory")]
-    [SerializeField, Min(1)] private int _creatureSlotCount;
+    [SerializeField] private GameSaveData _data = new();
 
-    [Header("Player Stats")]
-    [SerializeField] private PlayerMovementData _movement;
-    [SerializeField] private BatteryData _battery;
-    [SerializeField] private MagnetData _magnet;
-
-    [Header("Equipment")]
-    [SerializeField] private NetGunData _netGun;
-    [SerializeField] private PlasmaGunData _plasmaGun;
+    public int CreatureSlotCount =>
+        Mathf.Max(1, _data?.inventory?.CreatureSlots?.Count ?? 0);
 
     public GameSaveData CreateSaveData()
     {
-        GameSaveData data = new();
-        data.inventory.initialized = true;
+        _data ??= new GameSaveData();
+        _data.RepairAfterLoad(CreatureSlotCount);
 
-        int slotCount = Mathf.Max(1, _creatureSlotCount);
-        for (int i = 0; i < slotCount; i++)
-        {
-            data.inventory.creatureSlots.Add(new CreatureSlotSaveData
-            {
-                definitionId = string.Empty,
-                count = 0
-            });
-        }
+        string json = JsonUtility.ToJson(_data);
+        GameSaveData copy = JsonUtility.FromJson<GameSaveData>(json) ?? new GameSaveData();
+        copy.RepairAfterLoad(CreatureSlotCount);
+        return copy;
+    }
 
-        data.playerStats.movementInitialized = true;
-        data.playerStats.movement = _movement;
-        data.playerStats.batteryInitialized = true;
-        data.playerStats.battery = _battery;
-        data.playerStats.magnetInitialized = true;
-        data.playerStats.magnet = _magnet;
-
-        data.equipment.netGunInitialized = true;
-        data.equipment.netGun = _netGun;
-        data.equipment.plasmaGunInitialized = true;
-        data.equipment.plasmaGun = _plasmaGun;
-        data.Normalize();
-        return data;
+    private void OnValidate()
+    {
+        _data ??= new GameSaveData();
+        _data.RepairAfterLoad(CreatureSlotCount);
     }
 }

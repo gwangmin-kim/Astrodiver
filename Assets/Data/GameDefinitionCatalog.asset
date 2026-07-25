@@ -14,5 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameDefinitionCatalog
   _resources:
   - {fileID: 11400000, guid: 1059946eedbea974699f29d697f124de, type: 2}
+  - {fileID: 11400000, guid: f7bf18dc02ff9454ca10d23514f6374d, type: 2}
   _creatures:
   - {fileID: 11400000, guid: 1e4bdc4200fd1a34abc134dc6d8c2ddc, type: 2}
+  - {fileID: 11400000, guid: 7dc629ab09415434b8cb1b8ae4cb8dfb, type: 2}
+  _upgrades: []

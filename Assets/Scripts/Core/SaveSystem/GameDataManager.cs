@@ -14,9 +14,11 @@ public class GameDataManager : MonoBehaviour
     private const string SaveFileName = "player-save.json";
 
     private bool _isDirty;
+    private bool _isSaveSuspended;
 
     public GameSaveData Data { get; private set; }
     public GameDefinitionRegistry Definitions { get; private set; }
+    public UpgradeService Upgrades { get; private set; }
     public bool HasUnsavedChanges => _isDirty;
     public string SaveFilePath => System.IO.Path.Combine(
         Application.persistentDataPath,
@@ -24,6 +26,7 @@ public class GameDataManager : MonoBehaviour
 
     public event Action<GameSaveData> DataLoaded;
     public event Action<GameSaveData> DataSaved;
+    public event Action<GameSaveData> DataChanged;
 
     private void Awake()
     {
@@ -44,6 +47,7 @@ public class GameDataManager : MonoBehaviour
         }
 
         Definitions = new GameDefinitionRegistry(_definitionCatalog);
+        Upgrades = new UpgradeService(this);
         Load();
     }
 
@@ -59,13 +63,45 @@ public class GameDataManager : MonoBehaviour
             }
         }
 
-        loadedData.Normalize();
-        Data = loadedData;
+        loadedData.RepairAfterLoad(_defaults != null ? _defaults.CreatureSlotCount : null);
         _isDirty = false;
+        ReplaceData(loadedData);
         DataLoaded?.Invoke(Data);
     }
 
     public bool SaveNow()
+    {
+        if (_isSaveSuspended)
+        {
+            Debug.LogWarning("Saving is suspended until the exploration session ends.", this);
+            return false;
+        }
+
+        return SaveNowCore();
+    }
+
+    internal bool SaveExplorationResult()
+    {
+        return SaveNowCore();
+    }
+
+    internal bool BeginSaveSuspension()
+    {
+        if (_isSaveSuspended)
+        {
+            return false;
+        }
+
+        _isSaveSuspended = true;
+        return true;
+    }
+
+    internal void EndSaveSuspension()
+    {
+        _isSaveSuspended = false;
+    }
+
+    private bool SaveNowCore()
     {
         if (Data == null)
         {
@@ -86,27 +122,6 @@ public class GameDataManager : MonoBehaviour
     public void MarkDirty()
     {
         _isDirty = true;
-    }
-
-    public InventorySaveData GetOrInitializeInventory(InventorySaveData fallback)
-    {
-        if (!Data.inventory.initialized)
-        {
-            Data.inventory = fallback ?? new InventorySaveData();
-            Data.inventory.initialized = true;
-            Data.inventory.Normalize();
-            MarkDirty();
-        }
-
-        return Data.inventory;
-    }
-
-    public void SetInventory(InventorySaveData inventory)
-    {
-        Data.inventory = inventory ?? new InventorySaveData();
-        Data.inventory.initialized = true;
-        Data.inventory.Normalize();
-        MarkDirty();
     }
 
     public PlayerMovementData GetOrInitializeMovement(PlayerMovementData fallback)
@@ -204,14 +219,84 @@ public class GameDataManager : MonoBehaviour
         MarkDirty();
     }
 
-    public bool UnlockUpgrade(string upgradeId)
+    public int GetUpgradeLevel(string upgradeId)
     {
-        return AddUniqueProgressId(Data.unlockedUpgradeIds, upgradeId);
+        string normalizedId = upgradeId?.Trim();
+        if (string.IsNullOrEmpty(normalizedId))
+        {
+            return 0;
+        }
+
+        for (int i = 0; i < Data.upgradeNodes.Count; i++)
+        {
+            UpgradeNodeSaveData entry = Data.upgradeNodes[i];
+            if (string.Equals(entry.nodeId, normalizedId, StringComparison.Ordinal))
+            {
+                return Mathf.Max(0, entry.level);
+            }
+        }
+
+        return 0;
     }
 
     public bool IsUpgradeUnlocked(string upgradeId)
     {
-        return ContainsProgressId(Data.unlockedUpgradeIds, upgradeId);
+        return GetUpgradeLevel(upgradeId) > 0;
+    }
+
+    internal void SetUpgradeLevel(string upgradeId, int level)
+    {
+        string normalizedId = upgradeId?.Trim();
+        if (string.IsNullOrEmpty(normalizedId))
+        {
+            return;
+        }
+
+        int normalizedLevel = Mathf.Max(0, level);
+        for (int i = 0; i < Data.upgradeNodes.Count; i++)
+        {
+            if (!string.Equals(Data.upgradeNodes[i].nodeId, normalizedId, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            if (normalizedLevel == 0)
+            {
+                Data.upgradeNodes.RemoveAt(i);
+            }
+            else
+            {
+                Data.upgradeNodes[i] = new UpgradeNodeSaveData
+                {
+                    nodeId = normalizedId,
+                    level = normalizedLevel
+                };
+            }
+
+            MarkDirty();
+            return;
+        }
+
+        if (normalizedLevel > 0)
+        {
+            Data.upgradeNodes.Add(new UpgradeNodeSaveData
+            {
+                nodeId = normalizedId,
+                level = normalizedLevel
+            });
+            MarkDirty();
+        }
+    }
+
+    internal void RestoreTransactionSnapshot(GameSaveData snapshot, bool wasDirty)
+    {
+        _isDirty = wasDirty;
+        ReplaceData(snapshot);
+    }
+
+    internal void RestoreDirtyState(bool wasDirty)
+    {
+        _isDirty = wasDirty;
     }
 
     public bool CompleteEvent(string eventId)
@@ -247,4 +332,11 @@ public class GameDataManager : MonoBehaviour
         string normalizedId = id?.Trim();
         return !string.IsNullOrEmpty(normalizedId) && ids.Contains(normalizedId);
     }
+
+    private void ReplaceData(GameSaveData data)
+    {
+        Data = data ?? new GameSaveData();
+        DataChanged?.Invoke(Data);
+    }
+
 }

@@ -1,0 +1,145 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+[Serializable]
+public sealed class GameSaveData
+{
+    public const int CurrentSchemaVersion = 5;
+
+    public int schemaVersion = CurrentSchemaVersion;
+    public InventoryData inventory = new();
+    public PlayerStatsSaveData playerStats = new();
+    public EquipmentSaveData equipment = new();
+    public List<UpgradeNodeSaveData> upgradeNodes = new();
+    [HideInInspector] public List<string> unlockedUpgradeIds = new();
+    public List<string> completedEventIds = new();
+
+    public void RepairAfterLoad(int? creatureSlotCount = null)
+    {
+        schemaVersion = Mathf.Max(CurrentSchemaVersion, schemaVersion);
+        inventory ??= new InventoryData();
+        playerStats ??= new PlayerStatsSaveData();
+        equipment ??= new EquipmentSaveData();
+        upgradeNodes ??= new List<UpgradeNodeSaveData>();
+        unlockedUpgradeIds ??= new List<string>();
+        completedEventIds ??= new List<string>();
+
+        inventory.RepairAfterLoad(creatureSlotCount);
+        NormalizeUpgradeNodes();
+        MigrateLegacyUpgradeIds();
+        NormalizeUniqueIds(completedEventIds);
+    }
+
+    public GameSaveData Clone()
+    {
+        return JsonUtility.FromJson<GameSaveData>(JsonUtility.ToJson(this));
+    }
+
+    public bool TryValidate(out string error)
+    {
+        if (inventory == null)
+        {
+            error = "Inventory data is null.";
+            return false;
+        }
+
+        if (!inventory.TryValidate(out error))
+        {
+            return false;
+        }
+
+        if (playerStats == null ||
+            equipment == null ||
+            upgradeNodes == null ||
+            unlockedUpgradeIds == null ||
+            completedEventIds == null)
+        {
+            error = "One or more save data containers are null.";
+            return false;
+        }
+
+        error = null;
+        return true;
+    }
+
+    private void NormalizeUpgradeNodes()
+    {
+        Dictionary<string, int> levels = new(StringComparer.Ordinal);
+        for (int i = 0; i < upgradeNodes.Count; i++)
+        {
+            UpgradeNodeSaveData entry = upgradeNodes[i];
+            string id = entry.nodeId?.Trim();
+            if (string.IsNullOrEmpty(id) || entry.level <= 0)
+            {
+                continue;
+            }
+
+            if (!levels.TryGetValue(id, out int currentLevel) || entry.level > currentLevel)
+            {
+                levels[id] = entry.level;
+            }
+        }
+
+        upgradeNodes.Clear();
+        foreach (KeyValuePair<string, int> pair in levels)
+        {
+            upgradeNodes.Add(new UpgradeNodeSaveData
+            {
+                nodeId = pair.Key,
+                level = pair.Value
+            });
+        }
+
+        upgradeNodes.Sort((left, right) => string.CompareOrdinal(left.nodeId, right.nodeId));
+    }
+
+    private void MigrateLegacyUpgradeIds()
+    {
+        NormalizeUniqueIds(unlockedUpgradeIds);
+        for (int i = 0; i < unlockedUpgradeIds.Count; i++)
+        {
+            string id = unlockedUpgradeIds[i];
+            bool alreadyMigrated = false;
+            for (int nodeIndex = 0; nodeIndex < upgradeNodes.Count; nodeIndex++)
+            {
+                if (string.Equals(upgradeNodes[nodeIndex].nodeId, id, StringComparison.Ordinal))
+                {
+                    alreadyMigrated = true;
+                    break;
+                }
+            }
+
+            if (!alreadyMigrated)
+            {
+                upgradeNodes.Add(new UpgradeNodeSaveData
+                {
+                    nodeId = id,
+                    level = 1
+                });
+            }
+        }
+
+        unlockedUpgradeIds.Clear();
+        upgradeNodes.Sort((left, right) => string.CompareOrdinal(left.nodeId, right.nodeId));
+    }
+
+    private static void NormalizeUniqueIds(List<string> ids)
+    {
+        HashSet<string> uniqueIds = new(StringComparer.Ordinal);
+        for (int i = ids.Count - 1; i >= 0; i--)
+        {
+            string normalizedId = ids[i]?.Trim();
+            if (string.IsNullOrEmpty(normalizedId) || !uniqueIds.Add(normalizedId))
+            {
+                ids.RemoveAt(i);
+                continue;
+            }
+
+            ids[i] = normalizedId;
+        }
+
+        ids.Sort(StringComparer.Ordinal);
+    }
+
+}

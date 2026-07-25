@@ -1,44 +1,54 @@
+using System;
 using UnityEngine;
 
-[System.Serializable]
-public struct CreatureInventorySlot
+[Serializable]
+public sealed class CreatureInventorySlot
 {
-    [SerializeField] private CreatureDefinition _definition;
+    [SerializeField] private string _definitionId;
     [SerializeField] private int _count;
 
-    public readonly CreatureDefinition Definition => _definition;
-    public readonly int Count => _count;
-    public readonly bool IsEmpty => _definition == null || _count <= 0;
+    public string DefinitionId => _definitionId;
+    public int Count => _count;
+    public bool IsEmpty => string.IsNullOrEmpty(_definitionId) || _count <= 0;
 
-    /// <summary>
-    /// 빈 슬롯에 처음 생물 저장
-    /// </summary>
-    /// <param name="definition">추가할 생물 종류</param>
-    /// <param name="count">추가할 생물 수량</param>.
-    public void Set(CreatureDefinition definition, int count)
+    public CreatureInventorySlot()
     {
-        _definition = definition;
-        _count = Mathf.Clamp(count, 0, definition == null ? 0 : definition.MaxStackCount);
     }
 
-    /// <summary>
-    /// 이미 존재하는 생물의 수량을 더함
-    /// </summary>
-    /// <param name="amount">추가할 생물 수량</param>
-    /// <returns>실제로 슬롯에 추가된 양</returns>
-    public int Add(int amount)
+    public CreatureInventorySlot(string definitionId, int count)
     {
-        if (_definition == null || amount <= 0) return 0;
-
-        int addedAmount = Mathf.Min(amount, _definition.MaxStackCount - _count);
-        _count += addedAmount;
-        return addedAmount;
+        _definitionId = definitionId;
+        _count = count;
+        Repair();
     }
-}
 
-[System.Serializable]
-public struct CreatureResourceData
-{
-    public CreatureDefinition definition;
-    [Min(1)] public int amount;
+    internal bool Matches(string creatureId)
+    {
+        return !string.IsNullOrEmpty(creatureId) && string.Equals(
+            _definitionId,
+            creatureId,
+            StringComparison.Ordinal);
+    }
+
+    internal void Set(string creatureId, int value)
+    {
+        _definitionId = creatureId?.Trim();
+        _count = Mathf.Max(0, value);
+        if (string.IsNullOrEmpty(_definitionId) || _count == 0)
+        {
+            _definitionId = string.Empty;
+            _count = 0;
+        }
+    }
+
+    internal void Clear()
+    {
+        _definitionId = string.Empty;
+        _count = 0;
+    }
+
+    internal void Repair()
+    {
+        Set(_definitionId, _count);
+    }
 }

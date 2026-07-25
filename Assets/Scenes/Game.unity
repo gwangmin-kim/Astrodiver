@@ -593,7 +593,7 @@ GameObject:
   - component: {fileID: 101825987}
   - component: {fileID: 101825986}
   - component: {fileID: 101825993}
-  - component: {fileID: 101825985}
+  - component: {fileID: 101825996}
   - component: {fileID: 101825984}
   - component: {fileID: 101825989}
   - component: {fileID: 101825991}
@@ -620,32 +620,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
   _rigidbody: {fileID: 101825986}
-  _inputHandler: {fileID: 101825985}
+  _inputHandler: {fileID: 101825996}
   _data:
     moveSpeed: 5
     moveDampingTime: 0.3
     stopDampingTime: 0.8
---- !u!114 &101825985
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 101825983}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3cfcbe49466e0f544b72c834e968100c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerInputHandler
-  _playerMapName: Player
-  _moveActionName: Move
-  _aimActionName: Aim
-  _interactActionName: Interact
-  _dashActionName: Dash
-  _captureActionName: Capture
-  _attackActionName: Attack
-  _mouseAimThreshold: 5
-  _inputBufferTime: 0.15
 --- !u!50 &101825986
 Rigidbody2D:
   serializedVersion: 5
@@ -740,7 +719,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d77064bca3ce904da3d6d61785bcc4e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerCameraController
-  _inputHandler: {fileID: 101825985}
+  _inputHandler: {fileID: 101825996}
   _cameraTarget: {fileID: 980677638}
   _maxRange: 2
   _dampingTime: 0.5
@@ -756,7 +735,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0d40e45270e78d34a8cf47add75fd775, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAttackController
-  _inputHandler: {fileID: 101825985}
+  _inputHandler: {fileID: 101825996}
   _netGun: {fileID: 1780396141}
   _plasmaGun: {fileID: 1154014512}
 --- !u!114 &101825991
@@ -771,7 +750,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0bcceebc9ce7da4f9d4ca2163e6daf9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAimController
-  _inputHandler: {fileID: 101825985}
+  _inputHandler: {fileID: 101825996}
   _bodyTransform: {fileID: 1053322475}
   _handTransform: {fileID: 1723436011}
   _handOffset: {x: 0, y: -0.1}
@@ -801,10 +780,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: acafa6ce03363214bbdf67e1913967a4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInteractionController
-  _inputHandler: {fileID: 101825985}
+  _inputHandler: {fileID: 101825996}
   _interactableLayer:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 256
 --- !u!114 &101825995
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -819,6 +798,27 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerBatteryController
   _batteryData:
     amount: 60
+--- !u!114 &101825996
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 101825983}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2928cbd169b6f5748beeee55dd07a091, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerInputHandler
+  _playerMapName: Player
+  _moveActionName: Move
+  _aimActionName: Aim
+  _interactActionName: Interact
+  _dashActionName: Dash
+  _captureActionName: Capture
+  _attackActionName: Attack
+  _mouseAimThreshold: 5
+  _inputBufferTime: 0.15
 --- !u!1 &116805153
 GameObject:
   m_ObjectHideFlags: 0
@@ -982,9 +982,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CreatureController
   _data:
-    resourceData:
-      definition: {fileID: 11400000, guid: 7dc629ab09415434b8cb1b8ae4cb8dfb, type: 2}
-      amount: 1
+    creature: {fileID: 11400000, guid: 7dc629ab09415434b8cb1b8ae4cb8dfb, type: 2}
     radius: 0.3
     followDampingTime: 0.1
 --- !u!212 &356194544
@@ -1130,9 +1128,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CreatureController
   _data:
-    resourceData:
-      definition: {fileID: 11400000, guid: 1e4bdc4200fd1a34abc134dc6d8c2ddc, type: 2}
-      amount: 1
+    creature: {fileID: 11400000, guid: 1e4bdc4200fd1a34abc134dc6d8c2ddc, type: 2}
     radius: 1
     followDampingTime: 0.1
 --- !u!212 &375227119
@@ -1239,10 +1235,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3f7310e959d28b641b7f147e7fd43a30, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInventoryController
-  _creatureSlotCount: 0
-  _creatureSlots:
-  - _definition: {fileID: 0}
-    _count: 0
 --- !u!4 &439536848
 Transform:
   m_ObjectHideFlags: 0
@@ -1588,9 +1580,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CreatureController
   _data:
-    resourceData:
-      definition: {fileID: 11400000, guid: 7dc629ab09415434b8cb1b8ae4cb8dfb, type: 2}
-      amount: 1
+    creature: {fileID: 11400000, guid: 7dc629ab09415434b8cb1b8ae4cb8dfb, type: 2}
     radius: 0.5
     followDampingTime: 0.1
 --- !u!212 &531675646
@@ -1736,9 +1726,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CreatureController
   _data:
-    resourceData:
-      definition: {fileID: 11400000, guid: 1e4bdc4200fd1a34abc134dc6d8c2ddc, type: 2}
-      amount: 1
+    creature: {fileID: 11400000, guid: 1e4bdc4200fd1a34abc134dc6d8c2ddc, type: 2}
     radius: 0.6
     followDampingTime: 0.1
 --- !u!212 &585872953
@@ -2192,9 +2180,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CreatureController
   _data:
-    resourceData:
-      definition: {fileID: 11400000, guid: 1e4bdc4200fd1a34abc134dc6d8c2ddc, type: 2}
-      amount: 1
+    creature: {fileID: 11400000, guid: 1e4bdc4200fd1a34abc134dc6d8c2ddc, type: 2}
     radius: 0.5
     followDampingTime: 0.1
 --- !u!212 &874030317
@@ -3221,7 +3207,6 @@ MonoBehaviour:
     tickDamage: 1
     tickInterval: 0.5
     attackRange: 5
-    isChainingUnlocked: 1
     chainCount: 5
     chainedDamageRate: 0.5
     chainDetectRange: 5
@@ -3300,9 +3285,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CreatureController
   _data:
-    resourceData:
-      definition: {fileID: 11400000, guid: 1e4bdc4200fd1a34abc134dc6d8c2ddc, type: 2}
-      amount: 1
+    creature: {fileID: 11400000, guid: 1e4bdc4200fd1a34abc134dc6d8c2ddc, type: 2}
     radius: 0.3
     followDampingTime: 0.1
 --- !u!212 &1163919867
@@ -3561,9 +3544,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CreatureController
   _data:
-    resourceData:
-      definition: {fileID: 11400000, guid: 7dc629ab09415434b8cb1b8ae4cb8dfb, type: 2}
-      amount: 1
+    creature: {fileID: 11400000, guid: 7dc629ab09415434b8cb1b8ae4cb8dfb, type: 2}
     radius: 1
     followDampingTime: 0.1
 --- !u!212 &1369828141
@@ -3845,9 +3826,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CreatureController
   _data:
-    resourceData:
-      definition: {fileID: 11400000, guid: 7dc629ab09415434b8cb1b8ae4cb8dfb, type: 2}
-      amount: 1
+    creature: {fileID: 11400000, guid: 7dc629ab09415434b8cb1b8ae4cb8dfb, type: 2}
     radius: 0.6
     followDampingTime: 0.1
 --- !u!212 &1436514182

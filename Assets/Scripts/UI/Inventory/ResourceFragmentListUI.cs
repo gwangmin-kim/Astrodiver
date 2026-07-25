@@ -6,6 +6,7 @@ using UnityEngine.UI;
 public sealed class ResourceFragmentListUI : MonoBehaviour
 {
     [SerializeField] private ResourceFragmentEntryUI _entryPrefab;
+    [SerializeField] private PlayerInventoryController _playerInventory;
     [SerializeField] private Vector2 _anchoredPosition = new(-32f, 24f);
     [SerializeField] private Vector2 _size = new(190f, 240f);
     [SerializeField][Min(0f)] private float _entrySpacing = 4f;
@@ -18,31 +19,46 @@ public sealed class ResourceFragmentListUI : MonoBehaviour
 
         if (Application.isPlaying)
         {
-            InventoryEvents.ResourceAmountChanged += OnResourceAmountChanged;
+            Subscribe();
         }
+
+        Refresh();
     }
 
     public void Initialize(PlayerInventoryController inventory)
+    {
+        Unsubscribe();
+        _playerInventory = inventory;
+        Subscribe();
+        Refresh();
+    }
+
+    private void Refresh()
     {
         ResourceDefinition[] displayedDefinitions = new ResourceDefinition[_entries.Count];
         _entries.Keys.CopyTo(displayedDefinitions, 0);
 
         foreach (ResourceDefinition definition in displayedDefinitions)
         {
-            if (inventory == null || inventory.GetResourceAmount(definition) <= 0)
+            if (_playerInventory == null || _playerInventory.GetResourceAmount(definition) <= 0)
             {
                 RemoveEntry(definition);
             }
         }
 
-        if (inventory == null)
+        if (_playerInventory == null)
         {
             return;
         }
 
-        foreach (KeyValuePair<ResourceDefinition, int> entry in inventory.ResourceAmounts)
+        foreach (ResourceInventoryEntry entry in _playerInventory.ResourceAmounts)
         {
-            OnResourceAmountChanged(entry.Key, entry.Value);
+            if (_playerInventory.TryResolveResourceDefinition(
+                    entry,
+                    out ResourceDefinition definition))
+            {
+                SetResourceAmount(definition, entry.Amount);
+            }
         }
     }
 
@@ -50,11 +66,35 @@ public sealed class ResourceFragmentListUI : MonoBehaviour
     {
         if (Application.isPlaying)
         {
-            InventoryEvents.ResourceAmountChanged -= OnResourceAmountChanged;
+            Unsubscribe();
         }
     }
 
-    private void OnResourceAmountChanged(ResourceDefinition definition, int amount)
+    private void OnInventoryChanged()
+    {
+        Refresh();
+    }
+
+    private void Subscribe()
+    {
+        if (!Application.isPlaying || !isActiveAndEnabled || _playerInventory == null)
+        {
+            return;
+        }
+
+        _playerInventory.Changed -= OnInventoryChanged;
+        _playerInventory.Changed += OnInventoryChanged;
+    }
+
+    private void Unsubscribe()
+    {
+        if (_playerInventory != null)
+        {
+            _playerInventory.Changed -= OnInventoryChanged;
+        }
+    }
+
+    private void SetResourceAmount(ResourceDefinition definition, int amount)
     {
         if (definition == null) return;
 

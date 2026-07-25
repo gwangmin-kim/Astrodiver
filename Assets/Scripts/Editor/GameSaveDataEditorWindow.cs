@@ -202,7 +202,7 @@ public sealed class GameSaveDataEditorWindow : EditorWindow
 
         _serializedContainer.ApplyModifiedProperties();
         _container.data ??= new GameSaveData();
-        _container.data.Normalize();
+        _container.data.RepairAfterLoad();
 
         if (!GameDataFileStore.TrySave(SaveFilePath, _container.data, out string error))
         {
@@ -263,7 +263,7 @@ public sealed class GameSaveDataEditorWindow : EditorWindow
     private void SetData(GameSaveData data)
     {
         _container.data = data ?? new GameSaveData();
-        _container.data.Normalize();
+        _container.data.RepairAfterLoad();
         _serializedContainer = new SerializedObject(_container);
         Repaint();
     }

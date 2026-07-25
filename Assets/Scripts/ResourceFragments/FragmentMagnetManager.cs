@@ -53,13 +53,10 @@ public sealed class FragmentMagnetManager
             }
 
             // 수집 범위 안의 파티클은 즉시 수집
-            playerInventory.CollectResourceFragment(
-                new FragmentResourceData
-                {
-                    definition = resource,
-                    amount = 1
-                });
-            _particles[i].remainingLifetime = 0f;
+            if (playerInventory.TryAddResource(resource))
+            {
+                _particles[i].remainingLifetime = 0f;
+            }
         }
 
         particleSystem.SetParticles(_particles, activeCount);

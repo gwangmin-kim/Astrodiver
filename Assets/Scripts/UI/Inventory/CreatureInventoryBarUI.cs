@@ -17,30 +17,50 @@ public sealed class CreatureInventoryBarUI : MonoBehaviour
     {
         if (Application.isPlaying)
         {
-            InventoryEvents.CreatureSlotChanged += OnCreatureSlotChanged;
+            Subscribe();
         }
+
+        InitializeFromPlayerInventory();
     }
 
     private void OnDisable()
     {
         if (Application.isPlaying)
         {
-            InventoryEvents.CreatureSlotChanged -= OnCreatureSlotChanged;
+            Unsubscribe();
         }
     }
 
     public void Initialize(PlayerInventoryController playerInventory)
     {
+        Unsubscribe();
         _playerInventory = playerInventory;
+        Subscribe();
         InitializeFromPlayerInventory();
     }
 
-    private void OnCreatureSlotChanged(int slotIndex, CreatureInventorySlot slot)
+    private void OnInventoryChanged()
     {
         InitializeFromPlayerInventory();
-        if (slotIndex < 0 || slotIndex >= _slots.Count) return;
+    }
 
-        _slots[slotIndex].SetSlot(slot);
+    private void Subscribe()
+    {
+        if (!Application.isPlaying || !isActiveAndEnabled || _playerInventory == null)
+        {
+            return;
+        }
+
+        _playerInventory.Changed -= OnInventoryChanged;
+        _playerInventory.Changed += OnInventoryChanged;
+    }
+
+    private void Unsubscribe()
+    {
+        if (_playerInventory != null)
+        {
+            _playerInventory.Changed -= OnInventoryChanged;
+        }
     }
 
     private void InitializeFromPlayerInventory()
@@ -55,8 +75,15 @@ public sealed class CreatureInventoryBarUI : MonoBehaviour
 
         for (int i = 0; i < _playerInventory.CreatureSlots.Count && i < _slots.Count; i++)
         {
-            _slots[i].SetSlot(_playerInventory.CreatureSlots[i]);
+            SetUiSlot(i, _playerInventory.CreatureSlots[i]);
         }
+    }
+
+    private void SetUiSlot(int slotIndex, CreatureInventorySlot slot)
+    {
+        CreatureDefinition definition = null;
+        _playerInventory?.TryResolveCreatureDefinition(slot, out definition);
+        _slots[slotIndex].SetSlot(slot, definition);
     }
 
     private void EnsureLayout(int slotCount)

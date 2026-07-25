@@ -9,15 +9,21 @@ public sealed class GameDefinitionCatalog : ScriptableObject
 {
     [SerializeField] private ResourceDefinition[] _resources = Array.Empty<ResourceDefinition>();
     [SerializeField] private CreatureDefinition[] _creatures = Array.Empty<CreatureDefinition>();
+    [SerializeField] private UpgradeNodeDefinition[] _upgrades = Array.Empty<UpgradeNodeDefinition>();
 
     public IReadOnlyList<ResourceDefinition> Resources => _resources;
     public IReadOnlyList<CreatureDefinition> Creatures => _creatures;
+    public IReadOnlyList<UpgradeNodeDefinition> Upgrades =>
+        _upgrades ?? Array.Empty<UpgradeNodeDefinition>();
 
     public bool TryValidate(out string error)
     {
         List<string> errors = new();
         ValidateDefinitions(_resources, definition => definition.Id, errors);
         ValidateDefinitions(_creatures, definition => definition.Id, errors);
+        _upgrades ??= Array.Empty<UpgradeNodeDefinition>();
+        ValidateDefinitions(_upgrades, definition => definition.Id, errors);
+        ValidateUpgradeTree(errors);
         error = string.Join(Environment.NewLine, errors);
         return errors.Count == 0;
     }
@@ -25,10 +31,12 @@ public sealed class GameDefinitionCatalog : ScriptableObject
 #if UNITY_EDITOR
     public void SetDefinitionsForEditor(
         ResourceDefinition[] resources,
-        CreatureDefinition[] creatures)
+        CreatureDefinition[] creatures,
+        UpgradeNodeDefinition[] upgrades)
     {
         _resources = resources ?? Array.Empty<ResourceDefinition>();
         _creatures = creatures ?? Array.Empty<CreatureDefinition>();
+        _upgrades = upgrades ?? Array.Empty<UpgradeNodeDefinition>();
     }
 #endif
 
@@ -59,6 +67,66 @@ public sealed class GameDefinitionCatalog : ScriptableObject
             if (!ids.Add(id))
             {
                 errors.Add($"Duplicate {typeof(T).Name} id '{id}'.");
+            }
+        }
+    }
+
+    private void ValidateUpgradeTree(ICollection<string> errors)
+    {
+        HashSet<UpgradeNodeDefinition> nodes = new(_upgrades);
+        HashSet<ResourceDefinition> resources = new(_resources);
+        for (int i = 0; i < _upgrades.Length; i++)
+        {
+            UpgradeNodeDefinition node = _upgrades[i];
+            if (node == null)
+            {
+                continue;
+            }
+
+            if (!node.TryValidate(out string nodeError))
+            {
+                errors.Add(nodeError);
+            }
+
+            ValidateCostResources(node.BaseCosts, node, resources, errors);
+            ValidateCostResources(node.CostIncreases, node, resources, errors);
+
+            if (node.Parent != null && !nodes.Contains(node.Parent))
+            {
+                errors.Add(
+                    $"Upgrade node '{node.Id}' references parent '{node.Parent.Id}', " +
+                    "but the parent is not in this catalog.");
+            }
+
+            HashSet<UpgradeNodeDefinition> ancestors = new();
+            UpgradeNodeDefinition current = node;
+            while (current != null)
+            {
+                if (!ancestors.Add(current))
+                {
+                    errors.Add($"Upgrade tree cycle detected at node '{node.Id}'.");
+                    break;
+                }
+
+                current = current.Parent;
+            }
+        }
+    }
+
+    private static void ValidateCostResources(
+        IReadOnlyList<UpgradeResourceCost> costs,
+        UpgradeNodeDefinition node,
+        ISet<ResourceDefinition> catalogResources,
+        ICollection<string> errors)
+    {
+        for (int i = 0; i < costs.Count; i++)
+        {
+            ResourceDefinition resource = costs[i].Resource;
+            if (resource != null && !catalogResources.Contains(resource))
+            {
+                errors.Add(
+                    $"Upgrade node '{node.Id}' uses resource '{resource.Id}', " +
+                    "but that resource is not in this catalog.");
             }
         }
     }

@@ -420,12 +420,8 @@ public class NetGunController : MonoBehaviour
     {
         if (IsMissing(target)) return;
 
-        CreatureResourceData resourceData = target.CaptureData.resourceData;
-        CollectionResult result = _playerInventory != null
-            ? _playerInventory.CollectCreature(resourceData)
-            : new CollectionResult(Mathf.Max(0, resourceData.amount), 0);
-
-        if (!result.IsFullyCollected)
+        CreatureDefinition creature = target.CaptureData.creature;
+        if (_playerInventory == null || !_playerInventory.TryAddCreature(creature))
         {
             target.OnCaptureReleased(CaptureReleaseReason.Interrupted);
             return;

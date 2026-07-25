@@ -2,156 +2,473 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerInventoryController : MonoBehaviour
+public sealed class PlayerInventoryController : MonoBehaviour
 {
     public static PlayerInventoryController Instance { get; private set; }
 
-    [Header("Creature Inventory")]
-    [SerializeField][Min(1)] private int _creatureSlotCount;
-    [SerializeField] private CreatureInventorySlot[] _creatureSlots;
+    private readonly Dictionary<string, int> _resourceCostBuffer =
+        new(StringComparer.Ordinal);
 
-    // Resource inventory
-    private readonly Dictionary<ResourceDefinition, int> _resourceAmounts = new();
+    private InventoryData _inventory;
+    private InventoryData _sessionStartSnapshot;
+    private bool _sessionStartWasDirty;
+    private bool _isExploreSessionActive;
 
-    public event Action<int, CreatureInventorySlot> CreatureSlotChanged; // (슬롯 번호, 슬롯 정보)
-    public event Action<ResourceDefinition, int> ResourceAmountChanged; // (자원 종류, 자원 수)
+    public event Action Changed; // 자원 변경이 일어났을 때 호출
 
-    public IReadOnlyList<CreatureInventorySlot> CreatureSlots => _creatureSlots;
-    public IReadOnlyDictionary<ResourceDefinition, int> ResourceAmounts => _resourceAmounts;
-    public bool HasUncommittedChanges { get; private set; }
+    public IReadOnlyList<CreatureInventorySlot> CreatureSlots =>
+        _inventory?.CreatureSlots;
 
-    private void OnValidate()
-    {
-        EnsureCreatureSlots();
-    }
+    public IReadOnlyList<ResourceInventoryEntry> ResourceAmounts =>
+        _inventory?.ResourceAmounts;
 
     private void Awake()
     {
         if (Instance != null && Instance != this)
         {
-            Destroy(this);
+            Destroy(gameObject);
             return;
         }
-
         Instance = this;
         DontDestroyOnLoad(gameObject);
-        EnsureCreatureSlots();
-        RestoreFromGameData();
+
+        // 인벤토리 초기화
+        GameDataManager manager = GameDataManager.Instance;
+        if (manager == null || manager.Data == null)
+        {
+            Debug.LogError("Cannot initialize inventory because GameDataManager is not ready.", this);
+            enabled = false;
+            return;
+        }
+        _inventory = manager.Data.inventory;
+        manager.DataChanged += OnGameDataChanged;
     }
 
     private void OnDestroy()
     {
-        if (Instance == this)
+        if (Instance != this)
         {
-            Instance = null;
+            return;
         }
+
+        GameDataManager manager = GameDataManager.Instance;
+        if (manager != null)
+        {
+            manager.DataChanged -= OnGameDataChanged;
+            if (_isExploreSessionActive)
+            {
+                manager.EndSaveSuspension();
+            }
+        }
+
+        Instance = null;
     }
 
     /// <summary>
-    /// 생물을 플레이어 인벤토리에 추가
+    /// 인벤토리에 생물 추가 요청
     /// </summary>
-    /// <param name="data">추가할 생물의 종류와 수량</param>
-    /// <returns>수집 결과</returns>
-    public CollectionResult CollectCreature(CreatureResourceData data)
+    public bool TryAddCreature(CreatureDefinition creature)
     {
-        // EnsureCreatureSlots();
-
-        int requestedAmount = Mathf.Max(0, data.amount);
-        if (data.definition == null || requestedAmount == 0)
+        if (_inventory == null || creature == null || string.IsNullOrWhiteSpace(creature.Id))
         {
-            return new CollectionResult(requestedAmount, 0);
+            return false;
         }
 
-        int remainingAmount = requestedAmount;
-
-        // 먼저 같은 종류의 생물을 보유 중인지 확인, 보유 중일 경우 해당 슬롯에 채워넣기 시도
-        for (int i = 0; i < _creatureSlots.Length && remainingAmount > 0; i++)
+        CreatureInventorySlot[] slots = _inventory.MutableCreatureSlots;
+        int targetIndex = FindCreatureSlot(slots, creature);
+        if (targetIndex < 0)
         {
-            CreatureInventorySlot slot = _creatureSlots[i];
-            if (slot.Definition != data.definition) continue;
-
-            int addedAmount = slot.Add(remainingAmount);
-            if (addedAmount == 0) continue;
-
-            remainingAmount -= addedAmount;
-            _creatureSlots[i] = slot;
-            CreatureSlotChanged?.Invoke(i, slot);
-            InventoryEvents.RaiseCreatureSlotChanged(i, slot);
+            Debug.Log("Inventory: Cannot Find Available Slot.", this);
+            return false;
         }
 
-        // 남은 생물이 있다면 빈 슬롯에 채워넣기 시도
-        for (int i = 0; i < _creatureSlots.Length && remainingAmount > 0; i++)
+        InventoryData snapshot = CreateHubRollbackSnapshot();
+        bool wasDirty = GameDataManager.Instance.HasUnsavedChanges;
+        CreatureInventorySlot slot = slots[targetIndex];
+        if (slot == null)
         {
-            CreatureInventorySlot slot = _creatureSlots[i];
-            if (!slot.IsEmpty) continue;
-
-            slot.Set(data.definition, 0);
-            int addedAmount = slot.Add(remainingAmount);
-            remainingAmount -= addedAmount;
-            _creatureSlots[i] = slot;
-            CreatureSlotChanged?.Invoke(i, slot);
-            InventoryEvents.RaiseCreatureSlotChanged(i, slot);
+            slot = new CreatureInventorySlot();
+            slots[targetIndex] = slot;
         }
 
-        // 결과 반환
-        CollectionResult result = new(requestedAmount, requestedAmount - remainingAmount);
-        if (result.CollectedAmount > 0)
-        {
-            HasUncommittedChanges = true;
-        }
+        int nextCount = slot.IsEmpty ? 1 : slot.Count + 1;
+        slot.Set(creature.Id, nextCount);
 
-        return result;
+        return CompleteInventoryMutation(snapshot, wasDirty);
     }
 
     /// <summary>
-    /// 자원을 플레이어 인벤토리에 추가
+    /// 인벤토리에 자원 추가 요청
     /// </summary>
-    /// <param name="data">자원의 종류와 수량</param>
-    /// <returns>전체 보유량</returns>
-    public int CollectResourceFragment(FragmentResourceData data)
+    public int GetCreatureCount(CreatureDefinition creature)
     {
-        if (data.definition == null || data.amount <= 0)
+        if (_inventory == null || creature == null ||
+            string.IsNullOrWhiteSpace(creature.Id))
         {
-            return data.definition == null ? 0 : GetResourceAmount(data.definition);
+            return 0;
         }
 
-        int currentAmount = GetResourceAmount(data.definition);
-        int nextAmount = currentAmount > int.MaxValue - data.amount
-            ? int.MaxValue
-            : currentAmount + data.amount;
+        string creatureId = creature.Id.Trim();
+        int total = 0;
+        IReadOnlyList<CreatureInventorySlot> slots = _inventory.CreatureSlots;
+        for (int i = 0; i < slots.Count; i++)
+        {
+            CreatureInventorySlot slot = slots[i];
+            if (slot == null || !slot.Matches(creatureId))
+            {
+                continue;
+            }
 
-        _resourceAmounts[data.definition] = nextAmount;
-        ResourceAmountChanged?.Invoke(data.definition, nextAmount);
-        InventoryEvents.RaiseResourceAmountChanged(data.definition, nextAmount);
-        HasUncommittedChanges = true;
-        return nextAmount;
+            total = total > int.MaxValue - slot.Count
+                ? int.MaxValue
+                : total + slot.Count;
+        }
+
+        return total;
     }
 
-    public int GetResourceAmount(ResourceDefinition definition)
+    public int TakeCreature(CreatureDefinition creature, int requestedAmount)
     {
-        if (definition == null) return 0;
+        if (_inventory == null || _isExploreSessionActive ||
+            creature == null || string.IsNullOrWhiteSpace(creature.Id) ||
+            requestedAmount <= 0)
+        {
+            return 0;
+        }
 
-        return _resourceAmounts.TryGetValue(definition, out int amount)
-            ? amount
+        InventoryData snapshot = _inventory.Clone();
+        bool wasDirty = GameDataManager.Instance.HasUnsavedChanges;
+        int takenAmount = TakeCreatureInternal(
+            creature.Id.Trim(),
+            requestedAmount);
+
+        if (takenAmount == 0)
+        {
+            return 0;
+        }
+
+        return CompleteHubSpend(snapshot, wasDirty)
+            ? takenAmount
             : 0;
     }
 
-    public bool TrySpendResource(ResourceDefinition definition, int amount)
+    public bool TryAddResource(ResourceDefinition resource, int amount = 1)
     {
-        if (definition == null || amount <= 0) return false;
+        if (_inventory == null || resource == null ||
+            string.IsNullOrWhiteSpace(resource.Id) || amount <= 0)
+        {
+            return false;
+        }
 
-        int currentAmount = GetResourceAmount(definition);
-        if (currentAmount < amount) return false;
+        InventoryData snapshot = CreateHubRollbackSnapshot();
+        bool wasDirty = GameDataManager.Instance.HasUnsavedChanges;
+        _inventory.AddResource(resource.Id, amount);
+        return CompleteInventoryMutation(snapshot, wasDirty);
+    }
 
-        int nextAmount = currentAmount - amount;
-        _resourceAmounts[definition] = nextAmount;
-        ResourceAmountChanged?.Invoke(definition, nextAmount);
-        InventoryEvents.RaiseResourceAmountChanged(definition, nextAmount);
-        HasUncommittedChanges = true;
+    public int GetResourceAmount(ResourceDefinition resource)
+    {
+        return resource == null || _inventory == null
+            ? 0
+            : _inventory.GetResourceAmount(resource.Id);
+    }
+
+    /// <summary>
+    /// 업그레이드 지불 가능 여부 검사
+    /// </summary>
+    public bool CanAfford(IReadOnlyList<UpgradeResourceCost> costs)
+    {
+        if (!TryAggregateCosts(costs))
+        {
+            return false;
+        }
+
+        foreach (KeyValuePair<string, int> cost in _resourceCostBuffer)
+        {
+            if (_inventory.GetResourceAmount(cost.Key) < cost.Value)
+            {
+                return false;
+            }
+        }
+
         return true;
     }
 
-    public void LoseSessionInventory(float lossRatio)
+    /// <summary>
+    /// 자원 소비 (일반적인 형태)
+    /// 세션 중에 호출 불가
+    /// </summary>
+    public bool TrySpendResource(ResourceDefinition resource, int amount)
+    {
+        if (_inventory == null || _isExploreSessionActive ||
+            resource == null || amount <= 0)
+        {
+            return false;
+        }
+
+        InventoryData snapshot = _inventory.Clone();
+        bool wasDirty = GameDataManager.Instance.HasUnsavedChanges;
+        if (!TrySpendResourceInternal(resource.Id, amount))
+        {
+            return false;
+        }
+
+        return CompleteHubSpend(snapshot, wasDirty);
+    }
+
+    /// <summary>
+    /// 자원 소비 (업그레이드 비용 전달 형태)
+    /// 세션 중에 호출 불가
+    /// </summary>
+    public bool TrySpendResources(IReadOnlyList<UpgradeResourceCost> costs)
+    {
+        if (_inventory == null || _isExploreSessionActive)
+        {
+            return false;
+        }
+
+        InventoryData snapshot = _inventory.Clone();
+        bool wasDirty = GameDataManager.Instance.HasUnsavedChanges;
+        if (!TrySpendResourcesForTransaction(costs))
+        {
+            return false;
+        }
+
+        return CompleteHubSpend(snapshot, wasDirty);
+    }
+
+    internal bool TrySpendResourcesForTransaction(IReadOnlyList<UpgradeResourceCost> costs)
+    {
+        if (_inventory == null || _isExploreSessionActive || !CanAfford(costs))
+        {
+            return false;
+        }
+
+        foreach (KeyValuePair<string, int> cost in _resourceCostBuffer)
+        {
+            if (!TrySpendResourceInternal(cost.Key, cost.Value))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    internal void NotifyTransactionCommitted()
+    {
+        Changed?.Invoke();
+    }
+
+    public bool BeginExploreSession()
+    {
+        if (_isExploreSessionActive)
+        {
+            Debug.LogWarning("An exploration session is already active.", this);
+            return false;
+        }
+
+        GameDataManager manager = GameDataManager.Instance;
+        if (manager.HasUnsavedChanges && !manager.SaveNow())
+        {
+            Debug.LogError("Cannot start exploration with unsaved hub data.", this);
+            return false;
+        }
+
+        if (!manager.BeginSaveSuspension())
+        {
+            Debug.LogError("Cannot suspend saving for the exploration session.", this);
+            return false;
+        }
+
+        _sessionStartSnapshot = _inventory.Clone();
+        _sessionStartWasDirty = manager.HasUnsavedChanges;
+        _isExploreSessionActive = true;
+        return true;
+    }
+
+    public bool CompleteExploreSession(float lossRatio)
+    {
+        if (!_isExploreSessionActive)
+        {
+            Debug.LogWarning("Cannot complete exploration because no session is active.", this);
+            return false;
+        }
+
+        GameDataManager manager = GameDataManager.Instance;
+        InventoryData runtimeBeforePenalty = _inventory.Clone();
+        bool wasDirty = manager.HasUnsavedChanges;
+        ApplySessionLoss(lossRatio);
+        manager.MarkDirty();
+
+        if (!manager.SaveExplorationResult())
+        {
+            _inventory.CopyFrom(runtimeBeforePenalty);
+            manager.RestoreDirtyState(wasDirty);
+            return false;
+        }
+
+        ClearSessionState();
+        Changed?.Invoke();
+        return true;
+    }
+
+    public void CancelExploreSession()
+    {
+        if (!_isExploreSessionActive)
+        {
+            return;
+        }
+
+        _inventory.CopyFrom(_sessionStartSnapshot);
+        GameDataManager.Instance.RestoreDirtyState(_sessionStartWasDirty);
+        ClearSessionState();
+        Changed?.Invoke();
+    }
+
+    public bool TryResolveCreatureDefinition(
+        CreatureInventorySlot slot,
+        out CreatureDefinition definition)
+    {
+        definition = null;
+        return slot != null && !slot.IsEmpty &&
+            GameDataManager.Instance.Definitions.TryGetCreature(slot.DefinitionId, out definition);
+    }
+
+    public bool TryResolveResourceDefinition(
+        ResourceInventoryEntry entry,
+        out ResourceDefinition definition)
+    {
+        definition = null;
+        return entry != null && !entry.IsEmpty &&
+            GameDataManager.Instance.Definitions.TryGetResource(entry.DefinitionId, out definition);
+    }
+
+    private static int FindCreatureSlot(
+        IReadOnlyList<CreatureInventorySlot> slots,
+        CreatureDefinition creature)
+    {
+        // 일치하면서 자리가 남는 슬롯이 있는지 검사
+        for (int i = 0; i < slots.Count; i++)
+        {
+            CreatureInventorySlot slot = slots[i];
+            if (slot != null && slot.Matches(creature.Id) &&
+                slot.Count < creature.MaxStackCount)
+            {
+                return i;
+            }
+        }
+
+        // 빈 슬롯이 있는지 검사
+        for (int i = 0; i < slots.Count; i++)
+        {
+            if (slots[i] == null || slots[i].IsEmpty)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    private int TakeCreatureInternal(string creatureId, int requestedAmount)
+    {
+        CreatureInventorySlot[] slots = _inventory.MutableCreatureSlots;
+        int remainingAmount = requestedAmount;
+
+        for (int i = slots.Length - 1; i >= 0 && remainingAmount > 0; i--)
+        {
+            CreatureInventorySlot slot = slots[i];
+            if (slot == null || !slot.Matches(creatureId))
+            {
+                continue;
+            }
+
+            int takenFromSlot = Mathf.Min(slot.Count, remainingAmount);
+            slot.Set(creatureId, slot.Count - takenFromSlot);
+            remainingAmount -= takenFromSlot;
+        }
+
+        return requestedAmount - remainingAmount;
+    }
+
+    private bool TryAggregateCosts(IReadOnlyList<UpgradeResourceCost> costs)
+    {
+        _resourceCostBuffer.Clear();
+        if (_inventory == null || costs == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < costs.Count; i++)
+        {
+            UpgradeResourceCost cost = costs[i];
+            if (cost.Resource == null || string.IsNullOrWhiteSpace(cost.Resource.Id) ||
+                cost.Amount <= 0)
+            {
+                return false;
+            }
+
+            string id = cost.Resource.Id.Trim();
+            _resourceCostBuffer.TryGetValue(id, out int current);
+            _resourceCostBuffer[id] = current > int.MaxValue - cost.Amount
+                ? int.MaxValue
+                : current + cost.Amount;
+        }
+
+        return true;
+    }
+
+    private bool TrySpendResourceInternal(string resourceId, int amount)
+    {
+        return _inventory.TrySpendResource(resourceId, amount);
+    }
+
+    /// <summary>
+    /// Hub(우주선)에서 저장 실패에 대비해 롤백 스냅샷 생성
+    /// </summary>
+    private InventoryData CreateHubRollbackSnapshot()
+    {
+        return _isExploreSessionActive ? null : _inventory.Clone();
+    }
+
+    private bool CompleteInventoryMutation(InventoryData hubSnapshot, bool wasDirty)
+    {
+        GameDataManager manager = GameDataManager.Instance;
+        manager.MarkDirty();
+
+        if (!_isExploreSessionActive && !manager.SaveNow())
+        {
+            _inventory.CopyFrom(hubSnapshot);
+            manager.RestoreDirtyState(wasDirty);
+            return false;
+        }
+
+        Changed?.Invoke();
+        return true;
+    }
+
+    private bool CompleteHubSpend(InventoryData snapshot, bool wasDirty)
+    {
+        if (_isExploreSessionActive)
+        {
+            return false;
+        }
+
+        GameDataManager manager = GameDataManager.Instance;
+        manager.MarkDirty();
+        if (manager.SaveNow())
+        {
+            Changed?.Invoke();
+            return true;
+        }
+
+        _inventory.CopyFrom(snapshot);
+        manager.RestoreDirtyState(wasDirty);
+        return false;
+    }
+
+    private void ApplySessionLoss(float lossRatio)
     {
         float clampedLossRatio = Mathf.Clamp01(lossRatio);
         if (clampedLossRatio <= 0f)
@@ -159,205 +476,44 @@ public class PlayerInventoryController : MonoBehaviour
             return;
         }
 
-        // EnsureCreatureSlots();
-        for (int i = 0; i < _creatureSlots.Length; i++)
+        CreatureInventorySlot[] slots = _inventory.MutableCreatureSlots;
+        for (int i = 0; i < slots.Length; i++)
         {
-            CreatureInventorySlot slot = _creatureSlots[i];
-            if (slot.IsEmpty)
+            CreatureInventorySlot slot = slots[i];
+            if (slot == null || slot.IsEmpty)
             {
                 continue;
             }
 
             int lostAmount = Mathf.CeilToInt(slot.Count * clampedLossRatio);
-            int remainingAmount = Mathf.Max(0, slot.Count - lostAmount);
-            slot.Set(remainingAmount > 0 ? slot.Definition : null, remainingAmount);
-            _creatureSlots[i] = slot;
-            CreatureSlotChanged?.Invoke(i, slot);
-            InventoryEvents.RaiseCreatureSlotChanged(i, slot);
+            slot.Set(slot.DefinitionId, slot.Count - lostAmount);
         }
 
-        ResourceDefinition[] definitions = new ResourceDefinition[_resourceAmounts.Count];
-        _resourceAmounts.Keys.CopyTo(definitions, 0);
-
-        foreach (ResourceDefinition definition in definitions)
+        List<ResourceInventoryEntry> resources = _inventory.MutableResourceAmounts;
+        for (int i = resources.Count - 1; i >= 0; i--)
         {
-            int currentAmount = _resourceAmounts[definition];
-            int lostAmount = Mathf.CeilToInt(currentAmount * clampedLossRatio);
-            int remainingAmount = Mathf.Max(0, currentAmount - lostAmount);
-            _resourceAmounts[definition] = remainingAmount;
-            ResourceAmountChanged?.Invoke(definition, remainingAmount);
-            InventoryEvents.RaiseResourceAmountChanged(definition, remainingAmount);
-        }
-
-        HasUncommittedChanges = true;
-    }
-
-    private void RestoreFromGameData()
-    {
-        InventorySaveData fallback = CreateSaveData();
-        InventorySaveData savedData =
-            GameDataManager.Instance.GetOrInitializeInventory(fallback);
-
-        GameDefinitionRegistry definitions = GameDataManager.Instance.Definitions;
-        if (definitions == null)
-        {
-            Debug.LogError("Game definition registry is not initialized.", this);
-            return;
-        }
-
-        savedData.Normalize();
-
-        int savedSlotCount = savedData.creatureSlots.Count;
-        _creatureSlotCount = Mathf.Max(
-            1,
-            savedSlotCount > 0 ? savedSlotCount : _creatureSlotCount);
-        _creatureSlots = new CreatureInventorySlot[_creatureSlotCount];
-
-        int restoredSlotCount = Mathf.Min(savedSlotCount, _creatureSlots.Length);
-        for (int i = 0; i < restoredSlotCount; i++)
-        {
-            CreatureSlotSaveData savedSlot = savedData.creatureSlots[i];
-            if (string.IsNullOrEmpty(savedSlot.definitionId) || savedSlot.count <= 0)
+            ResourceInventoryEntry entry = resources[i];
+            if (entry == null || entry.IsEmpty)
             {
                 continue;
             }
 
-            if (!definitions.TryGetCreature(
-                    savedSlot.definitionId,
-                    out CreatureDefinition definition))
-            {
-                Debug.LogWarning(
-                    $"Could not restore creature '{savedSlot.definitionId}' because its definition was not found.",
-                    this);
-                continue;
-            }
-
-            CreatureInventorySlot slot = new();
-            slot.Set(definition, savedSlot.count);
-            _creatureSlots[i] = slot;
+            int lostAmount = Mathf.CeilToInt(entry.Amount * clampedLossRatio);
+            _inventory.SetResourceAmount(entry.DefinitionId, entry.Amount - lostAmount);
         }
-
-        _resourceAmounts.Clear();
-        for (int i = 0; i < savedData.resourceAmounts.Count; i++)
-        {
-            ResourceAmountSaveData savedAmount = savedData.resourceAmounts[i];
-            if (!definitions.TryGetResource(
-                    savedAmount.definitionId,
-                    out ResourceDefinition definition))
-            {
-                Debug.LogWarning(
-                    $"Could not restore resource '{savedAmount.definitionId}' because its definition was not found.",
-                    this);
-                continue;
-            }
-
-            _resourceAmounts[definition] = Mathf.Max(0, savedAmount.amount);
-        }
-
-        HasUncommittedChanges = false;
     }
 
-    /// <summary>
-    /// 런타임 인벤토리 데이터를 통합 데이터로 이관, 영구 저장소에도 반영
-    /// 세션 종료 시 호출
-    /// </summary>
-    public bool CommitToGameDataAndSave()
+    private void ClearSessionState()
     {
-        GameDataManager manager = GameDataManager.Instance;
-        if (manager == null)
-        {
-            Debug.LogError("Cannot commit inventory because GameDataManager was not found.", this);
-            return false;
-        }
-
-        manager.SetInventory(CreateSaveData());
-        bool saveSucceeded = manager.SaveNow();
-        if (saveSucceeded)
-        {
-            HasUncommittedChanges = false;
-        }
-
-        return saveSucceeded;
+        _isExploreSessionActive = false;
+        _sessionStartSnapshot = null;
+        _sessionStartWasDirty = false;
+        GameDataManager.Instance.EndSaveSuspension();
     }
 
-    private InventorySaveData CreateSaveData()
+    private void OnGameDataChanged(GameSaveData data)
     {
-        // EnsureCreatureSlots();
-
-        InventorySaveData saveData = new()
-        {
-            initialized = true
-        };
-
-        // 생물 자원 처리
-        for (int i = 0; i < _creatureSlots.Length; i++)
-        {
-            CreatureInventorySlot slot = _creatureSlots[i];
-            saveData.creatureSlots.Add(new CreatureSlotSaveData
-            {
-                // 빈 슬롯의 위치도 유지하기 위한 장치
-                definitionId = slot.IsEmpty ? string.Empty : slot.Definition.Id,
-                count = slot.IsEmpty ? 0 : slot.Count
-            });
-        }
-
-        // 파편 자원 처리
-        foreach (KeyValuePair<ResourceDefinition, int> pair in _resourceAmounts)
-        {
-            if (pair.Key == null || pair.Value <= 0)
-            {
-                continue;
-            }
-
-            saveData.resourceAmounts.Add(new ResourceAmountSaveData
-            {
-                definitionId = pair.Key.Id,
-                amount = pair.Value
-            });
-        }
-
-        saveData.Normalize();
-        return saveData;
-    }
-
-    private void EnsureCreatureSlots()
-    {
-        int slotCount = Mathf.Max(1, _creatureSlotCount);
-        if (_creatureSlots != null && _creatureSlots.Length == slotCount) return;
-
-        CreatureInventorySlot[] resizedSlots = new CreatureInventorySlot[slotCount];
-        if (_creatureSlots != null)
-        {
-            Array.Copy(_creatureSlots, resizedSlots, Mathf.Min(_creatureSlots.Length, resizedSlots.Length));
-        }
-
-        _creatureSlots = resizedSlots;
-    }
-}
-
-[System.Serializable]
-public struct FragmentResourceData
-{
-    public ResourceDefinition definition;
-    [Min(1)] public int amount;
-}
-
-/// <summary>
-/// 수집 결과를 표현하는 구조체
-/// 생물의 경우 요청된 수와 실제 처리된 수가 달라질 수 있음 (슬롯이 제한되어있기 때문)
-/// 요청된 수와 실제 처리된 수의 쌍을 가지고 있음
-/// </summary>
-[System.Serializable]
-public readonly struct CollectionResult
-{
-    public int RequestedAmount { get; }
-    public int CollectedAmount { get; }
-    public int RemainingAmount => RequestedAmount - CollectedAmount;
-    public bool IsFullyCollected => RemainingAmount == 0;
-
-    public CollectionResult(int requestedAmount, int collectedAmount)
-    {
-        RequestedAmount = requestedAmount;
-        CollectedAmount = collectedAmount;
+        _inventory = data?.inventory;
+        Changed?.Invoke();
     }
 }

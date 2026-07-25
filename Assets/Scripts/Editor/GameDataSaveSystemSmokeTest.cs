@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
@@ -16,6 +17,8 @@ public static class GameDataSaveSystemSmokeTest
             "Library",
             "CodexSaveSystemSmokeTest");
         string testPath = Path.Combine(testDirectory, "test-save.json");
+        string legacyTestPath = Path.Combine(testDirectory, "legacy-test-save.json");
+        UpgradeNodeDefinition temporaryNode = null;
 
         try
         {
@@ -24,45 +27,85 @@ public static class GameDataSaveSystemSmokeTest
             GameDefinitionCatalog catalog =
                 AssetDatabase.LoadAssetAtPath<GameDefinitionCatalog>(DefinitionCatalogPath);
             Require(catalog != null, "GameDefinitionCatalog asset could not be loaded.");
+            Require(catalog.TryValidate(out string catalogError), catalogError);
             GameDefinitionRegistry definitions = new(catalog);
+            Require(catalog.Resources.Count > 0, "The catalog has no resource definitions.");
+            Require(catalog.Creatures.Count > 0, "The catalog has no creature definitions.");
+            ResourceDefinition resourceDefinition = catalog.Resources[0];
+            CreatureDefinition creatureDefinition = catalog.Creatures[0];
             Require(
-                definitions.TryGetResource(
-                    "default_fragment",
-                    out ResourceDefinition resourceDefinition)
-                && resourceDefinition != null,
-                "The default resource definition could not be resolved by id.");
+                definitions.TryGetResource(resourceDefinition.Id, out ResourceDefinition resolvedResource) &&
+                resolvedResource == resourceDefinition,
+                "The resource definition could not be resolved by id.");
             Require(
-                definitions.TryGetCreature(
-                    "default_creature",
-                    out CreatureDefinition creatureDefinition)
-                && creatureDefinition != null,
-                "The default creature definition could not be resolved by id.");
+                definitions.TryGetCreature(creatureDefinition.Id, out CreatureDefinition resolvedCreature) &&
+                resolvedCreature == creatureDefinition,
+                "The creature definition could not be resolved by id.");
+
+            temporaryNode = ScriptableObject.CreateInstance<UpgradeNodeDefinition>();
+            temporaryNode.ConfigureForEditor(
+                "test.movement.speed",
+                null,
+                3,
+                new[] { new UpgradeResourceCost(resourceDefinition, 10) },
+                new[] { new UpgradeResourceCost(resourceDefinition, 5) },
+                new[]
+                {
+                    new NumericUpgradeEffect(
+                        NumericUpgradeTarget.MovementSpeed,
+                        NumericUpgradeOperation.Add,
+                        0.5f)
+                });
+            List<UpgradeResourceCost> calculatedCosts = new();
+            temporaryNode.GetCostForNextLevel(2, calculatedCosts);
+            Require(
+                calculatedCosts.Count == 1 && calculatedCosts[0].Amount == 20,
+                "The linear upgrade cost was calculated incorrectly.");
 
             GameSaveData source = defaults.CreateSaveData();
-            source.inventory.resourceAmounts.Add(new ResourceAmountSaveData
-            {
-                definitionId = "default_fragment",
-                amount = 42
-            });
+            GameSaveData independentDefaultsCopy = defaults.CreateSaveData();
+            Require(
+                !ReferenceEquals(source, independentDefaultsCopy) &&
+                !ReferenceEquals(source.inventory, independentDefaultsCopy.inventory),
+                "GameDataDefaults returned a shared mutable data object.");
+            InventoryData inventoryReference = source.inventory;
+            source.inventory = new InventoryData(
+                source.inventory.CreatureSlots,
+                new[] { new ResourceInventoryEntry(resourceDefinition.Id, 42) });
+            inventoryReference = source.inventory;
+            Require(
+                independentDefaultsCopy.inventory.GetResourceAmount(resourceDefinition.Id) == 0,
+                "Mutating a defaults copy changed another defaults copy.");
             source.unlockedUpgradeIds.Add("movement.speed");
+            source.upgradeNodes.Add(new UpgradeNodeSaveData
+            {
+                nodeId = "battery.capacity",
+                level = 3
+            });
+            UpgradeEffect movementEffect = temporaryNode.Effects[0];
+            Require(movementEffect.TryApply(source, out string effectError), effectError);
             source.completedEventIds.Add("tutorial.first_entry");
 
             Require(
                 GameDataFileStore.TrySave(testPath, source, out string saveError),
                 $"Save failed: {saveError}");
             Require(
+                ReferenceEquals(source.inventory, inventoryReference),
+                "Saving replaced the live inventory object.");
+            Require(
                 GameDataFileStore.TryLoad(testPath, out GameSaveData loaded, out string loadError),
                 $"Load failed: {loadError}");
 
             Require(loaded.schemaVersion == GameSaveData.CurrentSchemaVersion, "Schema version changed.");
-            Require(loaded.inventory.initialized, "Inventory was not initialized.");
             Require(
-                loaded.inventory.creatureSlots.Count == source.inventory.creatureSlots.Count,
+                loaded.inventory.CreatureSlots.Count == source.inventory.CreatureSlots.Count,
                 "Creature slot count was not preserved.");
-            Require(loaded.inventory.resourceAmounts.Count == 1, "Resource count was not preserved.");
-            Require(loaded.inventory.resourceAmounts[0].definitionId == "default_fragment", "Resource id changed.");
-            Require(loaded.inventory.resourceAmounts[0].amount == 42, "Resource amount changed.");
-            Require(loaded.playerStats.movement.moveSpeed == 5f, "Movement data changed.");
+            Require(loaded.inventory.ResourceAmounts.Count == 1, "Resource count was not preserved.");
+            Require(
+                loaded.inventory.ResourceAmounts[0].DefinitionId == resourceDefinition.Id,
+                "Resource id changed.");
+            Require(loaded.inventory.ResourceAmounts[0].Amount == 42, "Resource amount changed.");
+            Require(loaded.playerStats.movement.moveSpeed == 5.5f, "Upgrade effect data changed.");
             Require(loaded.playerStats.battery.amount == 60f, "Battery data changed.");
             Require(loaded.playerStats.magnet.radius == 3f, "Magnet radius changed.");
             Require(
@@ -71,8 +114,37 @@ public static class GameDataSaveSystemSmokeTest
             Require(loaded.playerStats.magnet.collectRadius == 0.5f, "Magnet collect radius changed.");
             Require(loaded.equipment.netGun.netData.captureCount == 4, "Net gun data changed.");
             Require(loaded.equipment.plasmaGun.tickDamage == 1f, "Plasma gun data changed.");
-            Require(loaded.unlockedUpgradeIds.Contains("movement.speed"), "Upgrade id was not preserved.");
+            Require(
+                loaded.upgradeNodes.Exists(entry =>
+                    entry.nodeId == "movement.speed" && entry.level == 1),
+                "The legacy upgrade id was not migrated to level 1.");
+            Require(
+                loaded.upgradeNodes.Exists(entry =>
+                    entry.nodeId == "battery.capacity" && entry.level == 3),
+                "Upgrade node level was not preserved.");
             Require(loaded.completedEventIds.Contains("tutorial.first_entry"), "Event id was not preserved.");
+
+            string legacyJson = JsonUtility.ToJson(source, true)
+                .Replace(
+                    $"\"schemaVersion\": {GameSaveData.CurrentSchemaVersion}",
+                    "\"schemaVersion\": 4")
+                .Replace(
+                    "\"inventory\": {",
+                    "\"inventory\": {\n    \"initialized\": true,");
+            File.WriteAllText(legacyTestPath, legacyJson);
+            Require(
+                GameDataFileStore.TryLoad(
+                    legacyTestPath,
+                    out GameSaveData migrated,
+                    out string migrationError),
+                $"Legacy save migration failed: {migrationError}");
+            Require(
+                migrated.schemaVersion == GameSaveData.CurrentSchemaVersion,
+                "Legacy save schema was not upgraded.");
+            Require(
+                migrated.inventory.ResourceAmounts.Count == 1 &&
+                migrated.inventory.ResourceAmounts[0].Amount == 42,
+                "Legacy inventory data was not preserved.");
 
             Debug.Log("SAVE_SYSTEM_SMOKE_TEST_PASSED");
         }
@@ -81,6 +153,11 @@ public static class GameDataSaveSystemSmokeTest
             if (Directory.Exists(testDirectory))
             {
                 Directory.Delete(testDirectory, true);
+            }
+
+            if (temporaryNode != null)
+            {
+                UnityEngine.Object.DestroyImmediate(temporaryNode);
             }
         }
     }
