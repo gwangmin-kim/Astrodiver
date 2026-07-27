@@ -15,12 +15,14 @@ public sealed class UpgradeNodeDefinition : ScriptableObject
 
     [Header("Tree")]
     [SerializeField] private UpgradeNodeDefinition _parent;
-    [SerializeField, Min(1)] private int _maxLevel = 1;
+    [SerializeField, Range(1, 10)] private int _maxLevel = 1;
 
     [Header("Cost: base + current level * increase")]
-    [SerializeField] private UpgradeResourceCost[] _baseCosts =
+    [SerializeField]
+    private UpgradeResourceCost[] _baseCosts =
         Array.Empty<UpgradeResourceCost>();
-    [SerializeField] private UpgradeResourceCost[] _costIncreases =
+    [SerializeField]
+    private UpgradeResourceCost[] _costIncreases =
         Array.Empty<UpgradeResourceCost>();
 
     [Header("Effects applied once per purchased level")]
