@@ -13,52 +13,52 @@ MonoBehaviour:
   m_Name: GameDataDefaults
   m_EditorClassIdentifier: Assembly-CSharp::GameDataDefaults
   _data:
-    schemaVersion: 5
+    schemaVersion: 7
     inventory:
-      creatureSlots:
-      - definitionId:
-        count: 0
-      resourceAmounts: []
-    playerStats:
-      movementInitialized: 1
-      movement:
-        moveSpeed: 5
-        moveDampingTime: 0.3
-        stopDampingTime: 0.8
-      batteryInitialized: 1
-      battery:
-        amount: 60
-      magnetInitialized: 1
-      magnet:
-        radius: 3
-        pullSpeedRange: {x: 1, y: 10}
-        collectRadius: 0.5
-    equipment:
-      netGunInitialized: 1
-      netGun:
-        netData:
-          captureCount: 4
-          spreadDuration: 0.2
-          foldDuration: 0.1
-          radius: 2
-        netCount: 1
-        shootDuration: 1.5
-        maxShootRange: 7
-        shootRangeRatioWithNoCharge: 0.1
-        chargeTime: 1.5
-        collectSpeed: 5
-      plasmaGunInitialized: 1
-      plasmaGun:
-        chargeTime: 0.5
-        chargedRetentionTime: 0.5
-        tickDamage: 1
-        tickInterval: 0.5
-        attackRange: 5
-        isChainingUnlocked: 1
-        chainCount: 5
-        chainedDamageRate: 0.5
-        chainDetectRange: 5
+      _creatures: []
+      _resourceAmounts: []
     upgradeNodes: []
     unlockedAbilityIds: []
     unlockedUpgradeIds: []
     completedEventIds: []
+  _playerStats:
+    movementInitialized: 1
+    movement:
+      moveSpeed: 5
+      moveDampingTime: 0.3
+      stopDampingTime: 0.8
+    batteryInitialized: 1
+    battery:
+      amount: 60
+    magnetInitialized: 1
+    magnet:
+      radius: 3
+      pullSpeedRange: {x: 1, y: 10}
+      collectRadius: 0.5
+  _equipment:
+    netGunInitialized: 1
+    netGun:
+      netData:
+        captureCount: 4
+        spreadDuration: 0.2
+        foldDuration: 0.1
+        radius: 2
+      netCount: 1
+      shootDuration: 1.5
+      maxShootRange: 7
+      shootRangeRatioWithNoCharge: 0.1
+      chargeTime: 1.5
+      collectSpeed: 5
+    plasmaGunInitialized: 1
+    plasmaGun:
+      chargeTime: 0.5
+      chargedRetentionTime: 0.5
+      tickDamage: 1
+      tickInterval: 0.5
+      attackRange: 5
+      isChainingUnlocked: 1
+      chainCount: 5
+      chainedDamageRate: 0.5
+      chainDetectRange: 5
+  _inventory:
+    _creatureSlotCapacity: 1

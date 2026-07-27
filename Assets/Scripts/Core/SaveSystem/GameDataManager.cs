@@ -17,6 +17,10 @@ public class GameDataManager : MonoBehaviour
     private bool _isSaveSuspended;
 
     public GameSaveData Data { get; private set; }
+    public PlayerStatsSaveData PlayerStats { get; private set; }
+    public EquipmentSaveData Equipment { get; private set; }
+    public InventoryRuntimeData Inventory { get; private set; }
+    public UpgradeRuntimeData RuntimeData { get; private set; }
     public GameDefinitionRegistry Definitions { get; private set; }
     public UpgradeService Upgrades { get; private set; }
     public bool HasUnsavedChanges => _isDirty;
@@ -27,6 +31,7 @@ public class GameDataManager : MonoBehaviour
     public event Action<GameSaveData> DataLoaded;
     public event Action<GameSaveData> DataSaved;
     public event Action<GameSaveData> DataChanged;
+    public event Action<UpgradeRuntimeData> RuntimeDataChanged;
 
     private void Awake()
     {
@@ -63,9 +68,15 @@ public class GameDataManager : MonoBehaviour
             }
         }
 
-        loadedData.RepairAfterLoad(_defaults != null ? _defaults.CreatureSlotCount : null);
+        loadedData.RepairAfterLoad();
         _isDirty = false;
-        ReplaceData(loadedData);
+        Data = loadedData;
+        if (!RebuildRuntimeData(out string rebuildError))
+        {
+            Debug.LogError($"Could not rebuild runtime stats. {rebuildError}", this);
+        }
+
+        DataChanged?.Invoke(Data);
         DataLoaded?.Invoke(Data);
     }
 
@@ -126,97 +137,97 @@ public class GameDataManager : MonoBehaviour
 
     public PlayerMovementData GetOrInitializeMovement(PlayerMovementData fallback)
     {
-        if (!Data.playerStats.movementInitialized)
+        EnsureRuntimeData();
+        if (!PlayerStats.movementInitialized)
         {
-            Data.playerStats.movement = fallback;
-            Data.playerStats.movementInitialized = true;
-            MarkDirty();
+            PlayerStats.movement = fallback;
+            PlayerStats.movementInitialized = true;
         }
 
-        return Data.playerStats.movement;
+        return PlayerStats.movement;
     }
 
     public void SetMovement(PlayerMovementData value)
     {
-        Data.playerStats.movement = value;
-        Data.playerStats.movementInitialized = true;
-        MarkDirty();
+        EnsureRuntimeData();
+        PlayerStats.movement = value;
+        PlayerStats.movementInitialized = true;
     }
 
     public BatteryData GetOrInitializeBattery(BatteryData fallback)
     {
-        if (!Data.playerStats.batteryInitialized)
+        EnsureRuntimeData();
+        if (!PlayerStats.batteryInitialized)
         {
-            Data.playerStats.battery = fallback;
-            Data.playerStats.batteryInitialized = true;
-            MarkDirty();
+            PlayerStats.battery = fallback;
+            PlayerStats.batteryInitialized = true;
         }
 
-        return Data.playerStats.battery;
+        return PlayerStats.battery;
     }
 
     public void SetBattery(BatteryData value)
     {
-        Data.playerStats.battery = value;
-        Data.playerStats.batteryInitialized = true;
-        MarkDirty();
+        EnsureRuntimeData();
+        PlayerStats.battery = value;
+        PlayerStats.batteryInitialized = true;
     }
 
     public MagnetData GetOrInitializeMagnet(MagnetData fallback)
     {
-        if (!Data.playerStats.magnetInitialized)
+        EnsureRuntimeData();
+        if (!PlayerStats.magnetInitialized)
         {
-            Data.playerStats.magnet = fallback;
-            Data.playerStats.magnetInitialized = true;
-            MarkDirty();
+            PlayerStats.magnet = fallback;
+            PlayerStats.magnetInitialized = true;
         }
 
-        return Data.playerStats.magnet;
+        return PlayerStats.magnet;
     }
 
     public void SetMagnet(MagnetData value)
     {
-        Data.playerStats.magnet = value;
-        Data.playerStats.magnetInitialized = true;
-        MarkDirty();
+        EnsureRuntimeData();
+        PlayerStats.magnet = value;
+        PlayerStats.magnetInitialized = true;
     }
 
     public NetGunData GetOrInitializeNetGun(NetGunData fallback)
     {
-        if (!Data.equipment.netGunInitialized)
+        EnsureRuntimeData();
+        if (!Equipment.netGunInitialized)
         {
-            Data.equipment.netGun = fallback;
-            Data.equipment.netGunInitialized = true;
-            MarkDirty();
+            Equipment.netGun = fallback;
+            Equipment.netGunInitialized = true;
         }
 
-        return Data.equipment.netGun;
+        return Equipment.netGun;
     }
 
     public void SetNetGun(NetGunData value)
     {
-        Data.equipment.netGun = value;
-        Data.equipment.netGunInitialized = true;
-        MarkDirty();
+        EnsureRuntimeData();
+        Equipment.netGun = value;
+        Equipment.netGunInitialized = true;
     }
 
     public PlasmaGunData GetOrInitializePlasmaGun(PlasmaGunData fallback)
     {
-        if (!Data.equipment.plasmaGunInitialized)
+        EnsureRuntimeData();
+        if (!Equipment.plasmaGunInitialized)
         {
-            Data.equipment.plasmaGun = fallback;
-            Data.equipment.plasmaGunInitialized = true;
-            MarkDirty();
+            Equipment.plasmaGun = fallback;
+            Equipment.plasmaGunInitialized = true;
         }
 
-        return Data.equipment.plasmaGun;
+        return Equipment.plasmaGun;
     }
 
     public void SetPlasmaGun(PlasmaGunData value)
     {
-        Data.equipment.plasmaGun = value;
-        Data.equipment.plasmaGunInitialized = true;
-        MarkDirty();
+        EnsureRuntimeData();
+        Equipment.plasmaGun = value;
+        Equipment.plasmaGunInitialized = true;
     }
 
     public int GetUpgradeLevel(string upgradeId)
@@ -336,7 +347,94 @@ public class GameDataManager : MonoBehaviour
     private void ReplaceData(GameSaveData data)
     {
         Data = data ?? new GameSaveData();
+        if (!RebuildRuntimeData(out string error))
+        {
+            Debug.LogError($"Could not rebuild runtime stats. {error}", this);
+        }
+
         DataChanged?.Invoke(Data);
+    }
+
+    internal bool RebuildRuntimeData(out string error)
+    {
+        PlayerStatsSaveData rebuiltPlayerStats = _defaults != null
+            ? _defaults.CreatePlayerStats()
+            : new PlayerStatsSaveData();
+        EquipmentSaveData rebuiltEquipment = _defaults != null
+            ? _defaults.CreateEquipment()
+            : new EquipmentSaveData();
+        InventoryRuntimeData rebuiltInventory = _defaults != null
+            ? _defaults.CreateInventory()
+            : new InventoryRuntimeData();
+        UpgradeRuntimeData rebuiltRuntimeData =
+            new(rebuiltPlayerStats, rebuiltEquipment, rebuiltInventory);
+
+        if (Data == null)
+        {
+            error = "Game save data is null.";
+            return false;
+        }
+
+        for (int definitionIndex = 0;
+             definitionIndex < _definitionCatalog.Upgrades.Count;
+             definitionIndex++)
+        {
+            UpgradeNodeDefinition node = _definitionCatalog.Upgrades[definitionIndex];
+            if (node == null)
+            {
+                continue;
+            }
+
+            int savedLevel = GetUpgradeLevel(node.Id);
+            int appliedLevel = Mathf.Min(savedLevel, node.MaxLevel);
+            if (savedLevel > node.MaxLevel)
+            {
+                Debug.LogWarning(
+                    $"Saved level {savedLevel} for upgrade '{node.Id}' exceeds its current " +
+                    $"maximum level {node.MaxLevel}. Only {appliedLevel} levels will be applied.",
+                    node);
+            }
+
+            for (int level = 0; level < appliedLevel; level++)
+            {
+                for (int effectIndex = 0; effectIndex < node.Effects.Count; effectIndex++)
+                {
+                    UpgradeEffect effect = node.Effects[effectIndex];
+                    string effectError = null;
+                    if (effect != null &&
+                        effect.TryApply(rebuiltRuntimeData, out effectError))
+                    {
+                        continue;
+                    }
+
+                    error = effect != null
+                        ? $"Upgrade '{node.Id}' effect {effectIndex} failed: {effectError}"
+                        : $"Upgrade '{node.Id}' effect {effectIndex} is null.";
+                    return false;
+                }
+            }
+        }
+
+        PlayerStats = rebuiltPlayerStats;
+        Equipment = rebuiltEquipment;
+        Inventory = rebuiltInventory;
+        RuntimeData = rebuiltRuntimeData;
+        RuntimeDataChanged?.Invoke(RuntimeData);
+        error = null;
+        return true;
+    }
+
+    private void EnsureRuntimeData()
+    {
+        if (RuntimeData != null)
+        {
+            return;
+        }
+
+        PlayerStats ??= new PlayerStatsSaveData();
+        Equipment ??= new EquipmentSaveData();
+        Inventory ??= new InventoryRuntimeData();
+        RuntimeData = new UpgradeRuntimeData(PlayerStats, Equipment, Inventory);
     }
 
 }

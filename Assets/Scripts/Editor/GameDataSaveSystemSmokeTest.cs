@@ -64,13 +64,21 @@ public static class GameDataSaveSystemSmokeTest
 
             GameSaveData source = defaults.CreateSaveData();
             GameSaveData independentDefaultsCopy = defaults.CreateSaveData();
+            PlayerStatsSaveData playerStats = defaults.CreatePlayerStats();
+            PlayerStatsSaveData independentPlayerStats = defaults.CreatePlayerStats();
+            EquipmentSaveData equipment = defaults.CreateEquipment();
+            EquipmentSaveData independentEquipment = defaults.CreateEquipment();
             Require(
                 !ReferenceEquals(source, independentDefaultsCopy) &&
                 !ReferenceEquals(source.inventory, independentDefaultsCopy.inventory),
                 "GameDataDefaults returned a shared mutable data object.");
+            Require(
+                !ReferenceEquals(playerStats, independentPlayerStats) &&
+                !ReferenceEquals(equipment, independentEquipment),
+                "GameDataDefaults returned shared mutable runtime data.");
             InventoryData inventoryReference = source.inventory;
             source.inventory = new InventoryData(
-                source.inventory.CreatureSlots,
+                new[] { new CreatureInventoryEntry(creatureDefinition.Id, 2) },
                 new[] { new ResourceInventoryEntry(resourceDefinition.Id, 42) });
             inventoryReference = source.inventory;
             Require(
@@ -83,12 +91,38 @@ public static class GameDataSaveSystemSmokeTest
                 level = 3
             });
             UpgradeEffect movementEffect = temporaryNode.Effects[0];
-            Require(movementEffect.TryApply(source, out string effectError), effectError);
+            UpgradeRuntimeData runtimeData = new(
+                playerStats,
+                equipment,
+                defaults.CreateInventory());
+            Require(movementEffect.TryApply(runtimeData, out string effectError), effectError);
+            Require(
+                runtimeData.PlayerStats.movement.moveSpeed == 5.5f,
+                "The upgrade effect did not update runtime stats.");
+            UpgradeEffect inventoryCapacityEffect = new NumericUpgradeEffect(
+                NumericUpgradeTarget.CreatureSlotCapacity,
+                NumericUpgradeOperation.Add,
+                2f);
+            Require(
+                inventoryCapacityEffect.TryApply(runtimeData, out string inventoryEffectError),
+                inventoryEffectError);
+            Require(
+                runtimeData.Inventory.CreatureSlotCapacity == 3,
+                "The inventory capacity upgrade did not update runtime data.");
+            Require(
+                independentPlayerStats.movement.moveSpeed == 5f,
+                "Applying an upgrade changed another defaults copy.");
             source.completedEventIds.Add("tutorial.first_entry");
 
             Require(
                 GameDataFileStore.TrySave(testPath, source, out string saveError),
                 $"Save failed: {saveError}");
+            string savedJson = File.ReadAllText(testPath);
+            Require(
+                !savedJson.Contains("\"playerStats\"") &&
+                !savedJson.Contains("\"equipment\"") &&
+                !savedJson.Contains("creatureSlotCapacity"),
+                "Derived runtime stats were written to the save file.");
             Require(
                 ReferenceEquals(source.inventory, inventoryReference),
                 "Saving replaced the live inventory object.");
@@ -98,22 +132,17 @@ public static class GameDataSaveSystemSmokeTest
 
             Require(loaded.schemaVersion == GameSaveData.CurrentSchemaVersion, "Schema version changed.");
             Require(
-                loaded.inventory.CreatureSlots.Count == source.inventory.CreatureSlots.Count,
-                "Creature slot count was not preserved.");
+                loaded.inventory.Creatures.Count == source.inventory.Creatures.Count,
+                "Creature entries were not preserved.");
+            Require(
+                loaded.inventory.Creatures[0].DefinitionId == creatureDefinition.Id &&
+                loaded.inventory.Creatures[0].Count == 2,
+                "Creature entry data was not preserved.");
             Require(loaded.inventory.ResourceAmounts.Count == 1, "Resource count was not preserved.");
             Require(
                 loaded.inventory.ResourceAmounts[0].DefinitionId == resourceDefinition.Id,
                 "Resource id changed.");
             Require(loaded.inventory.ResourceAmounts[0].Amount == 42, "Resource amount changed.");
-            Require(loaded.playerStats.movement.moveSpeed == 5.5f, "Upgrade effect data changed.");
-            Require(loaded.playerStats.battery.amount == 60f, "Battery data changed.");
-            Require(loaded.playerStats.magnet.radius == 3f, "Magnet radius changed.");
-            Require(
-                loaded.playerStats.magnet.pullSpeedRange == new Vector2(1f, 10f),
-                "Magnet pull speed range changed.");
-            Require(loaded.playerStats.magnet.collectRadius == 0.5f, "Magnet collect radius changed.");
-            Require(loaded.equipment.netGun.netData.captureCount == 4, "Net gun data changed.");
-            Require(loaded.equipment.plasmaGun.tickDamage == 1f, "Plasma gun data changed.");
             Require(
                 loaded.upgradeNodes.Exists(entry =>
                     entry.nodeId == "movement.speed" && entry.level == 1),
@@ -128,8 +157,12 @@ public static class GameDataSaveSystemSmokeTest
                 .Replace(
                     $"\"schemaVersion\": {GameSaveData.CurrentSchemaVersion}",
                     "\"schemaVersion\": 4")
+                .Replace("\"_creatures\":", "\"_creatureSlots\":")
                 .Replace(
                     "\"inventory\": {",
+                    "\"playerStats\": { \"movementInitialized\": true, " +
+                    "\"movement\": { \"moveSpeed\": 999 } },\n  " +
+                    "\"equipment\": { \"netGunInitialized\": true },\n  " +
                     "\"inventory\": {\n    \"initialized\": true,");
             File.WriteAllText(legacyTestPath, legacyJson);
             Require(
@@ -145,6 +178,11 @@ public static class GameDataSaveSystemSmokeTest
                 migrated.inventory.ResourceAmounts.Count == 1 &&
                 migrated.inventory.ResourceAmounts[0].Amount == 42,
                 "Legacy inventory data was not preserved.");
+            Require(
+                migrated.inventory.Creatures.Count == 1 &&
+                migrated.inventory.Creatures[0].DefinitionId == creatureDefinition.Id &&
+                migrated.inventory.Creatures[0].Count == 2,
+                "Legacy creature slots were not migrated to creature entries.");
 
             Debug.Log("SAVE_SYSTEM_SMOKE_TEST_PASSED");
         }

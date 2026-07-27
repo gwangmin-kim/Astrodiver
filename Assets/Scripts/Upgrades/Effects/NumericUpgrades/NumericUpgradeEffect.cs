@@ -66,11 +66,11 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
         return true;
     }
 
-    public override bool TryApply(GameSaveData data, out string error)
+    public override bool TryApply(UpgradeRuntimeData data, out string error)
     {
         if (data == null)
         {
-            error = "Game save data is null.";
+            error = "Upgrade runtime data is null.";
             return false;
         }
 
@@ -79,10 +79,9 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
             return false;
         }
 
-        data.playerStats ??= new PlayerStatsSaveData();
-        data.equipment ??= new EquipmentSaveData();
-        PlayerStatsSaveData player = data.playerStats;
-        EquipmentSaveData equipment = data.equipment;
+        PlayerStatsSaveData player = data.PlayerStats;
+        EquipmentSaveData equipment = data.Equipment;
+        InventoryRuntimeData inventory = data.Inventory;
 
         switch (_target)
         {
@@ -137,6 +136,10 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
                     equipment.plasmaGunInitialized = true;
                     break;
                 }
+            case NumericUpgradeTarget.CreatureSlotCapacity:
+                inventory.CreatureSlotCapacity =
+                    ApplyInt(inventory.CreatureSlotCapacity, 1);
+                break;
             default:
                 error = $"Unsupported numeric upgrade target '{_target}'.";
                 return false;

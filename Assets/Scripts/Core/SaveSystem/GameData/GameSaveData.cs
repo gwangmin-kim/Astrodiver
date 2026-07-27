@@ -5,27 +5,23 @@ using UnityEngine;
 [Serializable]
 public sealed class GameSaveData
 {
-    public const int CurrentSchemaVersion = 5;
+    public const int CurrentSchemaVersion = 7;
 
     public int schemaVersion = CurrentSchemaVersion;
     public InventoryData inventory = new();
-    public PlayerStatsSaveData playerStats = new();
-    public EquipmentSaveData equipment = new();
     public List<UpgradeNodeSaveData> upgradeNodes = new();
     [HideInInspector] public List<string> unlockedUpgradeIds = new();
     public List<string> completedEventIds = new();
 
-    public void RepairAfterLoad(int? creatureSlotCount = null)
+    public void RepairAfterLoad()
     {
         schemaVersion = Mathf.Max(CurrentSchemaVersion, schemaVersion);
         inventory ??= new InventoryData();
-        playerStats ??= new PlayerStatsSaveData();
-        equipment ??= new EquipmentSaveData();
         upgradeNodes ??= new List<UpgradeNodeSaveData>();
         unlockedUpgradeIds ??= new List<string>();
         completedEventIds ??= new List<string>();
 
-        inventory.RepairAfterLoad(creatureSlotCount);
+        inventory.RepairAfterLoad();
         NormalizeUpgradeNodes();
         MigrateLegacyUpgradeIds();
         NormalizeUniqueIds(completedEventIds);
@@ -49,9 +45,7 @@ public sealed class GameSaveData
             return false;
         }
 
-        if (playerStats == null ||
-            equipment == null ||
-            upgradeNodes == null ||
+        if (upgradeNodes == null ||
             unlockedUpgradeIds == null ||
             completedEventIds == null)
         {

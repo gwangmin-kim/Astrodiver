@@ -1,17 +1,17 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 [Serializable]
 public sealed class InventoryData
 {
-    [SerializeField] private CreatureInventorySlot[] _creatureSlots = Array.Empty<CreatureInventorySlot>();
+    [SerializeField] private List<CreatureInventoryEntry> _creatures = new();
     [SerializeField] private List<ResourceInventoryEntry> _resourceAmounts = new();
 
-    public IReadOnlyList<CreatureInventorySlot> CreatureSlots => _creatureSlots;
+    public IReadOnlyList<CreatureInventoryEntry> Creatures => _creatures;
     public IReadOnlyList<ResourceInventoryEntry> ResourceAmounts => _resourceAmounts;
 
-    internal CreatureInventorySlot[] MutableCreatureSlots => _creatureSlots;
     internal List<ResourceInventoryEntry> MutableResourceAmounts => _resourceAmounts;
 
     public InventoryData()
@@ -19,16 +19,20 @@ public sealed class InventoryData
     }
 
     public InventoryData(
-        IReadOnlyList<CreatureInventorySlot> initialCreatureSlots,
+        IReadOnlyList<CreatureInventoryEntry> initialCreatures,
         IReadOnlyList<ResourceInventoryEntry> initialResources)
     {
-        _creatureSlots = new CreatureInventorySlot[initialCreatureSlots?.Count ?? 0];
-        for (int i = 0; i < _creatureSlots.Length; i++)
+        _creatures = new List<CreatureInventoryEntry>(initialCreatures?.Count ?? 0);
+        if (initialCreatures != null)
         {
-            CreatureInventorySlot source = initialCreatureSlots[i];
-            _creatureSlots[i] = source == null
-                ? new CreatureInventorySlot()
-                : new CreatureInventorySlot(source.DefinitionId, source.Count);
+            for (int i = 0; i < initialCreatures.Count; i++)
+            {
+                CreatureInventoryEntry source = initialCreatures[i];
+                if (source != null && !source.IsEmpty)
+                {
+                    _creatures.Add(new CreatureInventoryEntry(source.DefinitionId, source.Count));
+                }
+            }
         }
 
         _resourceAmounts = new List<ResourceInventoryEntry>(initialResources?.Count ?? 0);
@@ -49,24 +53,25 @@ public sealed class InventoryData
         RepairAfterLoad();
     }
 
-    public void RepairAfterLoad(int? requiredCreatureSlotCount = null)
+    public void RepairAfterLoad()
     {
-        _creatureSlots ??= Array.Empty<CreatureInventorySlot>();
+        _creatures ??= new List<CreatureInventoryEntry>();
         _resourceAmounts ??= new List<ResourceInventoryEntry>();
 
-        if (requiredCreatureSlotCount.HasValue)
+        for (int i = _creatures.Count - 1; i >= 0; i--)
         {
-            int slotCount = Mathf.Max(0, requiredCreatureSlotCount.Value);
-            if (_creatureSlots.Length != slotCount)
+            CreatureInventoryEntry entry = _creatures[i];
+            if (entry == null)
             {
-                Array.Resize(ref _creatureSlots, slotCount);
+                _creatures.RemoveAt(i);
+                continue;
             }
-        }
 
-        for (int i = 0; i < _creatureSlots.Length; i++)
-        {
-            _creatureSlots[i] ??= new CreatureInventorySlot();
-            _creatureSlots[i].Repair();
+            entry.Repair();
+            if (entry.IsEmpty)
+            {
+                _creatures.RemoveAt(i);
+            }
         }
 
         for (int i = _resourceAmounts.Count - 1; i >= 0; i--)
@@ -115,36 +120,55 @@ public sealed class InventoryData
 
     public void CopyFrom(InventoryData source)
     {
-        _creatureSlots ??= Array.Empty<CreatureInventorySlot>();
+        _creatures ??= new List<CreatureInventoryEntry>();
         _resourceAmounts ??= new List<ResourceInventoryEntry>();
+        _creatures.Clear();
         _resourceAmounts.Clear();
 
         if (source == null)
         {
-            _creatureSlots = Array.Empty<CreatureInventorySlot>();
             return;
         }
 
-        _creatureSlots = new CreatureInventorySlot[source._creatureSlots.Length];
-        for (int i = 0; i < source._creatureSlots.Length; i++)
+        for (int i = 0; i < source._creatures.Count; i++)
         {
-            CreatureInventorySlot sourceSlot = source._creatureSlots[i];
-            _creatureSlots[i] = sourceSlot == null
-                ? new CreatureInventorySlot()
-                : new CreatureInventorySlot(sourceSlot.DefinitionId, sourceSlot.Count);
+            CreatureInventoryEntry sourceEntry = source._creatures[i];
+            if (sourceEntry != null && !sourceEntry.IsEmpty)
+            {
+                _creatures.Add(new CreatureInventoryEntry(
+                    sourceEntry.DefinitionId,
+                    sourceEntry.Count));
+            }
         }
 
         for (int i = 0; i < source._resourceAmounts.Count; i++)
         {
             ResourceInventoryEntry sourceEntry = source._resourceAmounts[i];
-            if (sourceEntry == null)
+            if (sourceEntry != null)
             {
-                continue;
+                _resourceAmounts.Add(new ResourceInventoryEntry(
+                    sourceEntry.DefinitionId,
+                    sourceEntry.Amount));
             }
+        }
+    }
 
-            _resourceAmounts.Add(new ResourceInventoryEntry(
-                sourceEntry.DefinitionId,
-                sourceEntry.Amount));
+    internal void SetCreatures(IReadOnlyList<CreatureInventorySlot> slots)
+    {
+        _creatures ??= new List<CreatureInventoryEntry>();
+        _creatures.Clear();
+        if (slots == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < slots.Count; i++)
+        {
+            CreatureInventorySlot slot = slots[i];
+            if (slot != null && !slot.IsEmpty)
+            {
+                _creatures.Add(new CreatureInventoryEntry(slot.DefinitionId, slot.Count));
+            }
         }
     }
 
@@ -260,28 +284,23 @@ public sealed class InventoryData
 
     public bool TryValidate(out string error)
     {
-        if (_creatureSlots == null || _resourceAmounts == null)
+        if (_creatures == null || _resourceAmounts == null)
         {
             error = "Inventory collections are null.";
             return false;
         }
 
-        for (int i = 0; i < _creatureSlots.Length; i++)
+        for (int i = 0; i < _creatures.Count; i++)
         {
-            CreatureInventorySlot slot = _creatureSlots[i];
-            if (slot == null)
+            CreatureInventoryEntry entry = _creatures[i];
+            if (entry == null || entry.IsEmpty ||
+                string.IsNullOrWhiteSpace(entry.DefinitionId) ||
+                !string.Equals(
+                    entry.DefinitionId,
+                    entry.DefinitionId.Trim(),
+                    StringComparison.Ordinal))
             {
-                error = $"Creature slot {i} is null.";
-                return false;
-            }
-
-            bool hasId = !string.IsNullOrEmpty(slot.DefinitionId);
-            bool hasCount = slot.Count > 0;
-            if (hasId != hasCount ||
-                hasId && (string.IsNullOrWhiteSpace(slot.DefinitionId) ||
-                    !string.Equals(slot.DefinitionId, slot.DefinitionId.Trim(), StringComparison.Ordinal)))
-            {
-                error = $"Creature slot {i} is invalid.";
+                error = $"Creature entry {i} is invalid.";
                 return false;
             }
         }

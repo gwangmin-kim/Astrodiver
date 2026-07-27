@@ -89,6 +89,7 @@ public static class GameDataFileStore
             }
 
             string json = File.ReadAllText(path, Encoding.UTF8);
+            json = MigrateLegacyInventoryJson(json);
             data = JsonUtility.FromJson<GameSaveData>(json);
             if (data == null)
             {
@@ -105,6 +106,19 @@ public static class GameDataFileStore
             error = exception.ToString();
             return false;
         }
+    }
+
+    private static string MigrateLegacyInventoryJson(string json)
+    {
+        if (string.IsNullOrEmpty(json))
+        {
+            return json;
+        }
+
+        return json
+            .Replace("\"_creatureSlots\"", "\"_creatures\"")
+            .Replace("\"creatureSlots\"", "\"_creatures\"")
+            .Replace("\"resourceAmounts\"", "\"_resourceAmounts\"");
     }
 
     private static void ReplaceExistingFile(

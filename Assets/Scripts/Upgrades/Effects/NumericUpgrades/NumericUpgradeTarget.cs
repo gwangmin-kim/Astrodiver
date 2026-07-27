@@ -24,5 +24,8 @@ public enum NumericUpgradeTarget
     PlasmaAttackRange = 3003,
     PlasmaChainCount = 3004,
     PlasmaChainDamageRate = 3005,
-    PlasmaChainDetectRange = 3006
+    PlasmaChainDetectRange = 3006,
+
+    // Inventory: 4000-4099
+    CreatureSlotCapacity = 4000
 }

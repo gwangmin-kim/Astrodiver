@@ -10,6 +10,7 @@ public sealed class PlayerInventoryController : MonoBehaviour
         new(StringComparer.Ordinal);
 
     private InventoryData _inventory;
+    private CreatureInventorySlot[] _creatureSlots = Array.Empty<CreatureInventorySlot>();
     private InventoryData _sessionStartSnapshot;
     private bool _sessionStartWasDirty;
     private bool _isExploreSessionActive;
@@ -17,7 +18,10 @@ public sealed class PlayerInventoryController : MonoBehaviour
     public event Action Changed; // 자원 변경이 일어났을 때 호출
 
     public IReadOnlyList<CreatureInventorySlot> CreatureSlots =>
-        _inventory?.CreatureSlots;
+        _creatureSlots;
+
+    public int CreatureSlotCapacity => _creatureSlots.Length;
+    public bool IsInitialized { get; private set; }
 
     public IReadOnlyList<ResourceInventoryEntry> ResourceAmounts =>
         _inventory?.ResourceAmounts;
@@ -42,6 +46,12 @@ public sealed class PlayerInventoryController : MonoBehaviour
         }
         _inventory = manager.Data.inventory;
         manager.DataChanged += OnGameDataChanged;
+        manager.RuntimeDataChanged += OnRuntimeDataChanged;
+        InitializeCreatureSlots(
+            manager.Inventory?.CreatureSlotCapacity ?? 1,
+            _inventory?.Creatures);
+        IsInitialized = true;
+        Changed?.Invoke();
     }
 
     private void OnDestroy()
@@ -55,6 +65,7 @@ public sealed class PlayerInventoryController : MonoBehaviour
         if (manager != null)
         {
             manager.DataChanged -= OnGameDataChanged;
+            manager.RuntimeDataChanged -= OnRuntimeDataChanged;
             if (_isExploreSessionActive)
             {
                 manager.EndSaveSuspension();
@@ -62,6 +73,7 @@ public sealed class PlayerInventoryController : MonoBehaviour
         }
 
         Instance = null;
+        IsInitialized = false;
     }
 
     /// <summary>
@@ -74,7 +86,7 @@ public sealed class PlayerInventoryController : MonoBehaviour
             return false;
         }
 
-        CreatureInventorySlot[] slots = _inventory.MutableCreatureSlots;
+        CreatureInventorySlot[] slots = _creatureSlots;
         int targetIndex = FindCreatureSlot(slots, creature);
         if (targetIndex < 0)
         {
@@ -93,6 +105,7 @@ public sealed class PlayerInventoryController : MonoBehaviour
 
         int nextCount = slot.IsEmpty ? 1 : slot.Count + 1;
         slot.Set(creature.Id, nextCount);
+        SyncCreatureSaveData();
 
         return CompleteInventoryMutation(snapshot, wasDirty);
     }
@@ -110,7 +123,7 @@ public sealed class PlayerInventoryController : MonoBehaviour
 
         string creatureId = creature.Id.Trim();
         int total = 0;
-        IReadOnlyList<CreatureInventorySlot> slots = _inventory.CreatureSlots;
+        IReadOnlyList<CreatureInventorySlot> slots = _creatureSlots;
         for (int i = 0; i < slots.Count; i++)
         {
             CreatureInventorySlot slot = slots[i];
@@ -304,6 +317,9 @@ public sealed class PlayerInventoryController : MonoBehaviour
         if (!manager.SaveExplorationResult())
         {
             _inventory.CopyFrom(runtimeBeforePenalty);
+            InitializeCreatureSlots(
+                manager.Inventory?.CreatureSlotCapacity ?? 1,
+                _inventory.Creatures);
             manager.RestoreDirtyState(wasDirty);
             return false;
         }
@@ -321,6 +337,9 @@ public sealed class PlayerInventoryController : MonoBehaviour
         }
 
         _inventory.CopyFrom(_sessionStartSnapshot);
+        InitializeCreatureSlots(
+            GameDataManager.Instance.Inventory?.CreatureSlotCapacity ?? 1,
+            _inventory.Creatures);
         GameDataManager.Instance.RestoreDirtyState(_sessionStartWasDirty);
         ClearSessionState();
         Changed?.Invoke();
@@ -373,7 +392,7 @@ public sealed class PlayerInventoryController : MonoBehaviour
 
     private int TakeCreatureInternal(string creatureId, int requestedAmount)
     {
-        CreatureInventorySlot[] slots = _inventory.MutableCreatureSlots;
+        CreatureInventorySlot[] slots = _creatureSlots;
         int remainingAmount = requestedAmount;
 
         for (int i = slots.Length - 1; i >= 0 && remainingAmount > 0; i--)
@@ -389,7 +408,13 @@ public sealed class PlayerInventoryController : MonoBehaviour
             remainingAmount -= takenFromSlot;
         }
 
-        return requestedAmount - remainingAmount;
+        int takenAmount = requestedAmount - remainingAmount;
+        if (takenAmount > 0)
+        {
+            SyncCreatureSaveData();
+        }
+
+        return takenAmount;
     }
 
     private bool TryAggregateCosts(IReadOnlyList<UpgradeResourceCost> costs)
@@ -440,6 +465,9 @@ public sealed class PlayerInventoryController : MonoBehaviour
         if (!_isExploreSessionActive && !manager.SaveNow())
         {
             _inventory.CopyFrom(hubSnapshot);
+            InitializeCreatureSlots(
+                manager.Inventory?.CreatureSlotCapacity ?? 1,
+                _inventory.Creatures);
             manager.RestoreDirtyState(wasDirty);
             return false;
         }
@@ -464,6 +492,9 @@ public sealed class PlayerInventoryController : MonoBehaviour
         }
 
         _inventory.CopyFrom(snapshot);
+        InitializeCreatureSlots(
+            manager.Inventory?.CreatureSlotCapacity ?? 1,
+            _inventory.Creatures);
         manager.RestoreDirtyState(wasDirty);
         return false;
     }
@@ -476,7 +507,7 @@ public sealed class PlayerInventoryController : MonoBehaviour
             return;
         }
 
-        CreatureInventorySlot[] slots = _inventory.MutableCreatureSlots;
+        CreatureInventorySlot[] slots = _creatureSlots;
         for (int i = 0; i < slots.Length; i++)
         {
             CreatureInventorySlot slot = slots[i];
@@ -488,6 +519,7 @@ public sealed class PlayerInventoryController : MonoBehaviour
             int lostAmount = Mathf.CeilToInt(slot.Count * clampedLossRatio);
             slot.Set(slot.DefinitionId, slot.Count - lostAmount);
         }
+        SyncCreatureSaveData();
 
         List<ResourceInventoryEntry> resources = _inventory.MutableResourceAmounts;
         for (int i = resources.Count - 1; i >= 0; i--)
@@ -514,6 +546,119 @@ public sealed class PlayerInventoryController : MonoBehaviour
     private void OnGameDataChanged(GameSaveData data)
     {
         _inventory = data?.inventory;
+        InitializeCreatureSlots(
+            GameDataManager.Instance.Inventory?.CreatureSlotCapacity ?? 1,
+            _inventory?.Creatures);
         Changed?.Invoke();
+    }
+
+    private void OnRuntimeDataChanged(UpgradeRuntimeData runtimeData)
+    {
+        int capacity = runtimeData?.Inventory?.CreatureSlotCapacity ?? 1;
+        ResizeCreatureSlots(capacity);
+        Changed?.Invoke();
+    }
+
+    private void InitializeCreatureSlots(
+        int capacity,
+        IReadOnlyList<CreatureInventoryEntry> savedEntries)
+    {
+        _creatureSlots = CreateEmptySlots(capacity);
+        if (savedEntries == null)
+        {
+            return;
+        }
+
+        for (int entryIndex = 0; entryIndex < savedEntries.Count; entryIndex++)
+        {
+            CreatureInventoryEntry entry = savedEntries[entryIndex];
+            if (entry == null || entry.IsEmpty)
+            {
+                continue;
+            }
+
+            if (!GameDataManager.Instance.Definitions.TryGetCreature(
+                    entry.DefinitionId,
+                    out CreatureDefinition definition))
+            {
+                Debug.LogWarning(
+                    $"Inventory: Saved creature '{entry.DefinitionId}' is not defined and was not loaded.",
+                    this);
+                continue;
+            }
+
+            int remaining = entry.Count;
+            for (int slotIndex = 0;
+                 slotIndex < _creatureSlots.Length && remaining > 0;
+                 slotIndex++)
+            {
+                CreatureInventorySlot slot = _creatureSlots[slotIndex];
+                if (!slot.IsEmpty)
+                {
+                    continue;
+                }
+
+                int stackCount = Mathf.Min(remaining, definition.MaxStackCount);
+                slot.Set(definition.Id, stackCount);
+                remaining -= stackCount;
+            }
+
+            if (remaining > 0)
+            {
+                Debug.LogWarning(
+                    $"Inventory: {remaining} of creature '{entry.DefinitionId}' exceeded the " +
+                    $"runtime capacity of {_creatureSlots.Length} slots and was not loaded.",
+                    this);
+            }
+        }
+    }
+
+    private void ResizeCreatureSlots(int capacity)
+    {
+        int normalizedCapacity = Mathf.Max(1, capacity);
+        if (_creatureSlots.Length == normalizedCapacity)
+        {
+            return;
+        }
+
+        if (normalizedCapacity < _creatureSlots.Length)
+        {
+            for (int i = normalizedCapacity; i < _creatureSlots.Length; i++)
+            {
+                CreatureInventorySlot slot = _creatureSlots[i];
+                if (slot != null && !slot.IsEmpty)
+                {
+                    Debug.LogWarning(
+                        $"Inventory: Creature '{slot.DefinitionId}' in slot {i} exceeded the new " +
+                        $"capacity of {normalizedCapacity} and was removed.",
+                        this);
+                }
+            }
+        }
+
+        Array.Resize(ref _creatureSlots, normalizedCapacity);
+        for (int i = 0; i < _creatureSlots.Length; i++)
+        {
+            _creatureSlots[i] ??= new CreatureInventorySlot();
+        }
+
+        SyncCreatureSaveData();
+    }
+
+    private void SyncCreatureSaveData()
+    {
+        _inventory?.SetCreatures(_creatureSlots);
+    }
+
+    private static CreatureInventorySlot[] CreateEmptySlots(int capacity)
+    {
+        CreatureInventorySlot[] slots =
+            new CreatureInventorySlot[Mathf.Max(1, capacity)];
+        for (int i = 0; i < slots.Length; i++)
+        {
+            slots[i] = new CreatureInventorySlot();
+        }
+
+        return slots;
     }
 }

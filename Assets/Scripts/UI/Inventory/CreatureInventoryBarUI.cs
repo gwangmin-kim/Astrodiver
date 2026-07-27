@@ -65,13 +65,13 @@ public sealed class CreatureInventoryBarUI : MonoBehaviour
 
     private void InitializeFromPlayerInventory()
     {
-        int slotCount = _playerInventory != null && _playerInventory.CreatureSlots != null
-            ? _playerInventory.CreatureSlots.Count
-            : 0;
+        if (_playerInventory == null || !_playerInventory.IsInitialized)
+        {
+            return;
+        }
 
+        int slotCount = _playerInventory.CreatureSlotCapacity;
         EnsureLayout(slotCount);
-
-        if (_playerInventory == null || _playerInventory.CreatureSlots == null) return;
 
         for (int i = 0; i < _playerInventory.CreatureSlots.Count && i < _slots.Count; i++)
         {

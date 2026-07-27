@@ -170,25 +170,18 @@ public sealed class UpgradeService
             return Result(UpgradePurchaseStatus.InsufficientResources, node.Id, currentLevel);
         }
 
-        for (int i = 0; i < node.Effects.Count; i++)
+        int nextLevel = currentLevel + 1;
+        _gameData.SetUpgradeLevel(node.Id, nextLevel);
+        if (!_gameData.RebuildRuntimeData(out string effectError))
         {
-            UpgradeEffect effect = node.Effects[i];
-            string effectError = null;
-            if (effect != null && effect.TryApply(_gameData.Data, out effectError))
-            {
-                continue;
-            }
-
             _gameData.RestoreTransactionSnapshot(snapshot, wasDirty);
             return Result(
                 UpgradePurchaseStatus.EffectFailed,
                 node.Id,
                 currentLevel,
-                effect != null ? effectError : $"Effect {i} is null.");
+                effectError);
         }
 
-        int nextLevel = currentLevel + 1;
-        _gameData.SetUpgradeLevel(node.Id, nextLevel);
         _gameData.MarkDirty();
 
         if (!_gameData.SaveNow())
