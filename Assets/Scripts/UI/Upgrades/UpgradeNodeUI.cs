@@ -7,9 +7,10 @@ using UnityEngine.UI;
 
 public enum UpgradeNodeVisualState
 {
-    Locked,
-    Unlocked,
-    Completed
+    Locked, // 부모가 해금되지 않아 잠긴 상태
+    Unlocked, // 부모가 해금되어 접근 가능하나, 아직 0단계인 상태
+    Purchased, // 1레벨 이상 구매했으나, 아직 최대 레벨에 도달하지 않은 상태
+    Completed // 최대 레벨까지 업그레이드 완료된 상태
 }
 
 [Serializable]
@@ -51,6 +52,7 @@ public sealed class UpgradeNodeUI : MonoBehaviour, IPointerEnterHandler, IPointe
     [Header("State Styles")]
     [SerializeField] private UpgradeNodeStateStyle _lockedStyle;
     [SerializeField] private UpgradeNodeStateStyle _unlockedStyle;
+    [SerializeField] private UpgradeNodeStateStyle _purchasedStyle;
     [SerializeField] private UpgradeNodeStateStyle _completedStyle;
 
     public UpgradeNodeDefinition Definition => _definition;
@@ -62,13 +64,18 @@ public sealed class UpgradeNodeUI : MonoBehaviour, IPointerEnterHandler, IPointe
 
     private void OnValidate()
     {
-        _iconImage.sprite = _definition != null ? _definition.Icon : null;
-        _iconImage.enabled = _iconImage.sprite != null;
+        if (_iconImage != null)
+        {
+            _iconImage.sprite = _definition != null ? _definition.Icon : null;
+            _iconImage.enabled = _iconImage.sprite != null;
+        }
 
         if (_definition != null)
         {
             name = _definition.DisplayName;
         }
+
+        ApplyVisualState(_visualState);
     }
 
     private void OnEnable()
@@ -97,16 +104,34 @@ public sealed class UpgradeNodeUI : MonoBehaviour, IPointerEnterHandler, IPointe
     public void SetVisualState(UpgradeNodeVisualState state)
     {
         _visualState = state;
+        ApplyVisualState(state);
+    }
+
+    private void ApplyVisualState(UpgradeNodeVisualState state)
+    {
         UpgradeNodeStateStyle style = state switch
         {
             UpgradeNodeVisualState.Locked => _lockedStyle,
+            UpgradeNodeVisualState.Unlocked => _unlockedStyle,
+            UpgradeNodeVisualState.Purchased => _purchasedStyle,
             UpgradeNodeVisualState.Completed => _completedStyle,
-            _ => _unlockedStyle
+            _ => _lockedStyle
         };
 
-        _backgroundImage.color = style.BackgroundColor;
-        _iconImage.color = style.IconColor;
-        _visualRoot.localScale = Vector3.one * style.Scale;
+        if (_backgroundImage != null)
+        {
+            _backgroundImage.color = style.BackgroundColor;
+        }
+
+        if (_iconImage != null)
+        {
+            _iconImage.color = style.IconColor;
+        }
+
+        if (_visualRoot != null)
+        {
+            _visualRoot.localScale = Vector3.one * style.Scale;
+        }
     }
 
     public void OnPointerEnter(PointerEventData eventData)

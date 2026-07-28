@@ -155,11 +155,15 @@ MonoBehaviour:
   _lockedStyle:
     _backgroundColor: {r: 0.18, g: 0.2, b: 0.24, a: 0.8}
     _iconColor: {r: 1, g: 1, b: 1, a: 0.35}
-    _scale: 1
+    _scale: 0.8
   _unlockedStyle:
     _backgroundColor: {r: 0.1, g: 0.13, b: 0.18, a: 0.95}
-    _iconColor: {r: 1, g: 1, b: 1, a: 1}
+    _iconColor: {r: 1, g: 1, b: 1, a: 0.5882353}
     _scale: 1
+  _purchasedStyle:
+    _backgroundColor: {r: 0.1, g: 0.13, b: 0.18, a: 0.95}
+    _iconColor: {r: 1, g: 1, b: 1, a: 1}
+    _scale: 1.1
   _completedStyle:
     _backgroundColor: {r: 0.12, g: 0.22, b: 0.2, a: 0.95}
     _iconColor: {r: 1, g: 1, b: 1, a: 1}

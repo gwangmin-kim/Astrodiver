@@ -15,12 +15,16 @@ public sealed class UpgradeTreeUI : MonoBehaviour
 
     [Header("Connections")]
     [SerializeField, Min(1f)] private float _connectionWidth = 4f;
-    [SerializeField] private Color _connectionColor =
+    [SerializeField]
+    private Color _connectionColor =
         new(0.42f, 0.68f, 0.92f, 0.8f);
 
-    private readonly Dictionary<UpgradeNodeDefinition, UpgradeNodeUI> _nodes = new();
-    private readonly List<UpgradeConnectionUI> _connections = new();
+    private readonly Dictionary<UpgradeNodeDefinition, UpgradeNodeUI> _nodeDict = new();
+    private readonly List<UpgradeConnectionUI> _connectionList = new();
     private UpgradeService _upgradeService;
+    private bool _purchaseInProgress;
+
+    public event Action<UpgradeNodeUI, UpgradePurchaseResult> PurchaseAttempted;
 
     private void OnEnable()
     {
@@ -35,15 +39,15 @@ public sealed class UpgradeTreeUI : MonoBehaviour
 
     private void LateUpdate()
     {
-        for (int i = 0; i < _connections.Count; i++)
+        for (int i = 0; i < _connectionList.Count; i++)
         {
-            _connections[i].RefreshGeometry();
+            _connectionList[i].RefreshGeometry();
         }
     }
 
     public void RefreshAll()
     {
-        foreach (KeyValuePair<UpgradeNodeDefinition, UpgradeNodeUI> pair in _nodes)
+        foreach (KeyValuePair<UpgradeNodeDefinition, UpgradeNodeUI> pair in _nodeDict)
         {
             UpgradeNodeDefinition definition = pair.Key;
             UpgradeNodeUI node = pair.Value;
@@ -69,6 +73,10 @@ public sealed class UpgradeTreeUI : MonoBehaviour
         {
             _upgradeService.UpgradePurchased += HandleUpgradePurchased;
         }
+        else
+        {
+            Debug.LogError("UpgradeService is not available.", this);
+        }
 
         SubscribeNodes();
         RefreshAll();
@@ -76,7 +84,7 @@ public sealed class UpgradeTreeUI : MonoBehaviour
 
     private void BuildNodeLookup()
     {
-        _nodes.Clear();
+        _nodeDict.Clear();
         UpgradeNodeUI[] placedNodes = _nodeLayer.GetComponentsInChildren<UpgradeNodeUI>(true);
         for (int i = 0; i < placedNodes.Length; i++)
         {
@@ -87,7 +95,7 @@ public sealed class UpgradeTreeUI : MonoBehaviour
                 continue;
             }
 
-            if (!_nodes.TryAdd(node.Definition, node))
+            if (!_nodeDict.TryAdd(node.Definition, node))
             {
                 Debug.LogWarning(
                     $"Duplicate placed upgrade definition '{node.Definition.Id}'.",
@@ -103,17 +111,17 @@ public sealed class UpgradeTreeUI : MonoBehaviour
             Destroy(_connectionLayer.GetChild(i).gameObject);
         }
 
-        _connections.Clear();
+        _connectionList.Clear();
         if (_connectionPrefab == null)
         {
             return;
         }
 
-        foreach (KeyValuePair<UpgradeNodeDefinition, UpgradeNodeUI> pair in _nodes)
+        foreach (KeyValuePair<UpgradeNodeDefinition, UpgradeNodeUI> pair in _nodeDict)
         {
             UpgradeNodeDefinition childDefinition = pair.Key;
             if (childDefinition.Parent == null ||
-                !_nodes.TryGetValue(childDefinition.Parent, out UpgradeNodeUI parentNode))
+                !_nodeDict.TryGetValue(childDefinition.Parent, out UpgradeNodeUI parentNode))
             {
                 continue;
             }
@@ -128,7 +136,7 @@ public sealed class UpgradeTreeUI : MonoBehaviour
                 _connectionLayer,
                 _connectionWidth,
                 _connectionColor);
-            _connections.Add(connection);
+            _connectionList.Add(connection);
         }
     }
 
@@ -141,22 +149,25 @@ public sealed class UpgradeTreeUI : MonoBehaviour
             return UpgradeNodeVisualState.Completed;
         }
 
-        if (definition.Parent == null)
+        if (definition.Parent != null)
         {
-            return UpgradeNodeVisualState.Unlocked;
+            int parentLevel = _upgradeService != null
+                ? _upgradeService.GetLevel(definition.Parent.Id)
+                : 0;
+            if (parentLevel <= 0)
+            {
+                return UpgradeNodeVisualState.Locked;
+            }
         }
 
-        int parentLevel = _upgradeService != null
-            ? _upgradeService.GetLevel(definition.Parent.Id)
-            : 0;
-        return parentLevel > 0
+        return level <= 0
             ? UpgradeNodeVisualState.Unlocked
-            : UpgradeNodeVisualState.Locked;
+            : UpgradeNodeVisualState.Purchased;
     }
 
     private void SubscribeNodes()
     {
-        foreach (UpgradeNodeUI node in _nodes.Values)
+        foreach (UpgradeNodeUI node in _nodeDict.Values)
         {
             node.Clicked += HandleNodeClicked;
         }
@@ -164,7 +175,7 @@ public sealed class UpgradeTreeUI : MonoBehaviour
 
     private void UnsubscribeNodes()
     {
-        foreach (UpgradeNodeUI node in _nodes.Values)
+        foreach (UpgradeNodeUI node in _nodeDict.Values)
         {
             if (node != null)
             {
@@ -184,22 +195,81 @@ public sealed class UpgradeTreeUI : MonoBehaviour
 
     private void HandleNodeClicked(UpgradeNodeUI node)
     {
-        if (_upgradeService == null || node.Definition == null)
+        if (_purchaseInProgress || node == null)
         {
             return;
         }
 
-        UpgradePurchaseResult result = _upgradeService.TryPurchase(node.Definition);
-        if (!result.Succeeded && !string.IsNullOrWhiteSpace(result.Message))
+        if (_upgradeService == null)
         {
-            Debug.LogWarning(result.Message, node);
+            Debug.LogError("Cannot purchase an upgrade because UpgradeService is unavailable.", this);
+            return;
         }
 
-        RefreshAll();
+        if (node.Definition == null)
+        {
+            Debug.LogError($"Upgrade node '{node.name}' has no definition.", node);
+            return;
+        }
+
+        _purchaseInProgress = true;
+        try
+        {
+            UpgradePurchaseResult result =
+                _upgradeService.TryPurchase(node.Definition);
+            PurchaseAttempted?.Invoke(node, result);
+
+            if (!result.Succeeded)
+            {
+                LogPurchaseFailure(result, node);
+            }
+        }
+        finally
+        {
+            _purchaseInProgress = false;
+        }
     }
 
     private void HandleUpgradePurchased(UpgradeNodeDefinition definition, int level)
     {
         RefreshAll();
+    }
+
+    private static void LogPurchaseFailure(
+        UpgradePurchaseResult result,
+        UpgradeNodeUI node)
+    {
+        string message = !string.IsNullOrWhiteSpace(result.Message)
+            ? result.Message
+            : result.Status switch
+            {
+                UpgradePurchaseStatus.NodeNotFound =>
+                    $"Upgrade '{result.NodeId}' is not registered.",
+                UpgradePurchaseStatus.InvalidNode =>
+                    $"Upgrade '{result.NodeId}' has an invalid definition.",
+                UpgradePurchaseStatus.ParentLocked =>
+                    $"Upgrade '{result.NodeId}' requires its parent upgrade.",
+                UpgradePurchaseStatus.MaxLevelReached =>
+                    $"Upgrade '{result.NodeId}' is already at maximum level.",
+                UpgradePurchaseStatus.InventoryUnavailable =>
+                    "Player inventory is unavailable.",
+                UpgradePurchaseStatus.InsufficientResources =>
+                    $"Not enough resources to purchase upgrade '{result.NodeId}'.",
+                UpgradePurchaseStatus.EffectFailed =>
+                    $"Failed to apply upgrade '{result.NodeId}'.",
+                UpgradePurchaseStatus.SaveFailed =>
+                    $"Failed to save upgrade '{result.NodeId}'.",
+                _ => $"Upgrade purchase failed: {result.Status}."
+            };
+
+        if (result.Status is UpgradePurchaseStatus.ParentLocked or
+            UpgradePurchaseStatus.MaxLevelReached or
+            UpgradePurchaseStatus.InsufficientResources)
+        {
+            Debug.Log(message, node);
+            return;
+        }
+
+        Debug.LogError(message, node);
     }
 }

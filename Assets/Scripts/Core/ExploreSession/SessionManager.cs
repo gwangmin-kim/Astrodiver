@@ -62,7 +62,10 @@ public class SessionManager : MonoBehaviour
 
         if (_sessionStarted && !IsSessionFinished)
         {
-            PlayerInventoryController.Instance.CancelExploreSession();
+            if (PlayerInventoryController.Instance != null)
+            {
+                PlayerInventoryController.Instance.CancelExploreSession();
+            }
         }
 
         Time.timeScale = 1f;

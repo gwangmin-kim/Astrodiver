@@ -15,9 +15,9 @@ MonoBehaviour:
   _id: test_level_1_1
   _displayName: 'Test Level 1: 1'
   _description: 
-  _icon: {fileID: 0}
+  _icon: {fileID: 21300000, guid: 07554899350488e4c98623c5791937d4, type: 3}
   _parent: {fileID: 11400000, guid: 620a1060fa5f69a49b6f9774788ad509, type: 2}
-  _maxLevel: 1
+  _maxLevel: 10
   _baseCosts: []
   _costIncreases: []
   _effects: []

@@ -15,9 +15,9 @@ MonoBehaviour:
   _id: test_root
   _displayName: Test Root
   _description: 
-  _icon: {fileID: 0}
+  _icon: {fileID: 21300000, guid: 07554899350488e4c98623c5791937d4, type: 3}
   _parent: {fileID: 0}
-  _maxLevel: 1
+  _maxLevel: 5
   _baseCosts: []
   _costIncreases: []
   _effects: []
