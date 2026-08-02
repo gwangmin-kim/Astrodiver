@@ -9,6 +9,10 @@ public class PlayerCameraController : MonoBehaviour
     [Header("Camera Target")]
     [SerializeField] private Transform _cameraTarget;
 
+    [Header("Camera Bounds")]
+    [Tooltip("비어 있으면 현재 씬의 WorldBounds2D를 자동으로 사용합니다.")]
+    [SerializeField] private WorldBounds2D _cameraBounds;
+
     [Header("Tracking Settings")]
     [Tooltip("카메라가 조준 방향으로 치우쳐질 수 있는 최대 거리")]
     [SerializeField] private float _maxRange;
@@ -19,6 +23,10 @@ public class PlayerCameraController : MonoBehaviour
     private void Awake()
     {
         if (_inputHandler == null) _inputHandler = GetComponent<PlayerInputHandler>();
+        if (_cameraBounds == null)
+        {
+            _cameraBounds = FindAnyObjectByType<WorldBounds2D>();
+        }
     }
 
     private void Update()
@@ -31,8 +39,12 @@ public class PlayerCameraController : MonoBehaviour
     {
         Vector2 offset = _maxRange * aimInput;
         Vector2 targetPosition = (Vector2)transform.position + offset;
+        if (_cameraBounds != null)
+        {
+            targetPosition = _cameraBounds.ClampPoint(targetPosition);
+        }
 
-        _cameraTarget.position = Vector2.SmoothDamp(
+        Vector2 nextPosition = Vector2.SmoothDamp(
             _cameraTarget.position,
             targetPosition,
             ref _smoothDampVelocity,
@@ -40,5 +52,9 @@ public class PlayerCameraController : MonoBehaviour
             Mathf.Infinity,
             deltaTime
         );
+
+        _cameraTarget.position = _cameraBounds == null
+            ? nextPosition
+            : _cameraBounds.ClampPoint(nextPosition);
     }
 }

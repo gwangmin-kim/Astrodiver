@@ -26,6 +26,7 @@ public class FloatageController : MonoBehaviour, IDamagable
             FragmentParticleManager.Instance.DropFragment(transform.position, _dropData);
         }
 
+        GetComponent<StageSpawnedObject>()?.NotifyRemovedFromStage();
         Destroy(gameObject);
     }
 

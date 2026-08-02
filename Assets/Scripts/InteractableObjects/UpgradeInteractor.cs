@@ -3,7 +3,7 @@ using UnityEngine;
 public sealed class UpgradeInteractor : MonoBehaviour, IInteractable
 {
     [Header("References")]
-    [SerializeField] private GameObject _upgradePanel;
+    [SerializeField] private UpgradeTreeUI _upgradeTreeUI;
     [SerializeField] private PlayerInputHandler _playerInput;
     [SerializeField] private UIInputHandler _uiInput;
 
@@ -52,29 +52,29 @@ public sealed class UpgradeInteractor : MonoBehaviour, IInteractable
 
     public void Interact()
     {
-        if (_upgradePanel == null || _upgradePanel.activeSelf)
+        if (_upgradeTreeUI == null)
         {
             return;
         }
 
-        _upgradePanel.SetActive(true);
+        _upgradeTreeUI.Open();
         SyncWithPanelState();
     }
 
     private void HandleCancelPressed()
     {
-        if (_upgradePanel == null || !_upgradePanel.activeSelf)
+        if (_upgradeTreeUI == null)
         {
             return;
         }
 
-        _upgradePanel.SetActive(false);
+        _upgradeTreeUI.Close();
         SyncWithPanelState();
     }
 
     private void SyncWithPanelState()
     {
-        bool isOpen = _upgradePanel != null && _upgradePanel.activeSelf;
+        bool isOpen = _upgradeTreeUI != null && _upgradeTreeUI.gameObject.activeSelf;
 
         if (isOpen != _panelWasOpen)
         {

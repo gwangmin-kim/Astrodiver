@@ -874,6 +874,9 @@ MonoBehaviour:
     moveSpeed: 5
     moveDampingTime: 0.3
     stopDampingTime: 0.8
+  _movementBounds: {fileID: 0}
+  _playerBoundsMin: {x: -0.4, y: -0.9}
+  _playerBoundsMax: {x: 0.4, y: 0.9}
 --- !u!114 &2246888194050750849
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -888,6 +891,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerCameraController
   _inputHandler: {fileID: 2112401720433368642}
   _cameraTarget: {fileID: 3715785790762457664}
+  _cameraBounds: {fileID: 0}
   _maxRange: 2
   _dampingTime: 0.5
 --- !u!114 &5921648938988978759

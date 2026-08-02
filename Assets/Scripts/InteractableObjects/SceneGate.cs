@@ -3,8 +3,14 @@ using UnityEngine;
 [RequireComponent(typeof(Collider2D))]
 public class SceneGate : MonoBehaviour, IInteractable
 {
+    [Header("Hub Stage Selection")]
+    [SerializeField] private StageSelectionUI _stageSelectionUI;
+
+    [Header("Direct Scene Transition (Optional)")]
     [SerializeField] private string _destinationSceneName;
     [SerializeField] private TransitionSequence _transitionSequence;
+
+    [Header("Exploration Return")]
     [SerializeField] private bool _finishExploreSession;
 
     private bool _isTransitioning;
@@ -27,6 +33,12 @@ public class SceneGate : MonoBehaviour, IInteractable
                 Debug.LogError("SceneGate: Explore session gate requires a SessionManager in the scene.", this);
             }
 
+            return;
+        }
+
+        if (_stageSelectionUI != null)
+        {
+            _stageSelectionUI.Open();
             return;
         }
 

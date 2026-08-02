@@ -7,7 +7,6 @@ public class SessionManager : MonoBehaviour
 
     [Header("Scene Settings")]
     [SerializeField] private string _hubSceneName = "Hub";
-    [SerializeField] private string _explorationSceneName = "Game";
 
     [Header("Timeout Penalty")]
     [SerializeField][Range(0f, 1f)] private float _timeoutInventoryLossRatio = 1f;
@@ -30,7 +29,6 @@ public class SessionManager : MonoBehaviour
         }
 
         Instance = this;
-        // _explorationSceneName = gameObject.scene.name;
 
         _sessionEndPanel.SetActive(false);
 
@@ -119,7 +117,7 @@ public class SessionManager : MonoBehaviour
 
     private void RetryExploration()
     {
-        LoadScene(_explorationSceneName);
+        LoadScene(gameObject.scene.name);
     }
 
     private static void LoadScene(string sceneName)

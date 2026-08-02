@@ -37,6 +37,24 @@ public sealed class UpgradeTreeUI : MonoBehaviour
         UnsubscribeNodes();
     }
 
+    public void Open()
+    {
+        if (!gameObject.activeSelf)
+        {
+            gameObject.SetActive(true);
+        }
+    }
+
+    public void Close()
+    {
+        if (_purchaseInProgress || !gameObject.activeSelf)
+        {
+            return;
+        }
+
+        gameObject.SetActive(false);
+    }
+
     private void LateUpdate()
     {
         for (int i = 0; i < _connectionList.Count; i++)

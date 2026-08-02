@@ -434,6 +434,9 @@ public class NetGunController : MonoBehaviour
             return;
         }
 
+        targetComponent.GetComponent<StageSpawnedObject>()
+            ?.NotifyRemovedFromStage();
+
         CaptureAnimationController animationController =
             targetComponent.GetComponent<CaptureAnimationController>()
             ?? targetComponent.gameObject.AddComponent<CaptureAnimationController>();
