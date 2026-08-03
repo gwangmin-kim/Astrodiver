@@ -117,7 +117,7 @@ public static class StageSystemSceneBuilder
         managerSerialized.FindProperty("_resourceRuntimeRoot").objectReferenceValue = resourceRuntimeRoot;
         managerSerialized.ApplyModifiedPropertiesWithoutUndo();
 
-        ConfigureWorldBounds();
+        ConfigureWorldBounds(stageRoot.transform);
 
         Transform obsoleteAreaRoot = stageRoot.transform.Find("SpawnAreas");
         if (obsoleteAreaRoot != null)
@@ -129,8 +129,9 @@ public static class StageSystemSceneBuilder
         EditorSceneManager.SaveScene(scene);
     }
 
-    private static void ConfigureWorldBounds()
+    private static void ConfigureWorldBounds(Transform stageRoot)
     {
+        Transform mapRoot = EnsureChild(stageRoot, "Map");
         GameObject boundsObject = GameObject.Find("WorldBounds");
         if (boundsObject == null)
         {
@@ -140,6 +141,8 @@ public static class StageSystemSceneBuilder
                 Quaternion.identity);
             boundsObject.transform.localScale = Vector3.one;
         }
+
+        boundsObject.transform.SetParent(mapRoot, true);
 
         WorldBounds2D worldBounds =
             boundsObject.GetComponent<WorldBounds2D>() ??
