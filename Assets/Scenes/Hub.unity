@@ -502,7 +502,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 08944fd06950bf3409aabcf6123f0cf5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UpgradeInteractor
-  _upgradePanel: {fileID: 1029504456}
+  _upgradeTreeUI: {fileID: 1029504458}
   _playerInput: {fileID: 738188107}
   _uiInput: {fileID: 1333477136}
 --- !u!1 &567399000
