@@ -8,8 +8,8 @@ using UnityEngine.UI;
 public static class StageHudSceneBuilder
 {
     private const string HubScenePath = "Assets/Scenes/Hub.unity";
-    private const string StageOneScenePath = "Assets/Scenes/Stage_1.unity";
-    private const string StageTwoScenePath = "Assets/Scenes/Stage_2.unity";
+    private const string StageOneScenePath = "Assets/Scenes/Stage_1_1.unity";
+    private const string StageTwoScenePath = "Assets/Scenes/Stage_1_2.unity";
 
     [MenuItem("Astrodiver/UI/Rebuild Stage HUD")]
     public static void Rebuild()
@@ -49,7 +49,12 @@ public static class StageHudSceneBuilder
         Image dimBackground = Undo.AddComponent<Image>(stageHud);
         dimBackground.color = new Color(0.015f, 0.025f, 0.055f, 0.92f);
 
-        GameObject mapBackground = CreateUiObject("MapBackground", stageHud.transform);
+        GameObject viewport = CreateUiObject("Viewport", stageHud.transform);
+        RectTransform viewportRect = (RectTransform)viewport.transform;
+        Stretch(viewportRect);
+        Undo.AddComponent<RectMask2D>(viewport);
+
+        GameObject mapBackground = CreateUiObject("MapContent", viewport.transform);
         RectTransform mapRect = (RectTransform)mapBackground.transform;
         mapRect.anchorMin = new Vector2(0.5f, 0.5f);
         mapRect.anchorMax = new Vector2(0.5f, 0.5f);
@@ -60,17 +65,21 @@ public static class StageHudSceneBuilder
         mapImage.color = new Color(0.055f, 0.11f, 0.18f, 1f);
 
         Button stageOneButton = CreateStageButton(
-            "Stage_1_Button",
+            "Stage_1_1_Button",
             mapBackground.transform,
             new Vector2(-285f, 90f),
             new Vector2(270f, 220f),
             new Color(0.12f, 0.65f, 0.82f, 1f));
         Button stageTwoButton = CreateStageButton(
-            "Stage_2_Button",
+            "Stage_1_2_Button",
             mapBackground.transform,
             new Vector2(290f, -100f),
             new Vector2(250f, 250f),
             new Color(0.86f, 0.44f, 0.16f, 1f));
+
+        EnsureBuildScene(HubScenePath);
+        EnsureBuildScene(StageOneScenePath);
+        EnsureBuildScene(StageTwoScenePath);
 
         StageSelectionUI selectionUi = Undo.AddComponent<StageSelectionUI>(stageHud);
         SerializedObject selectionSerialized = new(selectionUi);
@@ -78,9 +87,22 @@ public static class StageHudSceneBuilder
         selectionSerialized.FindProperty("_uiInput").objectReferenceValue = uiInput;
         SerializedProperty destinations = selectionSerialized.FindProperty("_destinations");
         destinations.arraySize = 2;
-        ConfigureDestination(destinations.GetArrayElementAtIndex(0), stageOneButton, "Stage_1");
-        ConfigureDestination(destinations.GetArrayElementAtIndex(1), stageTwoButton, "Stage_2");
+        ConfigureDestination(
+            destinations.GetArrayElementAtIndex(0),
+            stageOneButton,
+            StageOneScenePath);
+        ConfigureDestination(
+            destinations.GetArrayElementAtIndex(1),
+            stageTwoButton,
+            StageTwoScenePath);
         selectionSerialized.ApplyModifiedPropertiesWithoutUndo();
+
+        StageMapNavigationUI navigationUi = Undo.AddComponent<StageMapNavigationUI>(stageHud);
+        SerializedObject navigationSerialized = new(navigationUi);
+        navigationSerialized.FindProperty("_input").objectReferenceValue = uiInput;
+        navigationSerialized.FindProperty("_viewport").objectReferenceValue = viewportRect;
+        navigationSerialized.FindProperty("_mapContent").objectReferenceValue = mapRect;
+        navigationSerialized.ApplyModifiedPropertiesWithoutUndo();
 
         SerializedObject gateSerialized = new(gate);
         gateSerialized.FindProperty("_stageSelectionUI").objectReferenceValue = selectionUi;
@@ -88,16 +110,14 @@ public static class StageHudSceneBuilder
         gateSerialized.ApplyModifiedPropertiesWithoutUndo();
 
         stageHud.SetActive(false);
-        EnsureBuildScene(HubScenePath);
-        EnsureBuildScene(StageOneScenePath);
-        EnsureBuildScene(StageTwoScenePath);
-
         EditorSceneManager.MarkSceneDirty(activeScene);
         EditorSceneManager.SaveScene(activeScene);
         Undo.CollapseUndoOperations(undoGroup);
         Selection.activeGameObject = stageHud;
 
-        Debug.Log("Stage HUD rebuilt with Stage_1 and Stage_2 destinations.", stageHud);
+        Debug.Log(
+            "Stage HUD rebuilt with Stage_1 and Stage_2 destinations and map navigation.",
+            stageHud);
     }
 
     private static Button CreateStageButton(
@@ -152,10 +172,35 @@ public static class StageHudSceneBuilder
     private static void ConfigureDestination(
         SerializedProperty destination,
         Button button,
-        string sceneName)
+        string scenePath)
     {
         destination.FindPropertyRelative("_button").objectReferenceValue = button;
-        destination.FindPropertyRelative("_sceneName").stringValue = sceneName;
+        SerializedProperty scene = destination.FindPropertyRelative("_scene");
+        SceneAsset sceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(scenePath);
+        scene.FindPropertyRelative("_sceneAsset").objectReferenceValue = sceneAsset;
+        scene.FindPropertyRelative("_buildIndex").intValue =
+            GetEnabledBuildIndex(scenePath);
+    }
+
+    private static int GetEnabledBuildIndex(string scenePath)
+    {
+        int buildIndex = 0;
+        foreach (EditorBuildSettingsScene scene in EditorBuildSettings.scenes)
+        {
+            if (!scene.enabled)
+            {
+                continue;
+            }
+
+            if (scene.path == scenePath)
+            {
+                return buildIndex;
+            }
+
+            buildIndex++;
+        }
+
+        return -1;
     }
 
     private static T FindSceneComponent<T>(Scene scene, string objectName)
