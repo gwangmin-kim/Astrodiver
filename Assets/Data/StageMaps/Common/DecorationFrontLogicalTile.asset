@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: DecorationFrontLogicalTile
   m_EditorClassIdentifier: UnityEngine.dll::UnityEngine.Tilemaps.Tile
   m_Sprite: {fileID: 2693298893159047259, guid: cd0c34ff9e1826a47ba480e44416aeef, type: 2}
-  m_Color: {r: 0.7, g: 0.7, b: 0.7, a: 1}
+  m_Color: {r: 0.56078434, g: 0.8509804, b: 0.9843137, a: 1}
   m_Transform:
     e00: 1
     e01: 0

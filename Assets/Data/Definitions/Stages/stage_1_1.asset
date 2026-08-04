@@ -10,27 +10,21 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 54d486b5f6d4f48c6817230749450c9b, type: 3}
-  m_Name: Stage_1_1
+  m_Name: stage_1_1
   m_EditorClassIdentifier: Assembly-CSharp::StageDefinition
-  _stageId: stage_1
+  _stageId: stage_1_1
   _respawnIntervalSeconds: 5
   _creatures:
-    _maxCount: 9
-    _respawnProbability: 0.5
+    _maxCount: 3
+    _respawnProbability: 0
     _entries:
     - _entryId: stone_creature
       _prefab: {fileID: 508475945939948788, guid: f5efb60079e5dcf47844a132d8f43fd4, type: 3}
-      _spawnWeight: 0.6666667
-    - _entryId: iron_creature
-      _prefab: {fileID: 5419619508651959619, guid: 9563da9c3dc297545830e288e3b4b4d6, type: 3}
-      _spawnWeight: 0.33333334
+      _spawnWeight: 1
   _resourceFloatages:
-    _maxCount: 12
-    _respawnProbability: 0.5
+    _maxCount: 6
+    _respawnProbability: 0
     _entries:
     - _entryId: stone_floatage
       _prefab: {fileID: 5706660221163112332, guid: 031d5af0176d3c7469ea5f9a2cdd2d67, type: 3}
-      _spawnWeight: 0.71428573
-    - _entryId: iron_floatage
-      _prefab: {fileID: 8584834154848141216, guid: 3a5159485fc32cd4f9bbd0bada734836, type: 3}
-      _spawnWeight: 0.2857143
+      _spawnWeight: 1

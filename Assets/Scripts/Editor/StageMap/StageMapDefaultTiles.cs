@@ -28,22 +28,35 @@ internal static class StageMapDefaultTiles
             PlatformPath,
             "PlatformLogicalTile",
             sprite,
-            Color.white,
+            GetColor(StageMapLayer.Platform),
             Tile.ColliderType.Grid);
         EnsureTile(
             DecorationBackPath,
             "DecorationBackLogicalTile",
             sprite,
-            new Color(0.2f, 0.2f, 0.2f, 1f),
+            GetColor(StageMapLayer.DecorationBack),
             Tile.ColliderType.None);
         EnsureTile(
             DecorationFrontPath,
             "DecorationFrontLogicalTile",
             sprite,
-            new Color(0.7f, 0.7f, 0.7f, 1f),
+            GetColor(StageMapLayer.DecorationFront),
             Tile.ColliderType.None);
 
         AssetDatabase.SaveAssets();
+    }
+
+    internal static Color GetColor(StageMapLayer layer)
+    {
+        return layer switch
+        {
+            StageMapLayer.Platform => Color.white,
+            StageMapLayer.DecorationBack =>
+                new Color32(255, 166, 201, 255),
+            StageMapLayer.DecorationFront =>
+                new Color32(143, 217, 251, 255),
+            _ => Color.magenta
+        };
     }
 
     internal static Tile Get(StageMapLayer layer)
