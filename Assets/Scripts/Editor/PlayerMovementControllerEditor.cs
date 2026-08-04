@@ -5,7 +5,7 @@ using UnityEngine;
 [CustomEditor(typeof(PlayerMovementController))]
 public sealed class PlayerMovementControllerEditor : Editor
 {
-    private static readonly Color BoundsColor = new(0.95f, 0.35f, 0.75f, 1f);
+    private static readonly Color _boundsColor = new(0.95f, 0.35f, 0.75f, 1f);
 
     private readonly BoxBoundsHandle _boundsHandle = new();
     private SerializedProperty _boundsMin;
@@ -45,14 +45,14 @@ public sealed class PlayerMovementControllerEditor : Editor
         };
         Handles.DrawSolidRectangleWithOutline(
             corners,
-            new Color(BoundsColor.r, BoundsColor.g, BoundsColor.b, 0.1f),
-            BoundsColor);
+            new Color(_boundsColor.r, _boundsColor.g, _boundsColor.b, 0.1f),
+            _boundsColor);
 
         Vector2 center = (min + max) * 0.5f;
         Vector2 size = max - min;
         _boundsHandle.center = new Vector3(center.x, center.y, 0f);
         _boundsHandle.size = new Vector3(size.x, size.y, 0f);
-        _boundsHandle.SetColor(BoundsColor);
+        _boundsHandle.SetColor(_boundsColor);
 
         Matrix4x4 previousMatrix = Handles.matrix;
         Handles.matrix = controller.transform.localToWorldMatrix;

@@ -5,9 +5,9 @@ using UnityEngine;
 [CustomEditor(typeof(StagePopulationManager))]
 public sealed class StagePopulationManagerEditor : Editor
 {
-    private static readonly Color CreatureColor =
+    private static readonly Color _creatureColor =
         new(0.2f, 0.95f, 0.45f, 1f);
-    private static readonly Color ResourceColor =
+    private static readonly Color _resourceColor =
         new(1f, 0.72f, 0.18f, 1f);
 
     private readonly BoxBoundsHandle _boundsHandle = new();
@@ -47,12 +47,12 @@ public sealed class StagePopulationManagerEditor : Editor
             "Creature Areas",
             StageSpawnCategory.Creature,
             _creatureAreas,
-            CreatureColor);
+            _creatureColor);
         DrawAreaList(
             "Resource Floatage Areas",
             StageSpawnCategory.ResourceFloatage,
             _resourceAreas,
-            ResourceColor);
+            _resourceColor);
         DrawAreaCopyButtons();
 
         if (serializedObject.ApplyModifiedProperties())
@@ -229,11 +229,11 @@ public sealed class StagePopulationManagerEditor : Editor
         DrawAreas(
             StageSpawnCategory.Creature,
             _creatureAreas,
-            CreatureColor);
+            _creatureColor);
         DrawAreas(
             StageSpawnCategory.ResourceFloatage,
             _resourceAreas,
-            ResourceColor);
+            _resourceColor);
         DrawSelectedHandle();
         serializedObject.ApplyModifiedProperties();
     }
@@ -299,8 +299,8 @@ public sealed class StagePopulationManagerEditor : Editor
         _boundsHandle.center = new Vector3(center.x, center.y, 0f);
         _boundsHandle.size = new Vector3(size.x, size.y, 0f);
         Color color = _selectedCategory == StageSpawnCategory.Creature
-            ? CreatureColor
-            : ResourceColor;
+            ? _creatureColor
+            : _resourceColor;
         _boundsHandle.SetColor(color);
 
         Matrix4x4 previousMatrix = Handles.matrix;

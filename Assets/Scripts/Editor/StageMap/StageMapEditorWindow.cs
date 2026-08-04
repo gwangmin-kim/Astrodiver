@@ -14,7 +14,7 @@ public sealed class StageMapEditorWindow : EditorWindow
     }
 
     private const float InactiveLayerAlphaMultiplier = 0.25f;
-    private static readonly Color StageBoundsColor =
+    private static readonly Color _stageBoundsColor =
         new(0.15f, 0.7f, 1f, 1f);
 
     private StageMapLayer _selectedLayer = StageMapLayer.Platform;
@@ -598,8 +598,7 @@ public sealed class StageMapEditorWindow : EditorWindow
 
         WorldBounds2D[] candidates =
             Object.FindObjectsByType<WorldBounds2D>(
-                FindObjectsInactive.Include,
-                FindObjectsSortMode.None);
+                FindObjectsInactive.Include);
         foreach (WorldBounds2D candidate in candidates)
         {
             if (candidate.gameObject.scene == scene)
@@ -635,7 +634,7 @@ public sealed class StageMapEditorWindow : EditorWindow
         };
 
         Color previousHandlesColor = Handles.color;
-        Handles.color = StageBoundsColor;
+        Handles.color = _stageBoundsColor;
         Handles.DrawAAPolyLine(3f, outline);
         Handles.Label(
             corners[1],

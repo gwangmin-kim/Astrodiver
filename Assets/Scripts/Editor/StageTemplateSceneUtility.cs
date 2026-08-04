@@ -15,7 +15,7 @@ public static class StageTemplateSceneUtility
     private const string PersistentPrefabFolder =
         "Assets/Resources/Prefabs/DontDestroyOnLoad";
 
-    private static readonly string[] PersistentObjectNames =
+    private static readonly string[] _persistentObjectNames =
     {
         "GameDataManager",
         "SceneTransitionManager",

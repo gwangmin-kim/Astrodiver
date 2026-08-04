@@ -5,7 +5,7 @@ using UnityEngine;
 [CustomEditor(typeof(WorldBounds2D))]
 public sealed class WorldBounds2DEditor : Editor
 {
-    private static readonly Color BoundsColor = new(0.15f, 0.7f, 1f, 1f);
+    private static readonly Color _boundsColor = new(0.15f, 0.7f, 1f, 1f);
 
     private readonly BoxBoundsHandle _boundsHandle = new();
     private SerializedProperty _min;
@@ -61,14 +61,14 @@ public sealed class WorldBounds2DEditor : Editor
         };
         Handles.DrawSolidRectangleWithOutline(
             corners,
-            new Color(BoundsColor.r, BoundsColor.g, BoundsColor.b, 0.06f),
-            BoundsColor);
+            new Color(_boundsColor.r, _boundsColor.g, _boundsColor.b, 0.06f),
+            _boundsColor);
 
         Vector2 center = (min + max) * 0.5f;
         Vector2 size = max - min;
         _boundsHandle.center = new Vector3(center.x, center.y, 0f);
         _boundsHandle.size = new Vector3(size.x, size.y, 0f);
-        _boundsHandle.SetColor(BoundsColor);
+        _boundsHandle.SetColor(_boundsColor);
 
         Matrix4x4 previousMatrix = Handles.matrix;
         Handles.matrix = worldBounds.transform.localToWorldMatrix;
