@@ -10,6 +10,7 @@ public static class StageHudSceneBuilder
     private const string HubScenePath = "Assets/Scenes/Hub.unity";
     private const string StageOneScenePath = "Assets/Scenes/Stage_1_1.unity";
     private const string StageTwoScenePath = "Assets/Scenes/Stage_1_2.unity";
+    private const string StageThreeScenePath = "Assets/Scenes/Stage_1_3.unity";
 
     [MenuItem("Astrodiver/UI/Rebuild Stage HUD")]
     public static void Rebuild()
@@ -76,17 +77,24 @@ public static class StageHudSceneBuilder
             new Vector2(290f, -100f),
             new Vector2(250f, 250f),
             new Color(0.86f, 0.44f, 0.16f, 1f));
+        Button stageThreeButton = CreateStageButton(
+            "Stage_1_3_Button",
+            mapBackground.transform,
+            new Vector2(981f, 68f),
+            new Vector2(200f, 200f),
+            new Color(0.081960805f, 0.64114475f, 0.81960785f, 1f));
 
         EnsureBuildScene(HubScenePath);
         EnsureBuildScene(StageOneScenePath);
         EnsureBuildScene(StageTwoScenePath);
+        EnsureBuildScene(StageThreeScenePath);
 
         StageSelectionUI selectionUi = Undo.AddComponent<StageSelectionUI>(stageHud);
         SerializedObject selectionSerialized = new(selectionUi);
         selectionSerialized.FindProperty("_playerInput").objectReferenceValue = playerInput;
         selectionSerialized.FindProperty("_uiInput").objectReferenceValue = uiInput;
         SerializedProperty destinations = selectionSerialized.FindProperty("_destinations");
-        destinations.arraySize = 2;
+        destinations.arraySize = 3;
         ConfigureDestination(
             destinations.GetArrayElementAtIndex(0),
             stageOneButton,
@@ -95,6 +103,10 @@ public static class StageHudSceneBuilder
             destinations.GetArrayElementAtIndex(1),
             stageTwoButton,
             StageTwoScenePath);
+        ConfigureDestination(
+            destinations.GetArrayElementAtIndex(2),
+            stageThreeButton,
+            StageThreeScenePath);
         selectionSerialized.ApplyModifiedPropertiesWithoutUndo();
 
         StageMapNavigationUI navigationUi = Undo.AddComponent<StageMapNavigationUI>(stageHud);
@@ -116,7 +128,7 @@ public static class StageHudSceneBuilder
         Selection.activeGameObject = stageHud;
 
         Debug.Log(
-            "Stage HUD rebuilt with Stage_1 and Stage_2 destinations and map navigation.",
+            "Stage HUD rebuilt with Stage_1_1 through Stage_1_3 destinations and map navigation.",
             stageHud);
     }
 

@@ -1722,7 +1722,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FragmentParticleManager
   _fragmentParticleSystemPrefab: {fileID: 5093053517247149796, guid: adb0a8c4142515447881cd80610f6b88, type: 3}
-  _resources: []
   _magnetData:
     radius: 3
     pullSpeedRange: {x: 1, y: 10}

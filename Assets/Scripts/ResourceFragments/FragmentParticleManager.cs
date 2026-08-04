@@ -6,7 +6,6 @@ public sealed class FragmentParticleManager : MonoBehaviour
 {
     [Header("Particle System Setup")]
     [SerializeField] private ParticleSystem _fragmentParticleSystemPrefab;
-    [SerializeField] private ResourceDefinition[] _resources;
 
     [Header("Magnet Settings")]
     [SerializeField] private MagnetData _magnetData;
@@ -33,14 +32,10 @@ public sealed class FragmentParticleManager : MonoBehaviour
             return;
         }
 
-        string resourceId = data.resource.Id?.Trim();
-        if (string.IsNullOrEmpty(resourceId) ||
-            !_particleSystems.TryGetValue(resourceId, out FragmentParticleEntry entry))
+        if (!TryGetOrCreateParticleSystem(
+                data.resource,
+                out FragmentParticleEntry entry))
         {
-            Debug.LogError(
-                $"No fragment particle system is registered for resource '{data.resource.name}' " +
-                $"(id: '{data.resource.Id}').",
-                data.resource);
             return;
         }
 
@@ -74,7 +69,6 @@ public sealed class FragmentParticleManager : MonoBehaviour
         }
 
         _magnetManager = new FragmentMagnetManager(_magnetData);
-        InitializeParticleSystems();
     }
 
     private void Start()
@@ -119,59 +113,49 @@ public sealed class FragmentParticleManager : MonoBehaviour
         }
     }
 
-    private void InitializeParticleSystems()
-    {
-        if (_fragmentParticleSystemPrefab == null)
-        {
-            Debug.LogError("Fragment particle system prefab is not assigned.", this);
-            return;
-        }
-
-        for (int i = 0; i < _resources.Length; i++)
-        {
-            ResourceDefinition resource = _resources[i];
-            if (!TryValidateResource(resource, i, out string resourceId))
-            {
-                continue;
-            }
-
-            ParticleSystem particleSystem = Instantiate(_fragmentParticleSystemPrefab, transform);
-            particleSystem.gameObject.name = string.IsNullOrWhiteSpace(resource.DisplayName)
-                ? resourceId
-                : resource.DisplayName;
-            particleSystem.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
-
-            ConfigureParticleSystem(particleSystem, resource);
-            _particleSystems.Add(
-                resourceId,
-                new FragmentParticleEntry(resource, particleSystem));
-        }
-    }
-
-    private bool TryValidateResource(
+    private bool TryGetOrCreateParticleSystem(
         ResourceDefinition resource,
-        int index,
-        out string resourceId)
+        out FragmentParticleEntry entry)
     {
-        resourceId = resource != null ? resource.Id?.Trim() : null;
+        entry = null;
 
-        if (resource == null)
-        {
-            Debug.LogError($"Resource entry at index {index} is null.", this);
-            return false;
-        }
-
+        string resourceId = resource.Id?.Trim();
         if (string.IsNullOrEmpty(resourceId))
         {
             Debug.LogError($"Resource '{resource.name}' has an empty id.", resource);
             return false;
         }
 
-        if (_particleSystems.ContainsKey(resourceId))
+        if (_particleSystems.TryGetValue(resourceId, out entry))
         {
-            Debug.LogError($"Duplicate fragment resource id '{resourceId}'.", resource);
+            if (entry.Resource == resource)
+            {
+                return true;
+            }
+
+            Debug.LogError(
+                $"Fragment resource id '{resourceId}' is already registered by " +
+                $"'{entry.Resource.name}', so '{resource.name}' cannot use it.",
+                resource);
+            entry = null;
             return false;
         }
+
+        if (_fragmentParticleSystemPrefab == null)
+        {
+            Debug.LogError("Fragment particle system prefab is not assigned.", this);
+            return false;
+        }
+
+        ParticleSystem particleSystem = Instantiate(_fragmentParticleSystemPrefab, transform);
+        particleSystem.gameObject.name = string.IsNullOrWhiteSpace(resource.DisplayName)
+            ? resourceId
+            : resource.DisplayName;
+        particleSystem.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+
+        ConfigureParticleSystem(particleSystem, resource);
+        entry = new FragmentParticleEntry(resource, particleSystem);
+        _particleSystems.Add(resourceId, entry);
 
         return true;
     }
