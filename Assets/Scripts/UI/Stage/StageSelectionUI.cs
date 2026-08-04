@@ -88,17 +88,17 @@ public sealed class StageSelectionUI : MonoBehaviour
         gameObject.SetActive(false);
     }
 
-    private void SelectStage(string sceneName)
+    private void SelectStage(BuildSceneReference scene)
     {
-        if (_isTransitioning || string.IsNullOrWhiteSpace(sceneName))
+        if (_isTransitioning || scene == null)
         {
             return;
         }
 
-        if (!Application.CanStreamedLevelBeLoaded(sceneName))
+        if (!scene.CanLoad())
         {
             Debug.LogError(
-                $"StageSelectionUI: Scene '{sceneName}' is not in Build Settings.",
+                $"StageSelectionUI: Build scene index {scene.BuildIndex} is not available.",
                 this);
             return;
         }
@@ -114,17 +114,17 @@ public sealed class StageSelectionUI : MonoBehaviour
 
         if (_transitionSequence != null)
         {
-            _transitionSequence.Play(() => LoadStage(sceneName));
+            _transitionSequence.Play(() => LoadStage(scene.BuildIndex));
         }
         else
         {
-            LoadStage(sceneName);
+            LoadStage(scene.BuildIndex);
         }
     }
 
-    private static void LoadStage(string sceneName)
+    private static void LoadStage(int buildIndex)
     {
-        SceneTransitionManager.Instance.LoadScene(sceneName);
+        SceneTransitionManager.Instance.LoadScene(buildIndex);
     }
 
     private void ResolveReferences()
@@ -151,10 +151,19 @@ public sealed class StageSelectionUI : MonoBehaviour
             }
 
             destination.Bind(SelectStage);
-            destination.SetInteractable(
-                Application.CanStreamedLevelBeLoaded(destination.SceneName));
+            destination.SetInteractable(destination.Scene?.CanLoad() == true);
         }
     }
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        for (int i = 0; i < _destinations.Length; i++)
+        {
+            _destinations[i]?.Scene?.RefreshBuildIndex();
+        }
+    }
+#endif
 
     private void UnbindDestinations()
     {
@@ -217,14 +226,14 @@ public sealed class StageSelectionUI : MonoBehaviour
 public sealed class StageDestination
 {
     [SerializeField] private Button _button;
-    [SerializeField] private string _sceneName;
+    [SerializeField] private BuildSceneReference _scene = new();
 
     [NonSerialized] private UnityAction _clickListener;
 
     public Button Button => _button;
-    public string SceneName => _sceneName;
+    public BuildSceneReference Scene => _scene;
 
-    public void Bind(Action<string> selectStage)
+    public void Bind(Action<BuildSceneReference> selectStage)
     {
         Unbind();
         if (_button == null || selectStage == null)
@@ -232,7 +241,7 @@ public sealed class StageDestination
             return;
         }
 
-        _clickListener = () => selectStage(_sceneName);
+        _clickListener = () => selectStage(_scene);
         _button.onClick.AddListener(_clickListener);
     }
 

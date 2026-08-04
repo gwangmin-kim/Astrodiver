@@ -1984,9 +1984,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StageSelectionUI
   _destinations:
   - _button: {fileID: 1141258688}
-    _sceneName: Stage_1
+    _scene:
+      _buildIndex: 0
+      _sceneAsset: {fileID: 102900000, guid: 8c9cfa26abfee488c85f1582747f6a02, type: 3}
   - _button: {fileID: 915961332}
-    _sceneName: Stage_2
+    _scene:
+      _buildIndex: 2
+      _sceneAsset: {fileID: 102900000, guid: edf97b69ff6064f049a87518faf319f1, type: 3}
   _playerInput: {fileID: 738188107}
   _uiInput: {fileID: 1333477136}
   _transitionSequence: {fileID: 0}

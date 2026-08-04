@@ -40,6 +40,17 @@ public class SceneTransitionManager : MonoBehaviour
         SceneManager.LoadSceneAsync(sceneName);
     }
 
+    public void LoadScene(int buildIndex)
+    {
+        if (_isLoading || buildIndex < 0)
+        {
+            return;
+        }
+
+        _isLoading = true;
+        SceneManager.LoadSceneAsync(buildIndex);
+    }
+
     private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         _isLoading = false;
