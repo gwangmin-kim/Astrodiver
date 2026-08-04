@@ -53,6 +53,7 @@ public sealed class StagePopulationManagerEditor : Editor
             StageSpawnCategory.ResourceFloatage,
             _resourceAreas,
             ResourceColor);
+        DrawAreaCopyButtons();
 
         if (serializedObject.ApplyModifiedProperties())
         {
@@ -145,6 +146,68 @@ public sealed class StagePopulationManagerEditor : Editor
                 }
             }
         }
+    }
+
+    private void DrawAreaCopyButtons()
+    {
+        EditorGUILayout.Space(6f);
+        EditorGUILayout.LabelField(
+            "Copy & Overwrite Areas",
+            EditorStyles.boldLabel);
+
+        using (new EditorGUILayout.HorizontalScope())
+        {
+            GUIContent creatureToResource = new(
+                "Creature -> Floatage",
+                "Replace every resource floatage area with the creature areas.");
+            if (GUILayout.Button(creatureToResource))
+            {
+                CopyAreas(
+                    _creatureAreas,
+                    _resourceAreas,
+                    StageSpawnCategory.ResourceFloatage);
+            }
+
+            GUIContent resourceToCreature = new(
+                "Floatage -> Creature",
+                "Replace every creature area with the resource floatage areas.");
+            if (GUILayout.Button(resourceToCreature))
+            {
+                CopyAreas(
+                    _resourceAreas,
+                    _creatureAreas,
+                    StageSpawnCategory.Creature);
+            }
+        }
+    }
+
+    private void CopyAreas(
+        SerializedProperty source,
+        SerializedProperty destination,
+        StageSpawnCategory destinationCategory)
+    {
+        Undo.RecordObject(target, "Copy Stage Spawn Areas");
+
+        destination.arraySize = source.arraySize;
+        for (int i = 0; i < source.arraySize; i++)
+        {
+            SerializedProperty sourceArea = source.GetArrayElementAtIndex(i);
+            SerializedProperty destinationArea =
+                destination.GetArrayElementAtIndex(i);
+            destinationArea.FindPropertyRelative("_min").vector2Value =
+                sourceArea.FindPropertyRelative("_min").vector2Value;
+            destinationArea.FindPropertyRelative("_max").vector2Value =
+                sourceArea.FindPropertyRelative("_max").vector2Value;
+        }
+
+        if (_selectedCategory != destinationCategory || _selectedIndex < 0)
+        {
+            return;
+        }
+
+        _selectedIndex = destination.arraySize == 0
+            ? -1
+            : Mathf.Min(_selectedIndex, destination.arraySize - 1);
     }
 
     private Vector2 GetDefaultLocalCenter()
