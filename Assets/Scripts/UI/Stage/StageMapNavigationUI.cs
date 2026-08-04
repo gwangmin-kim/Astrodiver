@@ -1,9 +1,13 @@
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 [DefaultExecutionOrder(100)]
 [DisallowMultipleComponent]
 public sealed class StageMapNavigationUI : MonoBehaviour
 {
+    private const int DefaultButtonBoundsPadding = 300;
+
     [Header("References")]
     [SerializeField] private UIInputHandler _input;
     [SerializeField] private RectTransform _viewport;
@@ -11,8 +15,9 @@ public sealed class StageMapNavigationUI : MonoBehaviour
 
     [Header("Pan")]
     [SerializeField, Min(0f)] private float _panSensitivity = 1f;
-    [SerializeField] private Vector2 _minPanPosition = new(-600f, -350f);
-    [SerializeField] private Vector2 _maxPanPosition = new(600f, 350f);
+
+    [Header("Automatic Pan Bounds")]
+    [SerializeField] private RectOffset _buttonBoundsPadding;
 
     [Header("Editor Visualization")]
     [SerializeField] private bool _showPanBoundsGizmo = true;
@@ -29,6 +34,11 @@ public sealed class StageMapNavigationUI : MonoBehaviour
     private bool _previousMiddleClickHeld;
     private bool _hasStarted;
 
+    private readonly Vector3[] _worldCorners = new Vector3[4];
+    private readonly Vector3[] _viewportWorldCorners = new Vector3[4];
+    private readonly List<Button> _buttons = new();
+    private bool _missingButtonsWarningLogged;
+
     private Camera EventCamera =>
         _canvas != null && _canvas.renderMode != RenderMode.ScreenSpaceOverlay
             ? _canvas.worldCamera
@@ -36,22 +46,28 @@ public sealed class StageMapNavigationUI : MonoBehaviour
 
     private void Awake()
     {
+        EnsureButtonBoundsPadding();
         _canvas = GetComponentInParent<Canvas>();
     }
 
     private void OnEnable()
     {
+        EnsureButtonBoundsPadding();
         ResetInteraction();
+        RefreshButtonTargets();
         if (_hasStarted)
         {
-            _input.SetInputEnabled(true);
+            _input?.SetInputEnabled(true);
+            ClampPanPosition();
         }
     }
 
     private void Start()
     {
         _hasStarted = true;
-        _input.SetInputEnabled(true);
+        _input?.SetInputEnabled(true);
+        Canvas.ForceUpdateCanvases();
+        RefreshButtonTargets();
         SetZoom(_mapContent.localScale.x);
         ClampPanPosition();
     }
@@ -182,18 +198,186 @@ public sealed class StageMapNavigationUI : MonoBehaviour
 
     private void ClampPanPosition()
     {
-        Vector2 min = Vector2.Min(_minPanPosition, _maxPanPosition);
-        Vector2 max = Vector2.Max(_minPanPosition, _maxPanPosition);
+        if (!TryGetPanPositionBounds(out Vector2 min, out Vector2 max))
+        {
+            return;
+        }
+
         Vector2 position = _mapContent.anchoredPosition;
         position.x = Mathf.Clamp(position.x, min.x, max.x);
         position.y = Mathf.Clamp(position.y, min.y, max.y);
         _mapContent.anchoredPosition = position;
     }
 
+    private bool TryGetPanPositionBounds(out Vector2 min, out Vector2 max)
+    {
+        min = default;
+        max = default;
+
+        if (_mapContent == null || _viewport == null ||
+            _mapContent.parent is not RectTransform parent ||
+            !TryGetButtonBounds(out Rect buttonBounds) ||
+            !TryGetRectBoundsInParent(_viewport, parent, out Rect viewportBounds))
+        {
+            return false;
+        }
+
+        Vector2 contentScale = _mapContent.localScale;
+        if (contentScale.x <= 0f || contentScale.y <= 0f)
+        {
+            return false;
+        }
+
+        Vector2 anchorPosition = GetAnchorPosition(parent);
+        min = new Vector2(
+            viewportBounds.xMax - anchorPosition.x - buttonBounds.xMax * contentScale.x,
+            viewportBounds.yMax - anchorPosition.y - buttonBounds.yMax * contentScale.y);
+        max = new Vector2(
+            viewportBounds.xMin - anchorPosition.x - buttonBounds.xMin * contentScale.x,
+            viewportBounds.yMin - anchorPosition.y - buttonBounds.yMin * contentScale.y);
+
+        CollapseInvertedRange(ref min.x, ref max.x);
+        CollapseInvertedRange(ref min.y, ref max.y);
+        return true;
+    }
+
+    private bool TryGetButtonBounds(out Rect bounds)
+    {
+        bounds = default;
+        if (_mapContent == null)
+        {
+            return false;
+        }
+
+        if (_buttons.Count == 0)
+        {
+            if (!_missingButtonsWarningLogged)
+            {
+                Debug.LogWarning(
+                    "StageMapNavigationUI: No buttons were found under MapContent; pan is disabled.",
+                    this);
+                _missingButtonsWarningLogged = true;
+            }
+
+            return false;
+        }
+
+        bool hasBounds = false;
+        Vector2 min = default;
+        Vector2 max = default;
+        foreach (Button button in _buttons)
+        {
+            if (button == null || button.transform is not RectTransform buttonRect)
+            {
+                continue;
+            }
+
+            buttonRect.GetWorldCorners(_worldCorners);
+            for (int i = 0; i < _worldCorners.Length; i++)
+            {
+                Vector2 point = (Vector2)_mapContent.InverseTransformPoint(_worldCorners[i]);
+                if (!hasBounds)
+                {
+                    min = point;
+                    max = point;
+                    hasBounds = true;
+                    continue;
+                }
+
+                min = Vector2.Min(min, point);
+                max = Vector2.Max(max, point);
+            }
+        }
+
+        if (!hasBounds)
+        {
+            return false;
+        }
+
+        int left = Mathf.Max(0, _buttonBoundsPadding.left);
+        int right = Mathf.Max(0, _buttonBoundsPadding.right);
+        int top = Mathf.Max(0, _buttonBoundsPadding.top);
+        int bottom = Mathf.Max(0, _buttonBoundsPadding.bottom);
+        bounds = Rect.MinMaxRect(
+            min.x - left,
+            min.y - bottom,
+            max.x + right,
+            max.y + top);
+        return true;
+    }
+
+    [ContextMenu("Refresh Automatic Pan Bounds")]
+    public void RefreshButtonTargets()
+    {
+        _buttons.Clear();
+        _missingButtonsWarningLogged = false;
+
+        if (_mapContent != null)
+        {
+            _mapContent.GetComponentsInChildren(true, _buttons);
+        }
+
+        ClampPanPosition();
+    }
+
+    private bool TryGetRectBoundsInParent(
+        RectTransform rect,
+        RectTransform parent,
+        out Rect bounds)
+    {
+        rect.GetWorldCorners(_viewportWorldCorners);
+
+        Vector2 min = (Vector2)parent.InverseTransformPoint(_viewportWorldCorners[0]);
+        Vector2 max = min;
+        for (int i = 1; i < _viewportWorldCorners.Length; i++)
+        {
+            Vector2 point = (Vector2)parent.InverseTransformPoint(_viewportWorldCorners[i]);
+            min = Vector2.Min(min, point);
+            max = Vector2.Max(max, point);
+        }
+
+        bounds = Rect.MinMaxRect(min.x, min.y, max.x, max.y);
+        return true;
+    }
+
+    private Vector2 GetAnchorPosition(RectTransform parent)
+    {
+        Vector2 normalizedAnchor =
+            (_mapContent.anchorMin + _mapContent.anchorMax) * 0.5f;
+        return new Vector2(
+            Mathf.Lerp(parent.rect.xMin, parent.rect.xMax, normalizedAnchor.x),
+            Mathf.Lerp(parent.rect.yMin, parent.rect.yMax, normalizedAnchor.y));
+    }
+
+    private static void CollapseInvertedRange(ref float min, ref float max)
+    {
+        if (min <= max)
+        {
+            return;
+        }
+
+        min = max = (min + max) * 0.5f;
+    }
+
+    private void EnsureButtonBoundsPadding()
+    {
+        _buttonBoundsPadding ??= new RectOffset(
+            DefaultButtonBoundsPadding,
+            DefaultButtonBoundsPadding,
+            DefaultButtonBoundsPadding,
+            DefaultButtonBoundsPadding);
+    }
+
 #if UNITY_EDITOR
+    private void OnValidate()
+    {
+        EnsureButtonBoundsPadding();
+    }
+
     private void OnDrawGizmos()
     {
-        if (!_showPanBoundsGizmo || _mapContent == null)
+        if (!_showPanBoundsGizmo || _mapContent == null ||
+            !TryGetPanPositionBounds(out Vector2 min, out Vector2 max))
         {
             return;
         }
@@ -204,13 +388,7 @@ public sealed class StageMapNavigationUI : MonoBehaviour
             return;
         }
 
-        Vector2 min = Vector2.Min(_minPanPosition, _maxPanPosition);
-        Vector2 max = Vector2.Max(_minPanPosition, _maxPanPosition);
-        Vector2 normalizedAnchor =
-            (_mapContent.anchorMin + _mapContent.anchorMax) * 0.5f;
-        Vector2 anchorPosition = new(
-            Mathf.Lerp(parent.rect.xMin, parent.rect.xMax, normalizedAnchor.x),
-            Mathf.Lerp(parent.rect.yMin, parent.rect.yMax, normalizedAnchor.y));
+        Vector2 anchorPosition = GetAnchorPosition(parent);
 
         Vector3 bottomLeft = parent.TransformPoint(anchorPosition + new Vector2(min.x, min.y));
         Vector3 topLeft = parent.TransformPoint(anchorPosition + new Vector2(min.x, max.y));
