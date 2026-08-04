@@ -1,12 +1,18 @@
 using UnityEngine;
 using UnityEngine.UI;
 
+[DefaultExecutionOrder(-1000)]
 public class SessionManager : MonoBehaviour
 {
     public static SessionManager Instance { get; private set; }
 
     [Header("Scene Settings")]
     [SerializeField] private string _hubSceneName = "Hub";
+
+    [Header("Player Spawn")]
+    [SerializeField] private GameObject _playerPrefab;
+    [SerializeField] private Transform _playerSpawnPoint;
+    [SerializeField] private Transform _runtimeRoot;
 
     [Header("Timeout Penalty")]
     [SerializeField][Range(0f, 1f)] private float _timeoutInventoryLossRatio = 1f;
@@ -19,6 +25,7 @@ public class SessionManager : MonoBehaviour
     private bool _sessionStarted;
 
     public bool IsSessionFinished { get; private set; }
+    public PlayerContext SpawnedPlayer { get; private set; }
 
     private void Awake()
     {
@@ -30,10 +37,44 @@ public class SessionManager : MonoBehaviour
 
         Instance = this;
 
+        SpawnPlayer();
+
         _sessionEndPanel.SetActive(false);
 
         _returnButton.onClick.AddListener(ReturnToHub);
         _retryButton.onClick.AddListener(RetryExploration);
+    }
+
+    private void SpawnPlayer()
+    {
+        if (PlayerContext.Instance != null)
+        {
+            SpawnedPlayer = PlayerContext.Instance;
+            return;
+        }
+
+        if (_playerPrefab == null || _playerSpawnPoint == null || _runtimeRoot == null)
+        {
+            Debug.LogError(
+                "SessionManager: Player prefab, SpaceShip spawn point, and Runtime root must be assigned.",
+                this);
+            return;
+        }
+
+        GameObject playerObject = Instantiate(
+            _playerPrefab,
+            _playerSpawnPoint.position,
+            _playerSpawnPoint.rotation,
+            _runtimeRoot);
+        playerObject.name = _playerPrefab.name;
+        SpawnedPlayer = playerObject.GetComponent<PlayerContext>();
+
+        if (SpawnedPlayer == null)
+        {
+            Debug.LogError(
+                "SessionManager: The player prefab does not contain PlayerContext.",
+                playerObject);
+        }
     }
 
     private void Start()

@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 54d486b5f6d4f48c6817230749450c9b, type: 3}
-  m_Name: stage_1
+  m_Name: Stage_1
   m_EditorClassIdentifier: Assembly-CSharp::StageDefinition
   _stageId: stage_1
   _respawnIntervalSeconds: 5
@@ -25,7 +25,7 @@ MonoBehaviour:
       _prefab: {fileID: 5419619508651959619, guid: 9563da9c3dc297545830e288e3b4b4d6, type: 3}
       _spawnWeight: 0.33333334
   _resourceFloatages:
-    _maxCount: 7
+    _maxCount: 12
     _respawnProbability: 0.5
     _entries:
     - _entryId: stone_floatage

@@ -10,6 +10,8 @@ public static class StageTemplateSceneUtility
     private const string ReferenceScenePath = "Assets/Scenes/Stage_1.unity";
     private const string TemplateFolder = "Assets/Scenes/Templates";
     private const string TemplateScenePath = TemplateFolder + "/EmptyStageTemplate.unity";
+    private const string PlayerPrefabPath =
+        "Assets/Prefabs/Player/SessionPlayer.prefab";
     private const string PersistentPrefabFolder =
         "Assets/Resources/Prefabs/DontDestroyOnLoad";
 
@@ -107,6 +109,38 @@ public static class StageTemplateSceneUtility
             "Persistent-service prefabs, scene bootstrap migration, and the basic stage template are ready.");
     }
 
+    public static void ApplyStageRuntimeMigration()
+    {
+        string returnScenePath = SceneManager.GetActiveScene().path;
+        string[] scenePaths =
+        {
+            "Assets/Scenes/Stage_1.unity",
+            "Assets/Scenes/Stage_2.unity",
+            TemplateScenePath
+        };
+
+        foreach (string scenePath in scenePaths)
+        {
+            Scene scene = EditorSceneManager.OpenScene(
+                scenePath,
+                OpenSceneMode.Single);
+            if (NormalizeStageRuntime(scene))
+            {
+                EditorSceneManager.MarkSceneDirty(scene);
+                EditorSceneManager.SaveScene(scene);
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(returnScenePath) &&
+            AssetDatabase.LoadAssetAtPath<SceneAsset>(returnScenePath) != null)
+        {
+            EditorSceneManager.OpenScene(returnScenePath, OpenSceneMode.Single);
+        }
+
+        AssetDatabase.SaveAssets();
+        Debug.Log("Stage player spawning and Runtime hierarchies are ready.");
+    }
+
     private static bool CanEditScenes()
     {
         if (!EditorApplication.isPlaying)
@@ -197,6 +231,7 @@ public static class StageTemplateSceneUtility
             if (IsStageScene(scene))
             {
                 changed |= MoveWorldBoundsUnderMap(scene);
+                changed |= NormalizeStageRuntime(scene);
             }
 
             if (changed)
@@ -270,6 +305,77 @@ public static class StageTemplateSceneUtility
         return true;
     }
 
+    private static bool NormalizeStageRuntime(Scene scene)
+    {
+        bool changed = false;
+        GameObject stageRoot = FindRoot(scene, "StageRoot");
+        if (stageRoot == null)
+        {
+            stageRoot = new GameObject("StageRoot");
+            SceneManager.MoveGameObjectToScene(stageRoot, scene);
+            changed = true;
+        }
+
+        Transform runtimeRoot = stageRoot.transform.Find("Runtime");
+        if (runtimeRoot == null)
+        {
+            runtimeRoot = new GameObject("Runtime").transform;
+            runtimeRoot.SetParent(stageRoot.transform, false);
+            changed = true;
+        }
+
+        GameObject spaceShip = FindByName(scene, "SpaceShip");
+        if (spaceShip == null)
+        {
+            Debug.LogError($"'{scene.path}' has no SpaceShip spawn point.");
+            return changed;
+        }
+
+        if (spaceShip.transform.parent != stageRoot.transform)
+        {
+            spaceShip.transform.SetParent(stageRoot.transform, true);
+            changed = true;
+        }
+
+        foreach (GameObject root in scene.GetRootGameObjects())
+        {
+            PlayerContext[] players = root.GetComponentsInChildren<PlayerContext>(true);
+            foreach (PlayerContext player in players)
+            {
+                Object.DestroyImmediate(player.gameObject);
+                changed = true;
+            }
+        }
+
+        SessionManager manager = FindSceneComponent<SessionManager>(scene);
+        GameObject playerPrefab =
+            AssetDatabase.LoadAssetAtPath<GameObject>(PlayerPrefabPath);
+        if (manager == null || playerPrefab == null)
+        {
+            Debug.LogError(
+                $"Cannot configure player spawning in '{scene.path}': " +
+                "SessionManager or SessionPlayer prefab is missing.");
+            return changed;
+        }
+
+        SerializedObject serialized = new(manager);
+        SerializedProperty prefabProperty = serialized.FindProperty("_playerPrefab");
+        SerializedProperty spawnProperty = serialized.FindProperty("_playerSpawnPoint");
+        SerializedProperty runtimeProperty = serialized.FindProperty("_runtimeRoot");
+        if (prefabProperty.objectReferenceValue != playerPrefab ||
+            spawnProperty.objectReferenceValue != spaceShip.transform ||
+            runtimeProperty.objectReferenceValue != runtimeRoot)
+        {
+            prefabProperty.objectReferenceValue = playerPrefab;
+            spawnProperty.objectReferenceValue = spaceShip.transform;
+            runtimeProperty.objectReferenceValue = runtimeRoot;
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+            changed = true;
+        }
+
+        return changed;
+    }
+
     private static void RebuildTemplateAsset()
     {
         EnsureFolder(TemplateFolder);
@@ -286,6 +392,7 @@ public static class StageTemplateSceneUtility
             OpenSceneMode.Single);
         RemovePersistentServices(template);
         MoveWorldBoundsUnderMap(template);
+        NormalizeStageRuntime(template);
 
         GameObject stageRoot = FindRoot(template, "StageRoot");
         if (stageRoot != null)
@@ -300,8 +407,12 @@ public static class StageTemplateSceneUtility
             Transform runtime = stageRoot.transform.Find("Runtime");
             if (runtime != null)
             {
-                Object.DestroyImmediate(runtime.gameObject);
+                for (int i = runtime.childCount - 1; i >= 0; i--)
+                {
+                    Object.DestroyImmediate(runtime.GetChild(i).gameObject);
+                }
             }
+
         }
 
         foreach (Tilemap tilemap in Object.FindObjectsByType<Tilemap>(
@@ -342,6 +453,42 @@ public static class StageTemplateSceneUtility
             if (root.name == name)
             {
                 return root;
+            }
+        }
+
+        return null;
+    }
+
+    private static GameObject FindByName(Scene scene, string name)
+    {
+        foreach (GameObject root in scene.GetRootGameObjects())
+        {
+            Transform match = FindByName(root.transform, name);
+            if (match != null)
+            {
+                return match.gameObject;
+            }
+        }
+
+        return null;
+    }
+
+    private static Transform FindByName(Transform root, string name)
+    {
+        if (string.Equals(
+                root.name,
+                name,
+                System.StringComparison.OrdinalIgnoreCase))
+        {
+            return root;
+        }
+
+        for (int i = 0; i < root.childCount; i++)
+        {
+            Transform match = FindByName(root.GetChild(i), name);
+            if (match != null)
+            {
+                return match;
             }
         }
 

@@ -1,3 +1,4 @@
+using Unity.Cinemachine;
 using UnityEngine;
 
 [RequireComponent(typeof(PlayerInputHandler))]
@@ -27,6 +28,31 @@ public class PlayerCameraController : MonoBehaviour
         {
             _cameraBounds = FindAnyObjectByType<WorldBounds2D>();
         }
+
+        BindCinemachineCamera();
+    }
+
+    private void BindCinemachineCamera()
+    {
+        if (_cameraTarget == null)
+        {
+            Debug.LogError("PlayerCameraController: Camera target is not assigned.", this);
+            enabled = false;
+            return;
+        }
+
+        CinemachineCamera virtualCamera =
+            FindAnyObjectByType<CinemachineCamera>();
+        if (virtualCamera == null)
+        {
+            Debug.LogWarning(
+                "PlayerCameraController: CinemachineCamera is not available in this scene.",
+                this);
+            return;
+        }
+
+        virtualCamera.Follow = _cameraTarget;
+        virtualCamera.LookAt = _cameraTarget;
     }
 
     private void Update()
