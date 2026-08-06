@@ -34,33 +34,71 @@ internal static class StageMapSetupUtility
         grid.cellLayout = GridLayout.CellLayout.Rectangle;
         grid.cellSwizzle = GridLayout.CellSwizzle.XYZ;
 
-        Tilemap platform = EnsureTilemap(
+        Tilemap platformLogic = EnsureLogicTilemap(
+            gridRoot,
+            StageMapLayer.Platform);
+        Tilemap decorationBackLogic = EnsureLogicTilemap(
+            gridRoot,
+            StageMapLayer.DecorationBack);
+        Tilemap decorationFrontLogic = EnsureLogicTilemap(
+            gridRoot,
+            StageMapLayer.DecorationFront);
+
+        Tilemap platformVisual = EnsureVisualTilemap(
             gridRoot,
             StageMapLayer.Platform,
             sortingOrder: 0);
-        Tilemap decorationBack = EnsureTilemap(
+        Tilemap decorationBackVisual = EnsureVisualTilemap(
             gridRoot,
             StageMapLayer.DecorationBack,
             sortingOrder: -10);
-        Tilemap decorationFront = EnsureTilemap(
+        Tilemap decorationFrontVisual = EnsureVisualTilemap(
             gridRoot,
             StageMapLayer.DecorationFront,
             sortingOrder: 10);
 
-        ConfigurePlatformPhysics(platform.gameObject);
-        RemoveDecorationPhysics(decorationBack.gameObject);
-        RemoveDecorationPhysics(decorationFront.gameObject);
+        MigrateLayer(
+            platformLogic,
+            platformVisual,
+            StageMapLayer.Platform);
+        MigrateLayer(
+            decorationBackLogic,
+            decorationBackVisual,
+            StageMapLayer.DecorationBack);
+        MigrateLayer(
+            decorationFrontLogic,
+            decorationFrontVisual,
+            StageMapLayer.DecorationFront);
+
+        ConfigurePlatformPhysics(platformLogic.gameObject);
+        RemoveDecorationPhysics(decorationBackLogic.gameObject);
+        RemoveDecorationPhysics(decorationFrontLogic.gameObject);
+        RemoveComponent<TilemapRenderer>(platformLogic.gameObject);
+        RemoveComponent<TilemapRenderer>(decorationBackLogic.gameObject);
+        RemoveComponent<TilemapRenderer>(decorationFrontLogic.gameObject);
+        RemoveAllPhysics(platformVisual.gameObject);
+        RemoveAllPhysics(decorationBackVisual.gameObject);
+        RemoveAllPhysics(decorationFrontVisual.gameObject);
 
         StageMap stageMap = EnsureComponent<StageMap>(mapRoot.gameObject);
         Undo.RecordObject(stageMap, "Configure Stage Map");
-        stageMap.Configure(grid, platform, decorationBack, decorationFront);
+        stageMap.Configure(
+            grid,
+            platformLogic,
+            decorationBackLogic,
+            decorationFrontLogic,
+            platformVisual,
+            decorationBackVisual,
+            decorationFrontVisual);
         stageMap.EnforceTransformLock();
         EditorUtility.SetDirty(stageMap);
 
         EditorSceneManager.MarkSceneDirty(stageRoot.scene);
         Selection.activeObject = stageMap;
         SceneView.lastActiveSceneView?.FrameSelected();
-        Debug.Log("Stage Map hierarchy and default logical tiles are ready.", stageMap);
+        Debug.Log(
+            "Stage Map Logic/Visual pairs are configured and migrated.",
+            stageMap);
     }
 
     internal static StageMap FindCurrentStageMap()
@@ -68,17 +106,74 @@ internal static class StageMapSetupUtility
         return Object.FindAnyObjectByType<StageMap>();
     }
 
-    private static Tilemap EnsureTilemap(
+    private static Tilemap EnsureLogicTilemap(
+        Transform gridRoot,
+        StageMapLayer layer)
+    {
+        Transform child = EnsureChild(gridRoot, layer.ToString());
+        return EnsureComponent<Tilemap>(child.gameObject);
+    }
+
+    private static Tilemap EnsureVisualTilemap(
         Transform gridRoot,
         StageMapLayer layer,
         int sortingOrder)
     {
-        Transform child = EnsureChild(gridRoot, layer.ToString());
+        Transform child = EnsureChild(gridRoot, $"{layer}Visual");
         Tilemap tilemap = EnsureComponent<Tilemap>(child.gameObject);
-        TilemapRenderer renderer = EnsureComponent<TilemapRenderer>(child.gameObject);
+        TilemapRenderer renderer =
+            EnsureComponent<TilemapRenderer>(child.gameObject);
         renderer.sortingOrder = sortingOrder;
         renderer.mode = TilemapRenderer.Mode.Chunk;
         return tilemap;
+    }
+
+    private static void MigrateLayer(
+        Tilemap logic,
+        Tilemap visual,
+        StageMapLayer layer)
+    {
+        Undo.RegisterCompleteObjectUndo(
+            new Object[] { logic, visual },
+            "Migrate Stage Map Layer");
+
+        TileBase logicalTile = StageMapDefaultTiles.GetLogical(layer);
+        TileBase defaultVisual =
+            StageMapDefaultTiles.GetVisualDefault(layer);
+        foreach (Vector3Int cell in logic.cellBounds.allPositionsWithin)
+        {
+            TileBase existing = logic.GetTile(cell);
+            if (existing == null)
+            {
+                continue;
+            }
+
+            if (!visual.HasTile(cell))
+            {
+                visual.SetTile(
+                    cell,
+                    StageMapDefaultTiles.IsLogicalTile(existing)
+                        ? defaultVisual
+                        : existing);
+            }
+
+            logic.SetTile(cell, logicalTile);
+        }
+
+        foreach (Vector3Int cell in visual.cellBounds.allPositionsWithin)
+        {
+            if (!logic.HasTile(cell))
+            {
+                visual.SetTile(cell, null);
+            }
+        }
+
+        logic.CompressBounds();
+        visual.CompressBounds();
+        logic.RefreshAllTiles();
+        visual.RefreshAllTiles();
+        EditorUtility.SetDirty(logic);
+        EditorUtility.SetDirty(visual);
     }
 
     private static void ConfigurePlatformPhysics(GameObject target)
@@ -103,6 +198,11 @@ internal static class StageMapSetupUtility
         RemoveComponent<TilemapCollider2D>(target);
         RemoveComponent<CompositeCollider2D>(target);
         RemoveComponent<Rigidbody2D>(target);
+    }
+
+    private static void RemoveAllPhysics(GameObject target)
+    {
+        RemoveDecorationPhysics(target);
     }
 
     private static Transform EnsureChild(Transform parent, string childName)

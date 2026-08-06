@@ -16,6 +16,12 @@ internal static class StageMapDefaultTiles
         CommonFolder + "/DecorationBackLogicalTile.asset";
     internal const string DecorationFrontPath =
         CommonFolder + "/DecorationFrontLogicalTile.asset";
+    internal const string PlatformVisualPath =
+        CommonFolder + "/PlatformDefaultVisualTile.asset";
+    internal const string DecorationBackVisualPath =
+        CommonFolder + "/DecorationBackDefaultVisualTile.asset";
+    internal const string DecorationFrontVisualPath =
+        CommonFolder + "/DecorationFrontDefaultVisualTile.asset";
 
     internal static void EnsureAssets()
     {
@@ -42,6 +48,24 @@ internal static class StageMapDefaultTiles
             sprite,
             GetColor(StageMapLayer.DecorationFront),
             Tile.ColliderType.None);
+        EnsureTile(
+            PlatformVisualPath,
+            "PlatformDefaultVisualTile",
+            sprite,
+            GetColor(StageMapLayer.Platform),
+            Tile.ColliderType.None);
+        EnsureTile(
+            DecorationBackVisualPath,
+            "DecorationBackDefaultVisualTile",
+            sprite,
+            GetColor(StageMapLayer.DecorationBack),
+            Tile.ColliderType.None);
+        EnsureTile(
+            DecorationFrontVisualPath,
+            "DecorationFrontDefaultVisualTile",
+            sprite,
+            GetColor(StageMapLayer.DecorationFront),
+            Tile.ColliderType.None);
 
         AssetDatabase.SaveAssets();
     }
@@ -61,6 +85,11 @@ internal static class StageMapDefaultTiles
 
     internal static Tile Get(StageMapLayer layer)
     {
+        return GetLogical(layer);
+    }
+
+    internal static Tile GetLogical(StageMapLayer layer)
+    {
         string path = layer switch
         {
             StageMapLayer.Platform => PlatformPath,
@@ -77,6 +106,33 @@ internal static class StageMapDefaultTiles
 
         EnsureAssets();
         return AssetDatabase.LoadAssetAtPath<Tile>(path);
+    }
+
+    internal static Tile GetVisualDefault(StageMapLayer layer)
+    {
+        string path = layer switch
+        {
+            StageMapLayer.Platform => PlatformVisualPath,
+            StageMapLayer.DecorationBack => DecorationBackVisualPath,
+            StageMapLayer.DecorationFront => DecorationFrontVisualPath,
+            _ => string.Empty
+        };
+
+        Tile tile = AssetDatabase.LoadAssetAtPath<Tile>(path);
+        if (tile != null)
+        {
+            return tile;
+        }
+
+        EnsureAssets();
+        return AssetDatabase.LoadAssetAtPath<Tile>(path);
+    }
+
+    internal static bool IsLogicalTile(TileBase tile)
+    {
+        return tile == GetLogical(StageMapLayer.Platform) ||
+               tile == GetLogical(StageMapLayer.DecorationBack) ||
+               tile == GetLogical(StageMapLayer.DecorationFront);
     }
 
     private static Sprite EnsureSprite()

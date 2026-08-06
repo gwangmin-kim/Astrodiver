@@ -1,12 +1,20 @@
+using System;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Tilemaps;
+using Object = UnityEngine.Object;
 
 public sealed class StageMapEditorWindow : EditorWindow
 {
+    private enum StageMapToolMode
+    {
+        Placement = 0,
+        AutoTexture = 1
+    }
+
     private enum PlacementEditMode
     {
         Draw = 0,
@@ -20,6 +28,10 @@ public sealed class StageMapEditorWindow : EditorWindow
     }
 
     private const float InactiveLayerAlphaMultiplier = 0.25f;
+    private const float TileSetPickerHeight = 220f;
+    private const float TileSetCardWidth = 104f;
+    private const float TileSetCardHeight = 116f;
+    private const float TileSetCardSpacing = 4f;
     private static readonly Color _stageBoundsColor =
         new(0.15f, 0.7f, 1f, 1f);
     private static readonly Vector3Int[] _cardinalDirections =
@@ -32,14 +44,29 @@ public sealed class StageMapEditorWindow : EditorWindow
     private static readonly StageMapLayer[] _layers =
         (StageMapLayer[])System.Enum.GetValues(typeof(StageMapLayer));
 
-    private StageMapLayer _selectedLayer = StageMapLayer.Platform;
-    private PlacementEditMode _editMode = PlacementEditMode.Draw;
+    [SerializeField] private StageMapLayer _selectedLayer =
+        StageMapLayer.Platform;
+    [SerializeField] private StageMapToolMode _toolMode =
+        StageMapToolMode.Placement;
+    [SerializeField] private PlacementEditMode _editMode =
+        PlacementEditMode.Draw;
+    [SerializeField] private StageTileSet _selectedTileSet;
+    [SerializeField] private StageTileSet[] _lastTileSetByLayer =
+        new StageTileSet[3];
+    [SerializeField] private string _tileSetSearch = string.Empty;
+    [SerializeField] private Vector2 _tileSetScroll;
+    private readonly List<StageTileSet> _tileSetCache = new();
+    private readonly List<StageTileSet> _visibleTileSets = new();
+    private bool _tileSetCacheDirty = true;
+    private bool _tileSetPreviewRepaintQueued;
+    private GUIStyle _tileSetNameStyle;
     private bool _placementMode;
     private Vector3Int _lastEditedCell = new(int.MinValue, int.MinValue, 0);
     private int _undoGroup = -1;
     private int _strokeButton = -1;
     private PlacementOperation _strokeOperation = PlacementOperation.Paint;
     private Tilemap _strokeTilemap;
+    private Tilemap _strokeVisualTilemap;
     private Tool _previousTool;
     private bool _toolCaptured;
 
@@ -62,6 +89,8 @@ public sealed class StageMapEditorWindow : EditorWindow
         SceneView.duringSceneGui += OnSceneGUI;
         EditorSceneManager.sceneSaving += OnSceneSaving;
         EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+        EditorApplication.projectChanged += MarkTileSetCacheDirty;
+        RefreshTileSetCache();
     }
 
     private void OnDisable()
@@ -71,6 +100,8 @@ public sealed class StageMapEditorWindow : EditorWindow
         SceneView.duringSceneGui -= OnSceneGUI;
         EditorSceneManager.sceneSaving -= OnSceneSaving;
         EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+        EditorApplication.projectChanged -= MarkTileSetCacheDirty;
+        EditorApplication.delayCall -= RepaintTileSetPicker;
     }
 
     private void OnGUI()
@@ -78,7 +109,7 @@ public sealed class StageMapEditorWindow : EditorWindow
         StageMap stageMap = StageMapSetupUtility.FindCurrentStageMap();
 
         EditorGUILayout.LabelField(
-            "Logical Tilemap Placement",
+            "Stage Map Editing",
             EditorStyles.boldLabel);
         EditorGUILayout.Space(4f);
 
@@ -119,13 +150,43 @@ public sealed class StageMapEditorWindow : EditorWindow
         }
 
         EditorGUI.BeginChangeCheck();
-        PlacementEditMode nextEditMode =
-            (PlacementEditMode)EditorGUILayout.EnumPopup(
-                "Editing Mode",
-                _editMode);
+        StageMapToolMode nextToolMode =
+            (StageMapToolMode)EditorGUILayout.EnumPopup(
+                "Tool Mode",
+                _toolMode);
         if (EditorGUI.EndChangeCheck())
         {
-            SetEditMode(nextEditMode);
+            SetToolMode(nextToolMode);
+        }
+
+        if (_toolMode == StageMapToolMode.Placement)
+        {
+            EditorGUI.BeginChangeCheck();
+            PlacementEditMode nextEditMode =
+                (PlacementEditMode)EditorGUILayout.EnumPopup(
+                    "Editing Mode",
+                    _editMode);
+            if (EditorGUI.EndChangeCheck())
+            {
+                SetEditMode(nextEditMode);
+            }
+        }
+        else
+        {
+            DrawAutoTextureTileSetPicker();
+
+            if (_selectedTileSet == null)
+            {
+                EditorGUILayout.HelpBox(
+                    "Select a tile set to use Auto Texture Paint.",
+                    MessageType.Warning);
+            }
+            else if (!_selectedTileSet.TryValidate(
+                         _selectedLayer,
+                         out string tileSetError))
+            {
+                EditorGUILayout.HelpBox(tileSetError, MessageType.Error);
+            }
         }
 
         EditorGUILayout.Space(6f);
@@ -138,8 +199,8 @@ public sealed class StageMapEditorWindow : EditorWindow
         {
             if (GUILayout.Button(
                     _placementMode
-                        ? "Stop Placement Mode"
-                        : "Start Placement Mode",
+                        ? "Stop Editing"
+                        : $"Start {_toolMode}",
                     GUILayout.Height(30f)))
             {
                 SetPlacementMode(!_placementMode);
@@ -155,16 +216,11 @@ public sealed class StageMapEditorWindow : EditorWindow
         }
 
         EditorGUILayout.HelpBox(
-            "D: Draw Mode  |  F: Fill Mode\n" +
-            "Draw - Left/right-click + drag: Paint/erase cells\n" +
-            "Fill - Left-click: Fill empty region  |  " +
-            "Right-click: Erase selected Tilemap region\n" +
-            "`: Next Tilemap  |  1/2/3: Select Tilemap\n" +
-            "Escape: Stop Placement\n" +
-            "Hold Alt to use normal Scene View navigation.",
+            GetModeHelpText(),
             MessageType.Info);
 
-        if (_editMode == PlacementEditMode.Fill &&
+        if (_toolMode == StageMapToolMode.Placement &&
+            _editMode == PlacementEditMode.Fill &&
             FindStageBounds(stageMap.gameObject.scene) == null)
         {
             EditorGUILayout.HelpBox(
@@ -172,8 +228,11 @@ public sealed class StageMapEditorWindow : EditorWindow
                 MessageType.Warning);
         }
 
-        Tilemap selected = stageMap.GetTilemap(_selectedLayer);
-        EditorGUILayout.LabelField("Selected Object", selected.name);
+        Tilemap selected = stageMap.GetLogicalTilemap(_selectedLayer);
+        EditorGUILayout.LabelField("Logic Tilemap", selected.name);
+        EditorGUILayout.LabelField(
+            "Visual Tilemap",
+            stageMap.GetVisualTilemap(_selectedLayer).name);
         EditorGUILayout.LabelField(
             "Occupied Cells",
             CountOccupiedCells(selected).ToString());
@@ -191,6 +250,350 @@ public sealed class StageMapEditorWindow : EditorWindow
             }
         }
         GUI.backgroundColor = clearButtonColor;
+    }
+
+    private void DrawAutoTextureTileSetPicker()
+    {
+        RefreshTileSetCache();
+
+        EditorGUILayout.LabelField(
+            $"Tile Sets — {_selectedLayer}",
+            EditorStyles.boldLabel);
+        EditorGUILayout.BeginHorizontal();
+        EditorGUI.BeginChangeCheck();
+        string nextSearch = EditorGUILayout.TextField(
+            "Search",
+            _tileSetSearch);
+        if (EditorGUI.EndChangeCheck())
+        {
+            _tileSetSearch = nextSearch;
+            _tileSetScroll = Vector2.zero;
+        }
+
+        if (GUILayout.Button("Refresh", GUILayout.Width(64f)))
+        {
+            _tileSetCacheDirty = true;
+            RefreshTileSetCache();
+        }
+        EditorGUILayout.EndHorizontal();
+
+        EditorGUI.BeginChangeCheck();
+        StageTileSet directSelection =
+            (StageTileSet)EditorGUILayout.ObjectField(
+                "Selected",
+                _selectedTileSet,
+                typeof(StageTileSet),
+                false);
+        if (EditorGUI.EndChangeCheck())
+        {
+            SelectTileSet(directSelection);
+        }
+
+        if (_selectedTileSet != null &&
+            GUILayout.Button("Ping Selected", GUILayout.Height(18f)))
+        {
+            EditorGUIUtility.PingObject(_selectedTileSet);
+            Selection.activeObject = _selectedTileSet;
+        }
+
+        CollectVisibleTileSets();
+        if (_visibleTileSets.Count == 0)
+        {
+            EditorGUILayout.HelpBox(
+                string.IsNullOrWhiteSpace(_tileSetSearch)
+                    ? $"No tile sets support {_selectedLayer}."
+                    : "No matching tile sets were found.",
+                MessageType.Info);
+            return;
+        }
+
+        _tileSetScroll = EditorGUILayout.BeginScrollView(
+            _tileSetScroll,
+            GUILayout.Height(TileSetPickerHeight));
+        int columns = Mathf.Max(
+            1,
+            Mathf.FloorToInt(
+                (position.width - 26f) /
+                (TileSetCardWidth + TileSetCardSpacing)));
+        for (int start = 0;
+             start < _visibleTileSets.Count;
+             start += columns)
+        {
+            EditorGUILayout.BeginHorizontal();
+            for (int column = 0; column < columns; column++)
+            {
+                int index = start + column;
+                if (index < _visibleTileSets.Count)
+                {
+                    DrawTileSetCard(_visibleTileSets[index]);
+                }
+                else
+                {
+                    GUILayout.Space(TileSetCardWidth);
+                }
+
+                if (column < columns - 1)
+                {
+                    GUILayout.Space(TileSetCardSpacing);
+                }
+            }
+            EditorGUILayout.EndHorizontal();
+            GUILayout.Space(TileSetCardSpacing);
+        }
+        EditorGUILayout.EndScrollView();
+
+        if (AssetPreview.IsLoadingAssetPreviews() &&
+            !_tileSetPreviewRepaintQueued)
+        {
+            _tileSetPreviewRepaintQueued = true;
+            EditorApplication.delayCall += RepaintTileSetPicker;
+        }
+    }
+
+    private void DrawTileSetCard(StageTileSet tileSet)
+    {
+        Rect cardRect = GUILayoutUtility.GetRect(
+            TileSetCardWidth,
+            TileSetCardHeight,
+            GUILayout.Width(TileSetCardWidth),
+            GUILayout.Height(TileSetCardHeight));
+        bool isValid = tileSet.TryValidate(_selectedLayer, out string error);
+        bool isSelected = tileSet == _selectedTileSet;
+        Color background = isSelected
+            ? new Color(0.16f, 0.43f, 0.78f, 0.8f)
+            : new Color(0f, 0f, 0f, EditorGUIUtility.isProSkin ? 0.24f : 0.1f);
+        if (!isValid)
+        {
+            background.a *= 0.55f;
+        }
+
+        EditorGUI.DrawRect(cardRect, background);
+        DrawTileSetCardOutline(
+            cardRect,
+            isSelected
+                ? new Color(0.45f, 0.8f, 1f, 1f)
+                : new Color(0f, 0f, 0f, 0.35f));
+
+        GUIContent tooltip = new(
+            string.Empty,
+            GetTileSetTooltip(tileSet, isValid ? null : error));
+        using (new EditorGUI.DisabledScope(!isValid))
+        {
+            if (GUI.Button(cardRect, tooltip, GUIStyle.none))
+            {
+                SelectTileSet(tileSet);
+                if (Event.current.clickCount >= 2)
+                {
+                    EditorGUIUtility.PingObject(tileSet);
+                    Selection.activeObject = tileSet;
+                }
+            }
+        }
+
+        Rect iconRect = new(
+            cardRect.x + 6f,
+            cardRect.y + 6f,
+            cardRect.width - 12f,
+            72f);
+        Texture preview = GetTileSetPreview(tileSet);
+        if (preview != null)
+        {
+            Color previousColor = GUI.color;
+            if (!isValid)
+            {
+                GUI.color = new Color(1f, 1f, 1f, 0.45f);
+            }
+            GUI.DrawTexture(iconRect, preview, ScaleMode.ScaleToFit, true);
+            GUI.color = previousColor;
+        }
+        else
+        {
+            GUI.Label(iconRect, "No Preview", EditorStyles.centeredGreyMiniLabel);
+        }
+
+        Rect nameRect = new(
+            cardRect.x + 4f,
+            cardRect.y + 82f,
+            cardRect.width - 8f,
+            cardRect.height - 86f);
+        GUI.Label(nameRect, tileSet.DisplayName, TileSetNameStyle);
+        if (!isValid)
+        {
+            GUI.Label(
+                new Rect(cardRect.xMax - 18f, cardRect.y + 2f, 16f, 16f),
+                new GUIContent("!", error),
+                EditorStyles.boldLabel);
+        }
+    }
+
+    private void RefreshTileSetCache()
+    {
+        if (!_tileSetCacheDirty)
+        {
+            return;
+        }
+
+        _tileSetCache.Clear();
+        foreach (string guid in AssetDatabase.FindAssets("t:StageTileSet"))
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            StageTileSet tileSet =
+                AssetDatabase.LoadAssetAtPath<StageTileSet>(path);
+            if (tileSet != null)
+            {
+                _tileSetCache.Add(tileSet);
+            }
+        }
+
+        _tileSetCache.Sort((left, right) =>
+        {
+            int displayNameComparison = string.Compare(
+                left.DisplayName,
+                right.DisplayName,
+                StringComparison.OrdinalIgnoreCase);
+            if (displayNameComparison != 0)
+            {
+                return displayNameComparison;
+            }
+
+            return string.Compare(
+                AssetDatabase.GetAssetPath(left),
+                AssetDatabase.GetAssetPath(right),
+                StringComparison.OrdinalIgnoreCase);
+        });
+        _tileSetCacheDirty = false;
+    }
+
+    private void CollectVisibleTileSets()
+    {
+        _visibleTileSets.Clear();
+        foreach (StageTileSet tileSet in _tileSetCache)
+        {
+            if (tileSet == null || !tileSet.SupportsLayer(_selectedLayer) ||
+                !MatchesTileSetSearch(tileSet))
+            {
+                continue;
+            }
+
+            _visibleTileSets.Add(tileSet);
+        }
+    }
+
+    private bool MatchesTileSetSearch(StageTileSet tileSet)
+    {
+        if (string.IsNullOrWhiteSpace(_tileSetSearch))
+        {
+            return true;
+        }
+
+        return tileSet.DisplayName.IndexOf(
+                   _tileSetSearch,
+                   StringComparison.OrdinalIgnoreCase) >= 0 ||
+               tileSet.name.IndexOf(
+                   _tileSetSearch,
+                   StringComparison.OrdinalIgnoreCase) >= 0;
+    }
+
+    private void SelectTileSet(StageTileSet tileSet)
+    {
+        _selectedTileSet = tileSet;
+        EnsureLayerTileSetSelectionStorage();
+        int layerIndex = (int)_selectedLayer;
+        if (tileSet == null || tileSet.SupportsLayer(_selectedLayer))
+        {
+            _lastTileSetByLayer[layerIndex] = tileSet;
+        }
+
+        Repaint();
+    }
+
+    private void RestoreTileSetSelectionForLayer()
+    {
+        if (_selectedTileSet != null &&
+            _selectedTileSet.SupportsLayer(_selectedLayer))
+        {
+            return;
+        }
+
+        EnsureLayerTileSetSelectionStorage();
+        StageTileSet remembered = _lastTileSetByLayer[(int)_selectedLayer];
+        _selectedTileSet = remembered != null &&
+                           remembered.SupportsLayer(_selectedLayer)
+            ? remembered
+            : null;
+    }
+
+    private void EnsureLayerTileSetSelectionStorage()
+    {
+        if (_lastTileSetByLayer != null &&
+            _lastTileSetByLayer.Length == _layers.Length)
+        {
+            return;
+        }
+
+        StageTileSet[] updated = new StageTileSet[_layers.Length];
+        if (_lastTileSetByLayer != null)
+        {
+            Array.Copy(
+                _lastTileSetByLayer,
+                updated,
+                Mathf.Min(_lastTileSetByLayer.Length, updated.Length));
+        }
+        _lastTileSetByLayer = updated;
+    }
+
+    private Texture GetTileSetPreview(StageTileSet tileSet)
+    {
+        if (tileSet.AutomaticTile != null &&
+            tileSet.AutomaticTile.m_DefaultSprite != null)
+        {
+            Sprite sprite = tileSet.AutomaticTile.m_DefaultSprite;
+            Texture2D preview = AssetPreview.GetAssetPreview(sprite);
+            return preview != null
+                ? preview
+                : AssetPreview.GetMiniThumbnail(sprite);
+        }
+
+        return tileSet.AutomaticTile != null
+            ? AssetPreview.GetMiniThumbnail(tileSet.AutomaticTile)
+            : AssetPreview.GetMiniThumbnail(tileSet);
+    }
+
+    private string GetTileSetTooltip(StageTileSet tileSet, string error)
+    {
+        string path = AssetDatabase.GetAssetPath(tileSet);
+        string result = $"{tileSet.DisplayName}\n{path}\nLayers: {tileSet.Layers}";
+        return string.IsNullOrEmpty(error)
+            ? result
+            : $"{result}\nWarning: {error}";
+    }
+
+    private static void DrawTileSetCardOutline(Rect rect, Color color)
+    {
+        const float thickness = 1f;
+        EditorGUI.DrawRect(new Rect(rect.x, rect.y, rect.width, thickness), color);
+        EditorGUI.DrawRect(new Rect(rect.x, rect.yMax - thickness, rect.width, thickness), color);
+        EditorGUI.DrawRect(new Rect(rect.x, rect.y, thickness, rect.height), color);
+        EditorGUI.DrawRect(new Rect(rect.xMax - thickness, rect.y, thickness, rect.height), color);
+    }
+
+    private GUIStyle TileSetNameStyle => _tileSetNameStyle ??=
+        new GUIStyle(EditorStyles.miniLabel)
+        {
+            alignment = TextAnchor.UpperCenter,
+            wordWrap = true
+        };
+
+    private void MarkTileSetCacheDirty()
+    {
+        _tileSetCacheDirty = true;
+        Repaint();
+    }
+
+    private void RepaintTileSetPicker()
+    {
+        _tileSetPreviewRepaintQueued = false;
+        Repaint();
     }
 
     private void OnBeforeSceneGUI(SceneView sceneView)
@@ -213,14 +616,16 @@ public sealed class StageMapEditorWindow : EditorWindow
             return;
         }
 
-        if (current.keyCode == KeyCode.D)
+        if (_toolMode == StageMapToolMode.Placement &&
+            current.keyCode == KeyCode.D)
         {
             SetEditMode(PlacementEditMode.Draw);
             current.Use();
             return;
         }
 
-        if (current.keyCode == KeyCode.F)
+        if (_toolMode == StageMapToolMode.Placement &&
+            current.keyCode == KeyCode.F)
         {
             SetEditMode(PlacementEditMode.Fill);
             current.Use();
@@ -270,8 +675,9 @@ public sealed class StageMapEditorWindow : EditorWindow
         stageMap.EnforceTransformLock();
         Tools.current = Tool.None;
 
-        Tilemap tilemap = stageMap.GetTilemap(_selectedLayer);
-        if (tilemap == null)
+        Tilemap logicTilemap = stageMap.GetLogicalTilemap(_selectedLayer);
+        Tilemap visualTilemap = stageMap.GetVisualTilemap(_selectedLayer);
+        if (logicTilemap == null || visualTilemap == null)
         {
             SetPlacementMode(false);
             return;
@@ -292,15 +698,28 @@ public sealed class StageMapEditorWindow : EditorWindow
                 GUIUtility.GetControlID(FocusType.Passive));
         }
 
-        if (!TryGetCell(tilemap, current.mousePosition, out Vector3Int cell))
+        if (!TryGetCell(
+                logicTilemap,
+                current.mousePosition,
+                out Vector3Int cell))
         {
             return;
         }
 
-        DrawCellPreview(tilemap, cell);
+        DrawCellPreview(logicTilemap, cell);
         sceneView.Repaint();
 
         bool supportedButton = current.button == 0 || current.button == 1;
+
+        if (_toolMode == StageMapToolMode.AutoTexture)
+        {
+            HandleAutoTextureInput(
+                stageMap,
+                cell,
+                current,
+                supportedButton);
+            return;
+        }
 
         if (_editMode == PlacementEditMode.Fill)
         {
@@ -321,13 +740,17 @@ public sealed class StageMapEditorWindow : EditorWindow
             PlacementOperation operation = current.button == 0
                 ? PlacementOperation.Paint
                 : PlacementOperation.Erase;
-            BeginStroke(tilemap, operation, current.button);
-            EditCell(tilemap, cell);
+            BeginStroke(
+                logicTilemap,
+                visualTilemap,
+                operation,
+                current.button);
+            EditCell(stageMap, cell);
             current.Use();
         }
         else if (continuesStroke && cell != _lastEditedCell)
         {
-            EditCell(tilemap, cell);
+            EditCell(stageMap, cell);
             current.Use();
         }
         else if (endsStroke)
@@ -357,6 +780,39 @@ public sealed class StageMapEditorWindow : EditorWindow
             else
             {
                 EraseConnectedRegion(stageMap, _selectedLayer, cell);
+            }
+
+            SceneView.RepaintAll();
+            Repaint();
+            current.Use();
+        }
+        else if (current.type == EventType.MouseDrag ||
+                 current.type == EventType.MouseUp)
+        {
+            current.Use();
+        }
+    }
+
+    private void HandleAutoTextureInput(
+        StageMap stageMap,
+        Vector3Int cell,
+        Event current,
+        bool supportedButton)
+    {
+        if (current.alt || !supportedButton)
+        {
+            return;
+        }
+
+        if (current.type == EventType.MouseDown)
+        {
+            if (current.button == 0)
+            {
+                ApplyAutomaticTexture(stageMap, cell);
+            }
+            else
+            {
+                ResetAutomaticTexture(stageMap, cell);
             }
 
             SceneView.RepaintAll();
@@ -411,6 +867,23 @@ public sealed class StageMapEditorWindow : EditorWindow
         Repaint();
     }
 
+    private void SetToolMode(StageMapToolMode mode)
+    {
+        if (_toolMode == mode)
+        {
+            return;
+        }
+
+        FinishStroke();
+        _toolMode = mode;
+        if (_toolMode == StageMapToolMode.AutoTexture)
+        {
+            RestoreTileSetSelectionForLayer();
+        }
+        SceneView.RepaintAll();
+        Repaint();
+    }
+
     private void OnPlayModeStateChanged(PlayModeStateChange state)
     {
         if (state == PlayModeStateChange.ExitingEditMode && _placementMode)
@@ -419,9 +892,9 @@ public sealed class StageMapEditorWindow : EditorWindow
             EditorApplication.isPlaying = false;
             EditorApplication.delayCall += ReapplyLayerVisibilityAfterSave;
             ShowNotification(new GUIContent(
-                "Stop Placement Mode before entering Play Mode."));
+                "Stop Stage Map editing before entering Play Mode."));
             SceneView.lastActiveSceneView?.ShowNotification(new GUIContent(
-                "Play Mode is locked while Placement Mode is active."));
+                "Play Mode is locked while Stage Map editing is active."));
         }
 
         Repaint();
@@ -436,6 +909,7 @@ public sealed class StageMapEditorWindow : EditorWindow
 
         FinishStroke();
         _selectedLayer = layer;
+        RestoreTileSetSelectionForLayer();
         if (_placementMode)
         {
             EnsureVisualStageMap(stageMap);
@@ -480,12 +954,14 @@ public sealed class StageMapEditorWindow : EditorWindow
     }
 
     private void BeginStroke(
-        Tilemap tilemap,
+        Tilemap logicTilemap,
+        Tilemap visualTilemap,
         PlacementOperation operation,
         int mouseButton)
     {
         FinishStroke();
-        _strokeTilemap = tilemap;
+        _strokeTilemap = logicTilemap;
+        _strokeVisualTilemap = visualTilemap;
         _strokeOperation = operation;
         _strokeButton = mouseButton;
         Undo.IncrementCurrentGroup();
@@ -503,10 +979,15 @@ public sealed class StageMapEditorWindow : EditorWindow
             _strokeTilemap != null)
         {
             Undo.RegisterCompleteObjectUndo(
-                _strokeTilemap,
+                new Object[] { _strokeTilemap, _strokeVisualTilemap },
                 "Compress Stage Map Bounds");
             _strokeTilemap.CompressBounds();
+            _strokeVisualTilemap?.CompressBounds();
             EditorUtility.SetDirty(_strokeTilemap);
+            if (_strokeVisualTilemap != null)
+            {
+                EditorUtility.SetDirty(_strokeVisualTilemap);
+            }
             EditorSceneManager.MarkSceneDirty(_strokeTilemap.gameObject.scene);
         }
 
@@ -519,28 +1000,45 @@ public sealed class StageMapEditorWindow : EditorWindow
         _strokeButton = -1;
         _strokeOperation = PlacementOperation.Paint;
         _strokeTilemap = null;
+        _strokeVisualTilemap = null;
         _lastEditedCell = new Vector3Int(int.MinValue, int.MinValue, 0);
     }
 
-    private void EditCell(Tilemap tilemap, Vector3Int cell)
+    private void EditCell(StageMap stageMap, Vector3Int cell)
     {
-        TileBase nextTile = _strokeOperation == PlacementOperation.Paint
-            ? StageMapDefaultTiles.Get(_selectedLayer)
-            : null;
-        TileBase currentTile = tilemap.GetTile(cell);
-        if (currentTile == nextTile ||
-            (_strokeOperation == PlacementOperation.Paint &&
-             currentTile != null))
+        Tilemap logic = stageMap.GetLogicalTilemap(_selectedLayer);
+        Tilemap visual = stageMap.GetVisualTilemap(_selectedLayer);
+        bool occupied = logic.HasTile(cell);
+        if ((_strokeOperation == PlacementOperation.Paint && occupied) ||
+            (_strokeOperation == PlacementOperation.Erase && !occupied))
         {
             _lastEditedCell = cell;
             return;
         }
 
-        Undo.RegisterCompleteObjectUndo(tilemap, Undo.GetCurrentGroupName());
-        tilemap.SetTile(cell, nextTile);
-        tilemap.RefreshTile(cell);
-        EditorUtility.SetDirty(tilemap);
-        EditorSceneManager.MarkSceneDirty(tilemap.gameObject.scene);
+        Undo.RegisterCompleteObjectUndo(
+            new Object[] { logic, visual },
+            Undo.GetCurrentGroupName());
+        if (_strokeOperation == PlacementOperation.Paint)
+        {
+            logic.SetTile(
+                cell,
+                StageMapDefaultTiles.GetLogical(_selectedLayer));
+            visual.SetTile(
+                cell,
+                StageMapDefaultTiles.GetVisualDefault(_selectedLayer));
+        }
+        else
+        {
+            logic.SetTile(cell, null);
+            visual.SetTile(cell, null);
+        }
+
+        logic.RefreshTile(cell);
+        RefreshVisualNeighborhood(visual, cell);
+        EditorUtility.SetDirty(logic);
+        EditorUtility.SetDirty(visual);
+        EditorSceneManager.MarkSceneDirty(logic.gameObject.scene);
         _lastEditedCell = cell;
         Repaint();
     }
@@ -557,7 +1055,7 @@ public sealed class StageMapEditorWindow : EditorWindow
         }
 
         BoundsInt editableCells = GetEditableCellBounds(
-            stageMap.GetTilemap(_selectedLayer),
+            stageMap.GetLogicalTilemap(_selectedLayer),
             stageBounds);
         if (!ContainsCell(editableCells, start) || HasAnyTile(stageMap, start))
         {
@@ -573,18 +1071,108 @@ public sealed class StageMapEditorWindow : EditorWindow
             return;
         }
 
-        Tilemap tilemap = stageMap.GetTilemap(_selectedLayer);
+        Tilemap logic = stageMap.GetLogicalTilemap(_selectedLayer);
+        Tilemap visual = stageMap.GetVisualTilemap(_selectedLayer);
         Undo.IncrementCurrentGroup();
         int undoGroup = Undo.GetCurrentGroup();
         Undo.SetCurrentGroupName("Fill Stage Map Region");
-        Undo.RegisterCompleteObjectUndo(tilemap, "Fill Stage Map Region");
-        TileBase tile = StageMapDefaultTiles.Get(_selectedLayer);
+        Undo.RegisterCompleteObjectUndo(
+            new Object[] { logic, visual },
+            "Fill Stage Map Region");
+        TileBase logicalTile =
+            StageMapDefaultTiles.GetLogical(_selectedLayer);
+        TileBase visualTile =
+            StageMapDefaultTiles.GetVisualDefault(_selectedLayer);
         foreach (Vector3Int cell in region)
         {
-            tilemap.SetTile(cell, tile);
+            logic.SetTile(cell, logicalTile);
+            visual.SetTile(cell, visualTile);
         }
 
-        FinalizeTilemapEdit(tilemap);
+        FinalizeTilemapEdit(logic);
+        FinalizeTilemapEdit(visual);
+        Undo.CollapseUndoOperations(undoGroup);
+    }
+
+    private void ApplyAutomaticTexture(StageMap stageMap, Vector3Int start)
+    {
+        if (_selectedTileSet == null)
+        {
+            ShowNotification(new GUIContent("Assign a valid StageTileSet."));
+            return;
+        }
+
+        if (!_selectedTileSet.TryValidate(
+                _selectedLayer,
+                out string validationError))
+        {
+            ShowNotification(new GUIContent(validationError));
+            return;
+        }
+
+        Tilemap logic = stageMap.GetLogicalTilemap(_selectedLayer);
+        Tilemap visual = stageMap.GetVisualTilemap(_selectedLayer);
+        if (!logic.HasTile(start))
+        {
+            return;
+        }
+
+        List<Vector3Int> region = CollectRegion(start, logic.HasTile);
+        if (region.Count == 0)
+        {
+            return;
+        }
+
+        Vector3Int[] positions = region.ToArray();
+        TileBase[] tiles = new TileBase[positions.Length];
+        for (int index = 0; index < tiles.Length; index++)
+        {
+            tiles[index] = _selectedTileSet.AutomaticTile;
+        }
+
+        Undo.IncrementCurrentGroup();
+        int undoGroup = Undo.GetCurrentGroup();
+        Undo.SetCurrentGroupName("Apply Automatic Stage Texture");
+        Undo.RegisterCompleteObjectUndo(
+            visual,
+            "Apply Automatic Stage Texture");
+        visual.SetTiles(positions, tiles);
+        FinalizeTilemapEdit(visual);
+        Undo.CollapseUndoOperations(undoGroup);
+    }
+
+    private void ResetAutomaticTexture(StageMap stageMap, Vector3Int start)
+    {
+        Tilemap logic = stageMap.GetLogicalTilemap(_selectedLayer);
+        Tilemap visual = stageMap.GetVisualTilemap(_selectedLayer);
+        if (!logic.HasTile(start))
+        {
+            return;
+        }
+
+        List<Vector3Int> region = CollectRegion(start, logic.HasTile);
+        if (region.Count == 0)
+        {
+            return;
+        }
+
+        Vector3Int[] positions = region.ToArray();
+        TileBase[] tiles = new TileBase[positions.Length];
+        TileBase defaultTile =
+            StageMapDefaultTiles.GetVisualDefault(_selectedLayer);
+        for (int index = 0; index < tiles.Length; index++)
+        {
+            tiles[index] = defaultTile;
+        }
+
+        Undo.IncrementCurrentGroup();
+        int undoGroup = Undo.GetCurrentGroup();
+        Undo.SetCurrentGroupName("Reset Automatic Stage Texture");
+        Undo.RegisterCompleteObjectUndo(
+            visual,
+            "Reset Automatic Stage Texture");
+        visual.SetTiles(positions, tiles);
+        FinalizeTilemapEdit(visual);
         Undo.CollapseUndoOperations(undoGroup);
     }
 
@@ -593,13 +1181,14 @@ public sealed class StageMapEditorWindow : EditorWindow
         StageMapLayer layer,
         Vector3Int start)
     {
-        Tilemap tilemap = stageMap.GetTilemap(layer);
-        if (tilemap == null || !tilemap.HasTile(start))
+        Tilemap logic = stageMap.GetLogicalTilemap(layer);
+        Tilemap visual = stageMap.GetVisualTilemap(layer);
+        if (logic == null || visual == null || !logic.HasTile(start))
         {
             return;
         }
 
-        List<Vector3Int> region = CollectRegion(start, tilemap.HasTile);
+        List<Vector3Int> region = CollectRegion(start, logic.HasTile);
         if (region.Count == 0)
         {
             return;
@@ -609,15 +1198,18 @@ public sealed class StageMapEditorWindow : EditorWindow
         int undoGroup = Undo.GetCurrentGroup();
         Undo.SetCurrentGroupName("Erase Connected Stage Map Region");
         Undo.RegisterCompleteObjectUndo(
-            tilemap,
+            new Object[] { logic, visual },
             "Erase Connected Stage Map Region");
         foreach (Vector3Int cell in region)
         {
-            tilemap.SetTile(cell, null);
+            logic.SetTile(cell, null);
+            visual.SetTile(cell, null);
         }
 
-        tilemap.CompressBounds();
-        FinalizeTilemapEdit(tilemap);
+        logic.CompressBounds();
+        visual.CompressBounds();
+        FinalizeTilemapEdit(logic);
+        FinalizeTilemapEdit(visual);
         Undo.CollapseUndoOperations(undoGroup);
     }
 
@@ -658,7 +1250,7 @@ public sealed class StageMapEditorWindow : EditorWindow
     {
         foreach (StageMapLayer layer in _layers)
         {
-            Tilemap tilemap = stageMap.GetTilemap(layer);
+            Tilemap tilemap = stageMap.GetLogicalTilemap(layer);
             if (tilemap != null && tilemap.HasTile(cell))
             {
                 return true;
@@ -709,18 +1301,22 @@ public sealed class StageMapEditorWindow : EditorWindow
 
         foreach (StageMapLayer layer in _layers)
         {
-            Tilemap tilemap = stageMap.GetTilemap(layer);
-            if (tilemap == null)
+            Tilemap logic = stageMap.GetLogicalTilemap(layer);
+            Tilemap visual = stageMap.GetVisualTilemap(layer);
+            if (logic == null || visual == null)
             {
                 continue;
             }
 
             Undo.RegisterCompleteObjectUndo(
-                tilemap,
+                new Object[] { logic, visual },
                 "Clear All Stage Map Tilemaps");
-            tilemap.ClearAllTiles();
-            tilemap.CompressBounds();
-            FinalizeTilemapEdit(tilemap);
+            logic.ClearAllTiles();
+            visual.ClearAllTiles();
+            logic.CompressBounds();
+            visual.CompressBounds();
+            FinalizeTilemapEdit(logic);
+            FinalizeTilemapEdit(visual);
         }
 
         Undo.CollapseUndoOperations(undoGroup);
@@ -734,6 +1330,41 @@ public sealed class StageMapEditorWindow : EditorWindow
         EditorSceneManager.MarkSceneDirty(tilemap.gameObject.scene);
     }
 
+    private static void RefreshVisualNeighborhood(
+        Tilemap visual,
+        Vector3Int center)
+    {
+        for (int y = -1; y <= 1; y++)
+        {
+            for (int x = -1; x <= 1; x++)
+            {
+                visual.RefreshTile(center + new Vector3Int(x, y, 0));
+            }
+        }
+    }
+
+    private string GetModeHelpText()
+    {
+        string common =
+            "`: Next Tilemap  |  1/2/3: Select Tilemap\n" +
+            "Escape: Stop Editing\n" +
+            "Hold Alt to use normal Scene View navigation.";
+        if (_toolMode == StageMapToolMode.AutoTexture)
+        {
+            return "Left-click: Apply the selected tile set to the " +
+                   "connected Logic region\n" +
+                   "Right-click: Reset the connected region to its " +
+                   "default visual\n" +
+                   common;
+        }
+
+        return "D: Draw Mode  |  F: Fill Mode\n" +
+               "Draw - Left/right-click + drag: Paint/erase cells\n" +
+               "Fill - Left-click: Fill empty region  |  " +
+               "Right-click: Erase selected Tilemap region\n" +
+               common;
+    }
+
     private void EnsureVisualStageMap(StageMap stageMap)
     {
         if (_visualStageMap == stageMap && _originalColorsCaptured)
@@ -743,9 +1374,9 @@ public sealed class StageMapEditorWindow : EditorWindow
 
         RestoreLayerVisibility(clearCapture: true);
         _visualStageMap = stageMap;
-        _platformOriginalColor = stageMap.Platform.color;
-        _decorationBackOriginalColor = stageMap.DecorationBack.color;
-        _decorationFrontOriginalColor = stageMap.DecorationFront.color;
+        _platformOriginalColor = stageMap.PlatformVisual.color;
+        _decorationBackOriginalColor = stageMap.DecorationBackVisual.color;
+        _decorationFrontOriginalColor = stageMap.DecorationFrontVisual.color;
         _originalColorsCaptured = true;
     }
 
@@ -756,13 +1387,13 @@ public sealed class StageMapEditorWindow : EditorWindow
             return;
         }
 
-        _visualStageMap.Platform.color = GetPlacementColor(
+        _visualStageMap.PlatformVisual.color = GetPlacementColor(
             StageMapLayer.Platform,
             _platformOriginalColor);
-        _visualStageMap.DecorationBack.color = GetPlacementColor(
+        _visualStageMap.DecorationBackVisual.color = GetPlacementColor(
             StageMapLayer.DecorationBack,
             _decorationBackOriginalColor);
-        _visualStageMap.DecorationFront.color = GetPlacementColor(
+        _visualStageMap.DecorationFrontVisual.color = GetPlacementColor(
             StageMapLayer.DecorationFront,
             _decorationFrontOriginalColor);
     }
@@ -781,18 +1412,18 @@ public sealed class StageMapEditorWindow : EditorWindow
     {
         if (_originalColorsCaptured && _visualStageMap != null)
         {
-            if (_visualStageMap.Platform != null)
+            if (_visualStageMap.PlatformVisual != null)
             {
-                _visualStageMap.Platform.color = _platformOriginalColor;
+                _visualStageMap.PlatformVisual.color = _platformOriginalColor;
             }
-            if (_visualStageMap.DecorationBack != null)
+            if (_visualStageMap.DecorationBackVisual != null)
             {
-                _visualStageMap.DecorationBack.color =
+                _visualStageMap.DecorationBackVisual.color =
                     _decorationBackOriginalColor;
             }
-            if (_visualStageMap.DecorationFront != null)
+            if (_visualStageMap.DecorationFrontVisual != null)
             {
-                _visualStageMap.DecorationFront.color =
+                _visualStageMap.DecorationFrontVisual.color =
                     _decorationFrontOriginalColor;
             }
         }
@@ -861,7 +1492,9 @@ public sealed class StageMapEditorWindow : EditorWindow
             color);
         Handles.Label(
             (bottomLeft + topRight) * 0.5f,
-            $"{_editMode}  {_selectedLayer}  {cell.x}, {cell.y}");
+            _toolMode == StageMapToolMode.AutoTexture
+                ? $"Auto Texture  {_selectedLayer}  {cell.x}, {cell.y}"
+                : $"{_editMode}  {_selectedLayer}  {cell.x}, {cell.y}");
     }
 
     private WorldBounds2D FindStageBounds(Scene scene)
