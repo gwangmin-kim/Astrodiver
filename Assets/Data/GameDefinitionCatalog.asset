@@ -18,6 +18,12 @@ MonoBehaviour:
   _creatures:
   - {fileID: 11400000, guid: 1e4bdc4200fd1a34abc134dc6d8c2ddc, type: 2}
   - {fileID: 11400000, guid: 7dc629ab09415434b8cb1b8ae4cb8dfb, type: 2}
+  - {fileID: 11400000, guid: 7c67f73047b754a159f4c26e91d7adac, type: 2}
+  - {fileID: 11400000, guid: 880d27df3d76342b5ac5577902318ae7, type: 2}
+  - {fileID: 11400000, guid: f230f61a15f2c4ccda42090a72960cdb, type: 2}
+  - {fileID: 11400000, guid: ea640806d4db64454b271caa530f2bef, type: 2}
+  - {fileID: 11400000, guid: 5f34f37b180fd4b91809f6740b387847, type: 2}
+  - {fileID: 11400000, guid: bd83bdcc849e2478fa43b3259d72762a, type: 2}
   _upgrades:
   - {fileID: 11400000, guid: 620a1060fa5f69a49b6f9774788ad509, type: 2}
   - {fileID: 11400000, guid: 5d8c6e0d57b87ba41890c743293d364b, type: 2}

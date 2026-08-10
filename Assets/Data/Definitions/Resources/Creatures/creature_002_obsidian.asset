@@ -10,9 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ab34b6d5769017744ba0210555817114, type: 3}
-  m_Name: CD_6_Methane
+  m_Name: creature_002_obsidian
   m_EditorClassIdentifier: Assembly-CSharp::CreatureDefinition
-  _id: CD_6_Methane
-  _displayName: Methane
-  _icon: {fileID: 21300000, guid: fda5de0f4ff744a969ab8932bd4664b4, type: 3}
+  _id: creature.obsidian
+  _key: obsidian
+  _sortOrder: 2
+  _displayName: Obsidian
+  _icon: {fileID: 21300000, guid: 6a77f1894f1d04a33a892ff6531821cb, type: 3}
   _maxStackCount: 20

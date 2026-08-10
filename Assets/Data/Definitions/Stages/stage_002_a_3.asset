@@ -10,12 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 54d486b5f6d4f48c6817230749450c9b, type: 3}
-  m_Name: stage_1_2
+  m_Name: stage_002_a_3
   m_EditorClassIdentifier: Assembly-CSharp::StageDefinition
-  _stageId: stage_1_2
+  _id: stage.a_3
+  _key: a_3
+  _sortOrder: 2
   _respawnIntervalSeconds: 5
   _creatures:
-    _maxCount: 8
+    _maxCount: 20
     _respawnProbability: 0
     _entries:
     - _entryId: stone_creature
@@ -23,7 +25,7 @@ MonoBehaviour:
       _spawnWeight: 1
     - _entryId: iron_creature
       _prefab: {fileID: 5419619508651959619, guid: 9563da9c3dc297545830e288e3b4b4d6, type: 3}
-      _spawnWeight: 0.2
+      _spawnWeight: 0.5
   _resourceFloatages:
     _maxCount: 15
     _respawnProbability: 0
@@ -33,4 +35,4 @@ MonoBehaviour:
       _spawnWeight: 1
     - _entryId: iron_floatage
       _prefab: {fileID: 8584834154848141216, guid: 3a5159485fc32cd4f9bbd0bada734836, type: 3}
-      _spawnWeight: 0.5
+      _spawnWeight: 1

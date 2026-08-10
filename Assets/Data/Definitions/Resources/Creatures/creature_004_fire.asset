@@ -10,9 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ab34b6d5769017744ba0210555817114, type: 3}
-  m_Name: CD_4_Fire
+  m_Name: creature_004_fire
   m_EditorClassIdentifier: Assembly-CSharp::CreatureDefinition
-  _id: CD_4_Fire
+  _id: creature.fire
+  _key: fire
+  _sortOrder: 4
   _displayName: Fire
   _icon: {fileID: 21300000, guid: 9086c87095de2488fb9b47794e9f6ee7, type: 3}
   _maxStackCount: 20

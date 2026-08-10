@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a67406fc54c933e479e6c359a20771af, type: 3}
+  m_Name: stage_sheet
+  m_EditorClassIdentifier: Assembly-CSharp-Editor::GameDataSheetDefinition
+  _categoryKey: stage
+  _definitionScript: {fileID: 11500000, guid: 54d486b5f6d4f48c6817230749450c9b, type: 3}
+  _assetFolder: {fileID: 102900000, guid: da2601608cacb4d8eaf77e4bdb6c18d2, type: 3}
+  _iconSearchFolder: {fileID: 0}
+  _iconNamePattern: '{key}'
+  _orderDigits: 3

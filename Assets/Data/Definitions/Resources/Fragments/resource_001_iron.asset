@@ -10,9 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dbdd3890f8c56ca489b72ff17909a566, type: 3}
-  m_Name: TestFragment1
+  m_Name: resource_001_iron
   m_EditorClassIdentifier: Assembly-CSharp::ResourceDefinition
-  _id: test_fragment_1
+  _id: resource.iron
+  _key: iron
+  _sortOrder: 1
   _displayName: Test Fragment 1
   _icon: {fileID: 5195070836898339248, guid: c786f4c7a7e5f7b4bb91e519340e5944, type: 3}
   _particleRowIndex: 1

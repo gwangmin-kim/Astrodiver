@@ -5,10 +5,9 @@ using UnityEngine;
 [CreateAssetMenu(
     fileName = "UpgradeNodeDefinition",
     menuName = "Astrodiver/Upgrades/Upgrade Node Definition")]
-public sealed class UpgradeNodeDefinition : ScriptableObject
+public sealed class UpgradeNodeDefinition : GameDefinition
 {
     [Header("Identity")]
-    [SerializeField] private string _id;
     [SerializeField] private string _displayName;
     [SerializeField, TextArea] private string _description;
     [SerializeField] private Sprite _icon;
@@ -28,7 +27,6 @@ public sealed class UpgradeNodeDefinition : ScriptableObject
     [Header("Effects applied once per purchased level")]
     [SerializeReference] private UpgradeEffect[] _effects = Array.Empty<UpgradeEffect>();
 
-    public string Id => _id;
     public string DisplayName => _displayName;
     public string Description => _description;
     public Sprite Icon => _icon;
@@ -64,7 +62,7 @@ public sealed class UpgradeNodeDefinition : ScriptableObject
     public bool TryValidate(out string error)
     {
         List<string> errors = new();
-        if (string.IsNullOrWhiteSpace(_id))
+        if (string.IsNullOrWhiteSpace(Id))
         {
             errors.Add($"Upgrade node '{name}' has an empty id.");
         }
@@ -104,7 +102,7 @@ public sealed class UpgradeNodeDefinition : ScriptableObject
         UpgradeResourceCost[] costIncreases,
         UpgradeEffect[] effects)
     {
-        _id = id;
+        ConfigureIdentityForEditor(id);
         _parent = parent;
         _maxLevel = maxLevel;
         _baseCosts = baseCosts ?? Array.Empty<UpgradeResourceCost>();

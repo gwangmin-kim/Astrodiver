@@ -34,14 +34,13 @@ public sealed class StagePopulationDefinition
 [CreateAssetMenu(
     fileName = "StageDefinition",
     menuName = "Astrodiver/Stage/Stage Definition")]
-public sealed class StageDefinition : ScriptableObject
+public sealed class StageDefinition : GameDefinition
 {
-    [SerializeField] private string _stageId;
     [SerializeField, Min(0.1f)] private float _respawnIntervalSeconds = 5f;
     [SerializeField] private StagePopulationDefinition _creatures = new();
     [SerializeField] private StagePopulationDefinition _resourceFloatages = new();
 
-    public string StageId => _stageId;
+    public string StageId => Id;
     public float RespawnIntervalSeconds =>
         Mathf.Max(0.1f, _respawnIntervalSeconds);
     public StagePopulationDefinition Creatures => _creatures;
@@ -50,7 +49,7 @@ public sealed class StageDefinition : ScriptableObject
     public StageRuntimeConfig CreateRuntimeConfig()
     {
         return new StageRuntimeConfig(
-            _stageId,
+            Id,
             RespawnIntervalSeconds,
             _creatures?.CreateRuntimeCopy(),
             _resourceFloatages?.CreateRuntimeCopy());
@@ -59,7 +58,7 @@ public sealed class StageDefinition : ScriptableObject
     public bool TryValidate(out string error)
     {
         List<string> errors = new();
-        if (string.IsNullOrWhiteSpace(_stageId))
+        if (string.IsNullOrWhiteSpace(Id))
         {
             errors.Add($"Stage definition '{name}' has an empty stage id.");
         }

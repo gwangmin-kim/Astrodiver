@@ -195,7 +195,7 @@ public static class StageSystemSceneBuilder
         }
 
         SerializedObject serialized = new(definition);
-        serialized.FindProperty("_stageId").stringValue = stageId;
+        serialized.FindProperty("_id").stringValue = stageId;
         SerializedProperty respawnInterval =
             serialized.FindProperty("_respawnIntervalSeconds");
         if (isNew || respawnInterval.floatValue < 0.1f)
