@@ -256,6 +256,15 @@ public class NetGunController : MonoBehaviour
 
     private void CancelRetracting()
     {
+        // Once folding starts, collection is committed. Clearing _retractingNet here
+        // would orphan the FoldCompleted callback and leave an active folded net
+        // outside the pool.
+        if (_retractingNet != null
+            && (_retractingNet.net.IsFolding || _retractingNet.net.IsFolded))
+        {
+            return;
+        }
+
         if (_retractingNet != null)
         {
             _movementManager.SetTargetVelocity(_retractingNet.net, Vector2.zero);
@@ -398,7 +407,17 @@ public class NetGunController : MonoBehaviour
 
     private void HandleNetFoldCompleted(NetRuntime net)
     {
-        if (net != _retractingNet) return;
+        if (net != _retractingNet)
+        {
+            // Defensive recovery for a fold that completed after its recall was
+            // interrupted by another lifecycle or input event.
+            if (net != null && net.net != null && net.net.gameObject.activeSelf)
+            {
+                ResetNetToPool(net);
+            }
+
+            return;
+        }
 
         StartFoldedNetRecall(net);
     }
