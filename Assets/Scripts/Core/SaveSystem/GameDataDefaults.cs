@@ -6,8 +6,8 @@ using UnityEngine;
 public sealed class GameDataDefaults : ScriptableObject
 {
     [SerializeField] private GameSaveData _data = new();
-    [SerializeField] private PlayerStatsSaveData _playerStats = new();
-    [SerializeField] private EquipmentSaveData _equipment = new();
+    [SerializeField] private PlayerStatsRuntimeData _playerStats = new();
+    [SerializeField] private EquipmentRuntimeData _equipment = new();
     [SerializeField] private InventoryRuntimeData _inventory = new();
 
     public GameSaveData CreateSaveData()
@@ -21,16 +21,24 @@ public sealed class GameDataDefaults : ScriptableObject
         return copy;
     }
 
-    public PlayerStatsSaveData CreatePlayerStats()
+    public GameRuntimeData CreateRuntimeData()
     {
-        _playerStats ??= new PlayerStatsSaveData();
-        return Clone(_playerStats) ?? new PlayerStatsSaveData();
+        return new GameRuntimeData(
+            CreatePlayerStats(),
+            CreateEquipment(),
+            CreateInventory());
     }
 
-    public EquipmentSaveData CreateEquipment()
+    public PlayerStatsRuntimeData CreatePlayerStats()
     {
-        _equipment ??= new EquipmentSaveData();
-        return Clone(_equipment) ?? new EquipmentSaveData();
+        _playerStats ??= new PlayerStatsRuntimeData();
+        return Clone(_playerStats) ?? new PlayerStatsRuntimeData();
+    }
+
+    public EquipmentRuntimeData CreateEquipment()
+    {
+        _equipment ??= new EquipmentRuntimeData();
+        return Clone(_equipment) ?? new EquipmentRuntimeData();
     }
 
     public InventoryRuntimeData CreateInventory()
@@ -42,8 +50,8 @@ public sealed class GameDataDefaults : ScriptableObject
     private void OnValidate()
     {
         _data ??= new GameSaveData();
-        _playerStats ??= new PlayerStatsSaveData();
-        _equipment ??= new EquipmentSaveData();
+        _playerStats ??= new PlayerStatsRuntimeData();
+        _equipment ??= new EquipmentRuntimeData();
         _inventory ??= new InventoryRuntimeData();
         _data.RepairAfterLoad();
     }
