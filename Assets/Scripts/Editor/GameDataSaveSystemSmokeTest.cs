@@ -19,6 +19,7 @@ public static class GameDataSaveSystemSmokeTest
             "CodexSaveSystemSmokeTest");
         string testPath = Path.Combine(testDirectory, "test-save.json");
         string legacyTestPath = Path.Combine(testDirectory, "legacy-test-save.json");
+        string newGameTestPath = Path.Combine(testDirectory, "new-game-save.json");
         UpgradeNodeDefinition temporaryNode = null;
 
         try
@@ -66,17 +67,21 @@ public static class GameDataSaveSystemSmokeTest
 
             GameSaveData source = defaults.CreateSaveData();
             GameSaveData independentDefaultsCopy = defaults.CreateSaveData();
-            PlayerStatsSaveData playerStats = defaults.CreatePlayerStats();
-            PlayerStatsSaveData independentPlayerStats = defaults.CreatePlayerStats();
-            EquipmentSaveData equipment = defaults.CreateEquipment();
-            EquipmentSaveData independentEquipment = defaults.CreateEquipment();
+            GameRuntimeData runtimeData = defaults.CreateRuntimeData();
+            GameRuntimeData independentRuntimeData = defaults.CreateRuntimeData();
+            PlayerStatsRuntimeData playerStats = runtimeData.PlayerStats;
+            PlayerStatsRuntimeData independentPlayerStats = independentRuntimeData.PlayerStats;
+            EquipmentRuntimeData equipment = runtimeData.Equipment;
+            EquipmentRuntimeData independentEquipment = independentRuntimeData.Equipment;
             Require(
                 !ReferenceEquals(source, independentDefaultsCopy) &&
                 !ReferenceEquals(source.inventory, independentDefaultsCopy.inventory),
                 "GameDataDefaults returned a shared mutable data object.");
             Require(
+                !ReferenceEquals(runtimeData, independentRuntimeData) &&
                 !ReferenceEquals(playerStats, independentPlayerStats) &&
-                !ReferenceEquals(equipment, independentEquipment),
+                !ReferenceEquals(equipment, independentEquipment) &&
+                !ReferenceEquals(runtimeData.Inventory, independentRuntimeData.Inventory),
                 "GameDataDefaults returned shared mutable runtime data.");
             InventoryData inventoryReference = source.inventory;
             source.inventory = new InventoryData(
@@ -93,10 +98,6 @@ public static class GameDataSaveSystemSmokeTest
                 level = 3
             });
             UpgradeEffect movementEffect = temporaryNode.Effects[0];
-            UpgradeRuntimeData runtimeData = new(
-                playerStats,
-                equipment,
-                defaults.CreateInventory());
             List<GameProgressEventId> completedEvents = new();
             UpgradeEffectContext effectContext = new(
                 runtimeData,
@@ -232,6 +233,41 @@ public static class GameDataSaveSystemSmokeTest
                 migrated.inventory.Creatures[0].DefinitionId == creatureDefinition.Id &&
                 migrated.inventory.Creatures[0].Count == 2,
                 "Legacy creature slots were not migrated to creature entries.");
+
+            GameSaveData previousRun = defaults.CreateSaveData();
+            previousRun.inventory = new InventoryData(
+                null,
+                new[] { new ResourceInventoryEntry(resourceDefinition.Id, 99) });
+            Require(
+                GameDataFileStore.TrySave(newGameTestPath, previousRun, out string previousRunError),
+                $"Previous run save failed: {previousRunError}");
+            Require(
+                GameDataFileStore.TrySave(newGameTestPath, previousRun, out previousRunError),
+                $"Previous run backup creation failed: {previousRunError}");
+
+            GameSaveData newRun = defaults.CreateSaveData();
+            newRun.inventory = new InventoryData(
+                null,
+                new[] { new ResourceInventoryEntry(resourceDefinition.Id, 7) });
+            Require(
+                GameDataFileStore.TrySaveNewGame(newGameTestPath, newRun, out string newRunError),
+                $"New game overwrite failed: {newRunError}");
+            Require(
+                GameDataFileStore.TryLoad(
+                    newGameTestPath,
+                    out GameSaveData loadedNewRun,
+                    out string loadedNewRunError),
+                $"New game primary load failed: {loadedNewRunError}");
+            Require(
+                GameDataFileStore.TryLoad(
+                    newGameTestPath + ".bak",
+                    out GameSaveData loadedNewRunBackup,
+                    out string loadedNewRunBackupError),
+                $"New game backup load failed: {loadedNewRunBackupError}");
+            Require(
+                loadedNewRun.inventory.GetResourceAmount(resourceDefinition.Id) == 7 &&
+                loadedNewRunBackup.inventory.GetResourceAmount(resourceDefinition.Id) == 7,
+                "A new game left the previous run in the primary or backup save file.");
 
             Debug.Log("SAVE_SYSTEM_SMOKE_TEST_PASSED");
         }

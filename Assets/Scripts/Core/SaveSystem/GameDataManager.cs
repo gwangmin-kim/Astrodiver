@@ -16,22 +16,29 @@ public class GameDataManager : MonoBehaviour
     private bool _isDirty;
     private bool _isSaveSuspended;
 
-    public GameSaveData Data { get; private set; }
-    public PlayerStatsSaveData PlayerStats { get; private set; }
-    public EquipmentSaveData Equipment { get; private set; }
-    public InventoryRuntimeData Inventory { get; private set; }
-    public UpgradeRuntimeData RuntimeData { get; private set; }
+    private sealed class PreparedGameData
+    {
+        public GameSaveData saveData;
+        public GameRuntimeData runtimeData;
+        public bool hasDerivedChanges;
+    }
+
+    public GameSaveData SaveData { get; private set; }
+    public GameRuntimeData RuntimeData { get; private set; }
     public GameDefinitionRegistry Definitions { get; private set; }
     public UpgradeService Upgrades { get; private set; }
+    public bool IsInitialized => SaveData != null && RuntimeData != null;
     public bool HasUnsavedChanges => _isDirty;
     public string SaveFilePath => System.IO.Path.Combine(
         Application.persistentDataPath,
         SaveFileName);
+    public bool HasSaveData => System.IO.File.Exists(SaveFilePath) ||
+        System.IO.File.Exists(SaveFilePath + ".bak");
 
     public event Action<GameSaveData> DataLoaded;
     public event Action<GameSaveData> DataSaved;
     public event Action<GameSaveData> DataChanged;
-    public event Action<UpgradeRuntimeData> RuntimeDataChanged;
+    public event Action<GameRuntimeData> RuntimeDataChanged;
 
     private void Awake()
     {
@@ -44,40 +51,83 @@ public class GameDataManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
-        if (_definitionCatalog == null)
+        if (_definitionCatalog == null || _defaults == null)
         {
-            Debug.LogError("GameDefinitionCatalog is not assigned.", this);
+            Debug.LogError("GameDefinitionCatalog and GameDataDefaults must both be assigned.", this);
             enabled = false;
             return;
         }
 
         Definitions = new GameDefinitionRegistry(_definitionCatalog);
         Upgrades = new UpgradeService(this);
-        Load();
     }
 
-    public void Load()
+    public bool TryStartNewGame(out string error)
     {
-        if (!GameDataFileStore.TryLoad(SaveFilePath, out GameSaveData loadedData, out string error))
+        if (!CanInitializeGameData(out error))
         {
-            loadedData = _defaults != null ? _defaults.CreateSaveData() : new GameSaveData();
-
-            if (!string.Equals(error, "Save file does not exist.", StringComparison.Ordinal))
-            {
-                Debug.LogWarning($"Could not load game data. Defaults will be used. {error}", this);
-            }
+            return false;
         }
 
-        loadedData.RepairAfterLoad();
-        _isDirty = false;
-        Data = loadedData;
-        if (!RebuildRuntimeData(out string rebuildError))
+        GameSaveData candidate = _defaults.CreateSaveData();
+
+        if (!TryPrepareData(candidate, out PreparedGameData prepared, out error))
         {
-            Debug.LogError($"Could not rebuild runtime stats. {rebuildError}", this);
+            return false;
         }
 
-        DataChanged?.Invoke(Data);
-        DataLoaded?.Invoke(Data);
+        if (!GameDataFileStore.TrySaveNewGame(SaveFilePath, prepared.saveData, out error))
+        {
+            return false;
+        }
+
+        CommitPreparedData(prepared, false, true);
+        error = null;
+        return true;
+    }
+
+    public bool TryLoadSavedGame(out string error)
+    {
+        if (!CanInitializeGameData(out error))
+        {
+            return false;
+        }
+
+        if (!GameDataFileStore.TryLoad(
+                SaveFilePath,
+                out GameSaveData loadedData,
+                out error))
+        {
+            return false;
+        }
+
+        if (!TryPrepareData(loadedData, out PreparedGameData prepared, out error))
+        {
+            return false;
+        }
+
+        CommitPreparedData(prepared, prepared.hasDerivedChanges, true);
+        error = null;
+        return true;
+    }
+
+    private bool CanInitializeGameData(out string error)
+    {
+        if (!enabled || _definitionCatalog == null || _defaults == null ||
+            Definitions == null || Upgrades == null)
+        {
+            error = "Game data services are not configured.";
+            return false;
+        }
+
+        if (_isSaveSuspended)
+        {
+            error = "Cannot replace game data while an exploration session is active.";
+            return false;
+        }
+
+        error = null;
+        return true;
     }
 
     public bool SaveNow()
@@ -114,19 +164,19 @@ public class GameDataManager : MonoBehaviour
 
     private bool SaveNowCore()
     {
-        if (Data == null)
+        if (SaveData == null)
         {
             return false;
         }
 
-        if (!GameDataFileStore.TrySave(SaveFilePath, Data, out string error))
+        if (!GameDataFileStore.TrySave(SaveFilePath, SaveData, out string error))
         {
             Debug.LogError($"Could not save game data. {error}", this);
             return false;
         }
 
         _isDirty = false;
-        DataSaved?.Invoke(Data);
+        DataSaved?.Invoke(SaveData);
         return true;
     }
 
@@ -137,110 +187,115 @@ public class GameDataManager : MonoBehaviour
 
     public PlayerMovementData GetOrInitializeMovement(PlayerMovementData fallback)
     {
-        EnsureRuntimeData();
-        if (!PlayerStats.movementInitialized)
+        PlayerStatsRuntimeData playerStats = RequireRuntimeData().PlayerStats;
+        if (!playerStats.movementInitialized)
         {
-            PlayerStats.movement = fallback;
-            PlayerStats.movementInitialized = true;
+            playerStats.movement = fallback;
+            playerStats.movementInitialized = true;
         }
 
-        return PlayerStats.movement;
+        return playerStats.movement;
     }
 
     public void SetMovement(PlayerMovementData value)
     {
-        EnsureRuntimeData();
-        PlayerStats.movement = value;
-        PlayerStats.movementInitialized = true;
+        PlayerStatsRuntimeData playerStats = RequireRuntimeData().PlayerStats;
+        playerStats.movement = value;
+        playerStats.movementInitialized = true;
     }
 
     public BatteryData GetOrInitializeBattery(BatteryData fallback)
     {
-        EnsureRuntimeData();
-        if (!PlayerStats.batteryInitialized)
+        PlayerStatsRuntimeData playerStats = RequireRuntimeData().PlayerStats;
+        if (!playerStats.batteryInitialized)
         {
-            PlayerStats.battery = fallback;
-            PlayerStats.batteryInitialized = true;
+            playerStats.battery = fallback;
+            playerStats.batteryInitialized = true;
         }
 
-        return PlayerStats.battery;
+        return playerStats.battery;
     }
 
     public void SetBattery(BatteryData value)
     {
-        EnsureRuntimeData();
-        PlayerStats.battery = value;
-        PlayerStats.batteryInitialized = true;
+        PlayerStatsRuntimeData playerStats = RequireRuntimeData().PlayerStats;
+        playerStats.battery = value;
+        playerStats.batteryInitialized = true;
     }
 
     public MagnetData GetOrInitializeMagnet(MagnetData fallback)
     {
-        EnsureRuntimeData();
-        if (!PlayerStats.magnetInitialized)
+        PlayerStatsRuntimeData playerStats = RequireRuntimeData().PlayerStats;
+        if (!playerStats.magnetInitialized)
         {
-            PlayerStats.magnet = fallback;
-            PlayerStats.magnetInitialized = true;
+            playerStats.magnet = fallback;
+            playerStats.magnetInitialized = true;
         }
 
-        return PlayerStats.magnet;
+        return playerStats.magnet;
     }
 
     public void SetMagnet(MagnetData value)
     {
-        EnsureRuntimeData();
-        PlayerStats.magnet = value;
-        PlayerStats.magnetInitialized = true;
+        PlayerStatsRuntimeData playerStats = RequireRuntimeData().PlayerStats;
+        playerStats.magnet = value;
+        playerStats.magnetInitialized = true;
     }
 
     public NetGunData GetOrInitializeNetGun(NetGunData fallback)
     {
-        EnsureRuntimeData();
-        if (!Equipment.netGunInitialized)
+        EquipmentRuntimeData equipment = RequireRuntimeData().Equipment;
+        if (!equipment.netGunInitialized)
         {
-            Equipment.netGun = fallback;
-            Equipment.netGunInitialized = true;
+            equipment.netGun = fallback;
+            equipment.netGunInitialized = true;
         }
 
-        return Equipment.netGun;
+        return equipment.netGun;
     }
 
     public void SetNetGun(NetGunData value)
     {
-        EnsureRuntimeData();
-        Equipment.netGun = value;
-        Equipment.netGunInitialized = true;
+        EquipmentRuntimeData equipment = RequireRuntimeData().Equipment;
+        equipment.netGun = value;
+        equipment.netGunInitialized = true;
     }
 
     public PlasmaGunData GetOrInitializePlasmaGun(PlasmaGunData fallback)
     {
-        EnsureRuntimeData();
-        if (!Equipment.plasmaGunInitialized)
+        EquipmentRuntimeData equipment = RequireRuntimeData().Equipment;
+        if (!equipment.plasmaGunInitialized)
         {
-            Equipment.plasmaGun = fallback;
-            Equipment.plasmaGunInitialized = true;
+            equipment.plasmaGun = fallback;
+            equipment.plasmaGunInitialized = true;
         }
 
-        return Equipment.plasmaGun;
+        return equipment.plasmaGun;
     }
 
     public void SetPlasmaGun(PlasmaGunData value)
     {
-        EnsureRuntimeData();
-        Equipment.plasmaGun = value;
-        Equipment.plasmaGunInitialized = true;
+        EquipmentRuntimeData equipment = RequireRuntimeData().Equipment;
+        equipment.plasmaGun = value;
+        equipment.plasmaGunInitialized = true;
     }
 
     public int GetUpgradeLevel(string upgradeId)
     {
+        return GetUpgradeLevel(SaveData, upgradeId);
+    }
+
+    private static int GetUpgradeLevel(GameSaveData data, string upgradeId)
+    {
         string normalizedId = upgradeId?.Trim();
-        if (string.IsNullOrEmpty(normalizedId))
+        if (data == null || string.IsNullOrEmpty(normalizedId))
         {
             return 0;
         }
 
-        for (int i = 0; i < Data.upgradeNodes.Count; i++)
+        for (int i = 0; i < data.upgradeNodes.Count; i++)
         {
-            UpgradeNodeSaveData entry = Data.upgradeNodes[i];
+            UpgradeNodeSaveData entry = data.upgradeNodes[i];
             if (string.Equals(entry.nodeId, normalizedId, StringComparison.Ordinal))
             {
                 return Mathf.Max(0, entry.level);
@@ -264,20 +319,20 @@ public class GameDataManager : MonoBehaviour
         }
 
         int normalizedLevel = Mathf.Max(0, level);
-        for (int i = 0; i < Data.upgradeNodes.Count; i++)
+        for (int i = 0; i < SaveData.upgradeNodes.Count; i++)
         {
-            if (!string.Equals(Data.upgradeNodes[i].nodeId, normalizedId, StringComparison.Ordinal))
+            if (!string.Equals(SaveData.upgradeNodes[i].nodeId, normalizedId, StringComparison.Ordinal))
             {
                 continue;
             }
 
             if (normalizedLevel == 0)
             {
-                Data.upgradeNodes.RemoveAt(i);
+                SaveData.upgradeNodes.RemoveAt(i);
             }
             else
             {
-                Data.upgradeNodes[i] = new UpgradeNodeSaveData
+                SaveData.upgradeNodes[i] = new UpgradeNodeSaveData
                 {
                     nodeId = normalizedId,
                     level = normalizedLevel
@@ -290,7 +345,7 @@ public class GameDataManager : MonoBehaviour
 
         if (normalizedLevel > 0)
         {
-            Data.upgradeNodes.Add(new UpgradeNodeSaveData
+            SaveData.upgradeNodes.Add(new UpgradeNodeSaveData
             {
                 nodeId = normalizedId,
                 level = normalizedLevel
@@ -312,59 +367,101 @@ public class GameDataManager : MonoBehaviour
 
     public bool CompleteEvent(GameProgressEventId eventId)
     {
-        if (Data == null ||
-            eventId == GameProgressEventId.None ||
-            !Enum.IsDefined(typeof(GameProgressEventId), eventId) ||
-            Data.completedEvents.Contains(eventId))
+        if (!TryCompleteEvent(SaveData, eventId))
         {
             return false;
         }
 
-        Data.completedEvents.Add(eventId);
         MarkDirty();
+        return true;
+    }
+
+    private static bool TryCompleteEvent(GameSaveData data, GameProgressEventId eventId)
+    {
+        if (data == null ||
+            eventId == GameProgressEventId.None ||
+            !Enum.IsDefined(typeof(GameProgressEventId), eventId) ||
+            data.completedEvents.Contains(eventId))
+        {
+            return false;
+        }
+
+        data.completedEvents.Add(eventId);
         return true;
     }
 
     public bool IsEventCompleted(GameProgressEventId eventId)
     {
-        return Data != null &&
+        return SaveData != null &&
                eventId != GameProgressEventId.None &&
-               Data.completedEvents.Contains(eventId);
+               SaveData.completedEvents.Contains(eventId);
     }
 
     private void ReplaceData(GameSaveData data)
     {
-        Data = data ?? new GameSaveData();
-        if (!RebuildRuntimeData(out string error))
+        if (!TryPrepareData(data ?? new GameSaveData(), out PreparedGameData prepared, out string error))
         {
             Debug.LogError($"Could not rebuild runtime stats. {error}", this);
+            return;
         }
 
-        DataChanged?.Invoke(Data);
+        CommitPreparedData(prepared, _isDirty, false);
     }
 
     internal bool RebuildRuntimeData(out string error)
     {
-        PlayerStatsSaveData rebuiltPlayerStats = _defaults != null
-            ? _defaults.CreatePlayerStats()
-            : new PlayerStatsSaveData();
-        EquipmentSaveData rebuiltEquipment = _defaults != null
-            ? _defaults.CreateEquipment()
-            : new EquipmentSaveData();
-        InventoryRuntimeData rebuiltInventory = _defaults != null
-            ? _defaults.CreateInventory()
-            : new InventoryRuntimeData();
-        UpgradeRuntimeData rebuiltRuntimeData =
-            new(rebuiltPlayerStats, rebuiltEquipment, rebuiltInventory);
+        if (!TryPrepareData(SaveData, out PreparedGameData prepared, out error))
+        {
+            return false;
+        }
 
-        if (Data == null)
+        RuntimeData = prepared.runtimeData;
+        _isDirty |= prepared.hasDerivedChanges;
+        RuntimeDataChanged?.Invoke(RuntimeData);
+        return true;
+    }
+
+    /// <summary>
+    /// 세이브 데이터를 불러와 런타임 데이터를 준비
+    /// </summary>
+    private bool TryPrepareData(
+        GameSaveData data,
+        out PreparedGameData prepared,
+        out string error)
+    {
+        prepared = null;
+        if (data == null)
         {
             error = "Game save data is null.";
             return false;
         }
 
+        if (_defaults == null || _definitionCatalog == null)
+        {
+            error = "Game runtime data sources are not configured.";
+            return false;
+        }
+
+        data.RepairAfterLoad();
+        if (!data.TryValidate(out error))
+        {
+            error = $"Game save data validation failed: {error}";
+            return false;
+        }
+
+        GameRuntimeData rebuiltRuntimeData = _defaults.CreateRuntimeData();
+
+        bool hasDerivedChanges = false;
+
         UpgradeEffectContext effectContext =
-            new(rebuiltRuntimeData, CompleteEvent);
+            new(
+                rebuiltRuntimeData,
+                eventId =>
+                {
+                    bool completed = TryCompleteEvent(data, eventId);
+                    hasDerivedChanges |= completed;
+                    return completed;
+                });
 
         for (int definitionIndex = 0;
              definitionIndex < _definitionCatalog.Upgrades.Count;
@@ -376,7 +473,7 @@ public class GameDataManager : MonoBehaviour
                 continue;
             }
 
-            int savedLevel = GetUpgradeLevel(node.Id);
+            int savedLevel = GetUpgradeLevel(data, node.Id);
             int appliedLevel = Mathf.Min(savedLevel, node.MaxLevel);
             if (savedLevel > node.MaxLevel)
             {
@@ -406,26 +503,46 @@ public class GameDataManager : MonoBehaviour
             }
         }
 
-        PlayerStats = rebuiltPlayerStats;
-        Equipment = rebuiltEquipment;
-        Inventory = rebuiltInventory;
-        RuntimeData = rebuiltRuntimeData;
-        RuntimeDataChanged?.Invoke(RuntimeData);
+        prepared = new PreparedGameData
+        {
+            saveData = data,
+            runtimeData = rebuiltRuntimeData,
+            hasDerivedChanges = hasDerivedChanges
+        };
         error = null;
         return true;
     }
 
-    private void EnsureRuntimeData()
+    /// <summary>
+    /// 준비된 데이터를 실제 매니저 상태에 적용
+    /// </summary>
+    private void CommitPreparedData(
+        PreparedGameData prepared,
+        bool isDirty,
+        bool notifyLoaded)
     {
-        if (RuntimeData != null)
+        SaveData = prepared.saveData;
+        RuntimeData = prepared.runtimeData;
+        _isSaveSuspended = false;
+        _isDirty = isDirty;
+
+        DataChanged?.Invoke(SaveData);
+        RuntimeDataChanged?.Invoke(RuntimeData);
+        if (notifyLoaded)
         {
-            return;
+            DataLoaded?.Invoke(SaveData);
+        }
+    }
+
+    private GameRuntimeData RequireRuntimeData()
+    {
+        if (RuntimeData == null)
+        {
+            throw new InvalidOperationException(
+                "Game data must be initialized before entering gameplay.");
         }
 
-        PlayerStats ??= new PlayerStatsSaveData();
-        Equipment ??= new EquipmentSaveData();
-        Inventory ??= new InventoryRuntimeData();
-        RuntimeData = new UpgradeRuntimeData(PlayerStats, Equipment, Inventory);
+        return RuntimeData;
     }
 
 }

@@ -40,8 +40,8 @@ public class NetGunController : MonoBehaviour
         get
         {
             GameDataManager manager = GameDataManager.Instance;
-            return manager != null && manager.Equipment != null
-                ? manager.Equipment.netGun.isUnlocked
+            return manager?.RuntimeData != null
+                ? manager.RuntimeData.Equipment.netGun.isUnlocked
                 : _data.isUnlocked;
         }
     }

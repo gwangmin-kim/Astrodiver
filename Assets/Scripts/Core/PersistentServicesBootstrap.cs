@@ -12,7 +12,7 @@ public static class PersistentServicesBootstrap
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     private static void Initialize()
     {
-        // GameDataManager must finish Awake before PlayerInventoryController initializes.
+        // GameDataManager must exist before PlayerInventoryController subscribes for data initialization.
         Ensure<GameDataManager>("GameDataManager");
         Ensure<SceneTransitionManager>("SceneTransitionManager");
         Ensure<PlayerInventoryController>("PlayerInventory");

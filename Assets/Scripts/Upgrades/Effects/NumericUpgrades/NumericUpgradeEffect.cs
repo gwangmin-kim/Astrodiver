@@ -79,9 +79,9 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
             return false;
         }
 
-        UpgradeRuntimeData data = context.RuntimeData;
-        PlayerStatsSaveData player = data.PlayerStats;
-        EquipmentSaveData equipment = data.Equipment;
+        GameRuntimeData data = context.RuntimeData;
+        PlayerStatsRuntimeData player = data.PlayerStats;
+        EquipmentRuntimeData equipment = data.Equipment;
         InventoryRuntimeData inventory = data.Inventory;
 
         switch (_target)

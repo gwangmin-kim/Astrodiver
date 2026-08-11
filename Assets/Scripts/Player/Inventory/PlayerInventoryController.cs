@@ -10,6 +10,7 @@ public sealed class PlayerInventoryController : MonoBehaviour
         new(StringComparer.Ordinal);
 
     private InventoryData _inventory;
+    private GameDataManager _gameDataManager;
     private CreatureInventorySlot[] _creatureSlots = Array.Empty<CreatureInventorySlot>();
     private InventoryData _sessionStartSnapshot;
     private bool _sessionStartWasDirty;
@@ -36,22 +37,20 @@ public sealed class PlayerInventoryController : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
-        // 인벤토리 초기화
-        GameDataManager manager = GameDataManager.Instance;
-        if (manager == null || manager.Data == null)
+        _gameDataManager = GameDataManager.Instance;
+        if (_gameDataManager == null)
         {
-            Debug.LogError("Cannot initialize inventory because GameDataManager is not ready.", this);
+            Debug.LogError("Cannot initialize inventory because GameDataManager is missing.", this);
             enabled = false;
             return;
         }
-        _inventory = manager.Data.inventory;
-        manager.DataChanged += OnGameDataChanged;
-        manager.RuntimeDataChanged += OnRuntimeDataChanged;
-        InitializeCreatureSlots(
-            manager.Inventory?.CreatureSlotCapacity ?? 1,
-            _inventory?.Creatures);
-        IsInitialized = true;
-        Changed?.Invoke();
+
+        _gameDataManager.DataChanged += OnGameDataChanged;
+        _gameDataManager.RuntimeDataChanged += OnRuntimeDataChanged;
+        if (_gameDataManager.IsInitialized)
+        {
+            InitializeFromGameData(_gameDataManager.SaveData);
+        }
     }
 
     private void OnDestroy()
@@ -61,14 +60,13 @@ public sealed class PlayerInventoryController : MonoBehaviour
             return;
         }
 
-        GameDataManager manager = GameDataManager.Instance;
-        if (manager != null)
+        if (_gameDataManager != null)
         {
-            manager.DataChanged -= OnGameDataChanged;
-            manager.RuntimeDataChanged -= OnRuntimeDataChanged;
+            _gameDataManager.DataChanged -= OnGameDataChanged;
+            _gameDataManager.RuntimeDataChanged -= OnRuntimeDataChanged;
             if (_isExploreSessionActive)
             {
-                manager.EndSaveSuspension();
+                _gameDataManager.EndSaveSuspension();
             }
         }
 
@@ -275,6 +273,12 @@ public sealed class PlayerInventoryController : MonoBehaviour
 
     public bool BeginExploreSession()
     {
+        if (!IsInitialized || _inventory == null)
+        {
+            Debug.LogError("Cannot start exploration before inventory data is initialized.", this);
+            return false;
+        }
+
         if (_isExploreSessionActive)
         {
             Debug.LogWarning("An exploration session is already active.", this);
@@ -318,7 +322,7 @@ public sealed class PlayerInventoryController : MonoBehaviour
         {
             _inventory.CopyFrom(runtimeBeforePenalty);
             InitializeCreatureSlots(
-                manager.Inventory?.CreatureSlotCapacity ?? 1,
+                manager.RuntimeData?.Inventory.CreatureSlotCapacity ?? 1,
                 _inventory.Creatures);
             manager.RestoreDirtyState(wasDirty);
             return false;
@@ -338,7 +342,7 @@ public sealed class PlayerInventoryController : MonoBehaviour
 
         _inventory.CopyFrom(_sessionStartSnapshot);
         InitializeCreatureSlots(
-            GameDataManager.Instance.Inventory?.CreatureSlotCapacity ?? 1,
+            GameDataManager.Instance.RuntimeData?.Inventory.CreatureSlotCapacity ?? 1,
             _inventory.Creatures);
         GameDataManager.Instance.RestoreDirtyState(_sessionStartWasDirty);
         ClearSessionState();
@@ -466,7 +470,7 @@ public sealed class PlayerInventoryController : MonoBehaviour
         {
             _inventory.CopyFrom(hubSnapshot);
             InitializeCreatureSlots(
-                manager.Inventory?.CreatureSlotCapacity ?? 1,
+                manager.RuntimeData?.Inventory.CreatureSlotCapacity ?? 1,
                 _inventory.Creatures);
             manager.RestoreDirtyState(wasDirty);
             return false;
@@ -493,7 +497,7 @@ public sealed class PlayerInventoryController : MonoBehaviour
 
         _inventory.CopyFrom(snapshot);
         InitializeCreatureSlots(
-            manager.Inventory?.CreatureSlotCapacity ?? 1,
+            manager.RuntimeData?.Inventory.CreatureSlotCapacity ?? 1,
             _inventory.Creatures);
         manager.RestoreDirtyState(wasDirty);
         return false;
@@ -545,15 +549,34 @@ public sealed class PlayerInventoryController : MonoBehaviour
 
     private void OnGameDataChanged(GameSaveData data)
     {
+        InitializeFromGameData(data);
+    }
+
+    private void InitializeFromGameData(GameSaveData data)
+    {
         _inventory = data?.inventory;
+        if (_inventory == null)
+        {
+            _creatureSlots = Array.Empty<CreatureInventorySlot>();
+            IsInitialized = false;
+            Changed?.Invoke();
+            return;
+        }
+
         InitializeCreatureSlots(
-            GameDataManager.Instance.Inventory?.CreatureSlotCapacity ?? 1,
-            _inventory?.Creatures);
+            _gameDataManager.RuntimeData?.Inventory.CreatureSlotCapacity ?? 1,
+            _inventory.Creatures);
+        IsInitialized = true;
         Changed?.Invoke();
     }
 
-    private void OnRuntimeDataChanged(UpgradeRuntimeData runtimeData)
+    private void OnRuntimeDataChanged(GameRuntimeData runtimeData)
     {
+        if (!IsInitialized)
+        {
+            return;
+        }
+
         int capacity = runtimeData?.Inventory?.CreatureSlotCapacity ?? 1;
         ResizeCreatureSlots(capacity);
         Changed?.Invoke();

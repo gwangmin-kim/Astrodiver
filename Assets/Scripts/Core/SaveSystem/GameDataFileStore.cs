@@ -76,6 +76,33 @@ public static class GameDataFileStore
         }
     }
 
+    public static bool TrySaveNewGame(string path, GameSaveData data, out string error)
+    {
+        if (!TrySave(path, data, out error))
+        {
+            return false;
+        }
+
+        string backupPath = GetBackupPath(path);
+        try
+        {
+            // A normal replace keeps the previous run in the backup file. A new game must
+            // not recover that old run if the new primary save later becomes unreadable.
+            File.Copy(path, backupPath, true);
+        }
+        catch (Exception copyException)
+        {
+            TryDelete(backupPath);
+
+            Debug.LogWarning(
+                $"The new game was saved, but its backup could not be synchronized. " +
+                $"The stale backup was removed when possible. {copyException}");
+        }
+
+        error = null;
+        return true;
+    }
+
     private static bool TryLoadFile(string path, out GameSaveData data, out string error)
     {
         data = null;

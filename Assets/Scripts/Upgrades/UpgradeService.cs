@@ -162,7 +162,7 @@ public sealed class UpgradeService
             return Result(UpgradePurchaseStatus.InsufficientResources, node.Id, currentLevel);
         }
 
-        GameSaveData snapshot = _gameData.Data.Clone();
+        GameSaveData snapshot = _gameData.SaveData.Clone();
         bool wasDirty = _gameData.HasUnsavedChanges;
 
         if (!inventory.TrySpendResourcesForTransaction(_costBuffer))
