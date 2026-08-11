@@ -36,6 +36,12 @@ public class SceneGate : MonoBehaviour, IInteractable
             return;
         }
 
+        if (IsHubGateLocked())
+        {
+            HandleFirstUpgradeLocked();
+            return;
+        }
+
         if (_stageSelectionUI != null)
         {
             _stageSelectionUI.Open();
@@ -62,6 +68,19 @@ public class SceneGate : MonoBehaviour, IInteractable
     private void LoadDestinationScene()
     {
         SceneTransitionManager.Instance.LoadScene(_destinationSceneName);
+    }
+
+    private bool IsHubGateLocked()
+    {
+        return gameObject.scene.name == "Hub" &&
+               (GameDataManager.Instance == null ||
+                !GameDataManager.Instance.IsEventCompleted(
+                    GameProgressEventId.RootUpgradeUnlocked));
+    }
+
+    private void HandleFirstUpgradeLocked()
+    {
+        Debug.Log("첫 번째 업그레이드 잠금을 해제하세요.", this);
     }
 
     private void Reset()
