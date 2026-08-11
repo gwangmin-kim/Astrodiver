@@ -143,7 +143,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1163914399788835301
 Transform:
   m_ObjectHideFlags: 0
@@ -175,6 +175,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::NetGunController
   _playerInventory: {fileID: 0}
   _data:
+    isUnlocked: 0
     netData:
       captureCount: 4
       spreadDuration: 0.2

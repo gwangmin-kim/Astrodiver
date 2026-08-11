@@ -13,22 +13,22 @@ MonoBehaviour:
   m_Name: GameDataDefaults
   m_EditorClassIdentifier: Assembly-CSharp::GameDataDefaults
   _data:
-    schemaVersion: 7
+    schemaVersion: 8
     inventory:
       _creatures: []
       _resourceAmounts: []
     upgradeNodes: []
     unlockedUpgradeIds: []
-    completedEventIds: []
+    completedEvents: []
   _playerStats:
     movementInitialized: 1
     movement:
-      moveSpeed: 5
+      moveSpeed: 3
       moveDampingTime: 0.3
       stopDampingTime: 0.8
     batteryInitialized: 1
     battery:
-      amount: 60
+      amount: 0
     magnetInitialized: 1
     magnet:
       radius: 3
@@ -37,6 +37,7 @@ MonoBehaviour:
   _equipment:
     netGunInitialized: 1
     netGun:
+      isUnlocked: 0
       netData:
         captureCount: 2
         spreadDuration: 0.2
