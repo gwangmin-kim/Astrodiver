@@ -22,7 +22,13 @@ MonoBehaviour:
   _maxLevel: 1
   _baseCosts: []
   _costIncreases: []
-  _effects: []
+  _effects:
+  - rid: 8656187017407234134
   references:
     version: 2
-    RefIds: []
+    RefIds:
+    - rid: 8656187017407234134
+      type: {class: UnlockUpgradeEffect, ns: , asm: Assembly-CSharp}
+      data:
+        _target: 2000
+        _isUnlocked: 1
