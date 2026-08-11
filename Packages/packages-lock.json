@@ -18,7 +18,7 @@
       "hash": "85c101f5329ec1b0c6f70cba44614166dd78f53c"
     },
     "com.kyrylokuzyk.primetween": {
-      "version": "file:../Assets/Plugins/PrimeTween/internal/com.kyrylokuzyk.primetween.tgz",
+      "version": "file:../Packages/com.kyrylokuzyk.primetween.tgz",
       "depth": 0,
       "source": "local-tarball",
       "dependencies": {}
