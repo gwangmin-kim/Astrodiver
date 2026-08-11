@@ -1,7 +1,7 @@
 using System;
 
 [Serializable]
-public sealed class PlayerStatsSaveData
+public sealed class PlayerStatsRuntimeData
 {
     public bool movementInitialized;
     public PlayerMovementData movement;

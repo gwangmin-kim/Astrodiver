@@ -1,7 +1,7 @@
 using System;
 
 [Serializable]
-public sealed class EquipmentSaveData
+public sealed class EquipmentRuntimeData
 {
     public bool netGunInitialized;
     public NetGunData netGun;

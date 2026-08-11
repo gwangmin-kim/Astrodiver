@@ -2,6 +2,10 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// 영구 저장될 게임 데이터
+/// 보유 자원, 업그레이드, 진행한 이벤트 등
+/// </summary>
 [Serializable]
 public sealed class GameSaveData
 {
