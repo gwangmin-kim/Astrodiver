@@ -66,11 +66,11 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
         return true;
     }
 
-    public override bool TryApply(UpgradeRuntimeData data, out string error)
+    public override bool TryApply(UpgradeEffectContext context, out string error)
     {
-        if (data == null)
+        if (context == null)
         {
-            error = "Upgrade runtime data is null.";
+            error = "Upgrade effect context is null.";
             return false;
         }
 
@@ -79,6 +79,7 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
             return false;
         }
 
+        UpgradeRuntimeData data = context.RuntimeData;
         PlayerStatsSaveData player = data.PlayerStats;
         EquipmentSaveData equipment = data.Equipment;
         InventoryRuntimeData inventory = data.Inventory;

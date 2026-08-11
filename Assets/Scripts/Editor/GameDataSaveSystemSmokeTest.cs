@@ -7,6 +7,7 @@ using UnityEngine;
 public static class GameDataSaveSystemSmokeTest
 {
     private const string MenuPath = "Astrodiver/Tests/Run Save System Smoke Test";
+    private const string DefaultsPath = "Assets/Data/GameDataDefaults.asset";
     private const string DefinitionCatalogPath = "Assets/Data/GameDefinitionCatalog.asset";
 
     [MenuItem(MenuPath)]
@@ -22,8 +23,9 @@ public static class GameDataSaveSystemSmokeTest
 
         try
         {
-            GameDataDefaults defaults = Resources.Load<GameDataDefaults>("GameDataDefaults");
-            Require(defaults != null, "GameDataDefaults could not be loaded from Resources.");
+            GameDataDefaults defaults =
+                AssetDatabase.LoadAssetAtPath<GameDataDefaults>(DefaultsPath);
+            Require(defaults != null, "GameDataDefaults asset could not be loaded.");
             GameDefinitionCatalog catalog =
                 AssetDatabase.LoadAssetAtPath<GameDefinitionCatalog>(DefinitionCatalogPath);
             Require(catalog != null, "GameDefinitionCatalog asset could not be loaded.");
@@ -95,24 +97,68 @@ public static class GameDataSaveSystemSmokeTest
                 playerStats,
                 equipment,
                 defaults.CreateInventory());
-            Require(movementEffect.TryApply(runtimeData, out string effectError), effectError);
+            List<GameProgressEventId> completedEvents = new();
+            UpgradeEffectContext effectContext = new(
+                runtimeData,
+                eventId =>
+                {
+                    if (completedEvents.Contains(eventId))
+                    {
+                        return false;
+                    }
+
+                    completedEvents.Add(eventId);
+                    return true;
+                });
+            float movementSpeedBeforeEffect =
+                runtimeData.PlayerStats.movement.moveSpeed;
+            Require(movementEffect.TryApply(effectContext, out string effectError), effectError);
             Require(
-                runtimeData.PlayerStats.movement.moveSpeed == 5.5f,
+                Mathf.Approximately(
+                    runtimeData.PlayerStats.movement.moveSpeed,
+                    movementSpeedBeforeEffect + 0.5f),
                 "The upgrade effect did not update runtime stats.");
             UpgradeEffect inventoryCapacityEffect = new NumericUpgradeEffect(
                 NumericUpgradeTarget.CreatureSlotCapacity,
                 NumericUpgradeOperation.Add,
                 2f);
+            int creatureSlotCapacityBeforeEffect =
+                runtimeData.Inventory.CreatureSlotCapacity;
             Require(
-                inventoryCapacityEffect.TryApply(runtimeData, out string inventoryEffectError),
+                inventoryCapacityEffect.TryApply(effectContext, out string inventoryEffectError),
                 inventoryEffectError);
             Require(
-                runtimeData.Inventory.CreatureSlotCapacity == 3,
+                runtimeData.Inventory.CreatureSlotCapacity ==
+                creatureSlotCapacityBeforeEffect + 2,
                 "The inventory capacity upgrade did not update runtime data.");
+            UpgradeEffect netGunUnlockEffect = new UnlockUpgradeEffect(
+                UnlockUpgradeTarget.NetGun);
             Require(
-                independentPlayerStats.movement.moveSpeed == 5f,
+                netGunUnlockEffect.TryApply(effectContext, out string unlockEffectError),
+                unlockEffectError);
+            Require(
+                runtimeData.Equipment.netGun.isUnlocked,
+                "The unlock upgrade effect did not unlock the net gun.");
+            UpgradeEffect progressEventEffect = new ProgressEventUpgradeEffect(
+                GameProgressEventId.RootUpgradeUnlocked);
+            Require(
+                progressEventEffect.TryApply(effectContext, out string progressEventError),
+                progressEventError);
+            Require(
+                progressEventEffect.TryApply(effectContext, out progressEventError),
+                progressEventError);
+            Require(
+                completedEvents.Count == 1 &&
+                completedEvents[0] == GameProgressEventId.RootUpgradeUnlocked,
+                "The progress event upgrade effect was not idempotent.");
+            Require(
+                !Mathf.Approximately(
+                    runtimeData.PlayerStats.movement.moveSpeed,
+                    independentPlayerStats.movement.moveSpeed),
                 "Applying an upgrade changed another defaults copy.");
-            source.completedEventIds.Add("tutorial.first_entry");
+            source.completedEvents.Add(GameProgressEventId.RootUpgradeUnlocked);
+            source.completedEvents.Add(GameProgressEventId.RootUpgradeUnlocked);
+            source.completedEvents.Add(GameProgressEventId.None);
 
             Require(
                 GameDataFileStore.TrySave(testPath, source, out string saveError),
@@ -151,7 +197,10 @@ public static class GameDataSaveSystemSmokeTest
                 loaded.upgradeNodes.Exists(entry =>
                     entry.nodeId == "battery.capacity" && entry.level == 3),
                 "Upgrade node level was not preserved.");
-            Require(loaded.completedEventIds.Contains("tutorial.first_entry"), "Event id was not preserved.");
+            Require(
+                loaded.completedEvents.Count == 1 &&
+                loaded.completedEvents.Contains(GameProgressEventId.RootUpgradeUnlocked),
+                "Progress event ids were not normalized as a unique collection.");
 
             string legacyJson = JsonUtility.ToJson(source, true)
                 .Replace(

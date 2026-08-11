@@ -5,13 +5,13 @@ using UnityEngine;
 [Serializable]
 public sealed class GameSaveData
 {
-    public const int CurrentSchemaVersion = 7;
+    public const int CurrentSchemaVersion = 8;
 
     public int schemaVersion = CurrentSchemaVersion;
     public InventoryData inventory = new();
     public List<UpgradeNodeSaveData> upgradeNodes = new();
     [HideInInspector] public List<string> unlockedUpgradeIds = new();
-    public List<string> completedEventIds = new();
+    public List<GameProgressEventId> completedEvents = new();
 
     public void RepairAfterLoad()
     {
@@ -19,12 +19,12 @@ public sealed class GameSaveData
         inventory ??= new InventoryData();
         upgradeNodes ??= new List<UpgradeNodeSaveData>();
         unlockedUpgradeIds ??= new List<string>();
-        completedEventIds ??= new List<string>();
+        completedEvents ??= new List<GameProgressEventId>();
 
         inventory.RepairAfterLoad();
         NormalizeUpgradeNodes();
         MigrateLegacyUpgradeIds();
-        NormalizeUniqueIds(completedEventIds);
+        NormalizeCompletedEvents();
     }
 
     public GameSaveData Clone()
@@ -47,7 +47,7 @@ public sealed class GameSaveData
 
         if (upgradeNodes == null ||
             unlockedUpgradeIds == null ||
-            completedEventIds == null)
+            completedEvents == null)
         {
             error = "One or more save data containers are null.";
             return false;
@@ -116,6 +116,22 @@ public sealed class GameSaveData
 
         unlockedUpgradeIds.Clear();
         upgradeNodes.Sort((left, right) => string.CompareOrdinal(left.nodeId, right.nodeId));
+    }
+
+    private void NormalizeCompletedEvents()
+    {
+        HashSet<GameProgressEventId> uniqueEvents = new();
+        for (int i = completedEvents.Count - 1; i >= 0; i--)
+        {
+            GameProgressEventId eventId = completedEvents[i];
+            if (eventId == GameProgressEventId.None ||
+                !Enum.IsDefined(typeof(GameProgressEventId), eventId) ||
+                !uniqueEvents.Add(eventId))
+            {
+                completedEvents.RemoveAt(i);
+            }
+        }
+
     }
 
     private static void NormalizeUniqueIds(List<string> ids)

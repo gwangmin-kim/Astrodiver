@@ -310,38 +310,26 @@ public class GameDataManager : MonoBehaviour
         _isDirty = wasDirty;
     }
 
-    public bool CompleteEvent(string eventId)
+    public bool CompleteEvent(GameProgressEventId eventId)
     {
-        return AddUniqueProgressId(Data.completedEventIds, eventId);
-    }
-
-    public bool IsEventCompleted(string eventId)
-    {
-        return ContainsProgressId(Data.completedEventIds, eventId);
-    }
-
-    private bool AddUniqueProgressId(
-        System.Collections.Generic.List<string> ids,
-        string id)
-    {
-        string normalizedId = id?.Trim();
-        if (string.IsNullOrEmpty(normalizedId) || ids.Contains(normalizedId))
+        if (Data == null ||
+            eventId == GameProgressEventId.None ||
+            !Enum.IsDefined(typeof(GameProgressEventId), eventId) ||
+            Data.completedEvents.Contains(eventId))
         {
             return false;
         }
 
-        ids.Add(normalizedId);
-        ids.Sort(StringComparer.Ordinal);
+        Data.completedEvents.Add(eventId);
         MarkDirty();
         return true;
     }
 
-    private static bool ContainsProgressId(
-        System.Collections.Generic.List<string> ids,
-        string id)
+    public bool IsEventCompleted(GameProgressEventId eventId)
     {
-        string normalizedId = id?.Trim();
-        return !string.IsNullOrEmpty(normalizedId) && ids.Contains(normalizedId);
+        return Data != null &&
+               eventId != GameProgressEventId.None &&
+               Data.completedEvents.Contains(eventId);
     }
 
     private void ReplaceData(GameSaveData data)
@@ -375,6 +363,9 @@ public class GameDataManager : MonoBehaviour
             return false;
         }
 
+        UpgradeEffectContext effectContext =
+            new(rebuiltRuntimeData, CompleteEvent);
+
         for (int definitionIndex = 0;
              definitionIndex < _definitionCatalog.Upgrades.Count;
              definitionIndex++)
@@ -402,7 +393,7 @@ public class GameDataManager : MonoBehaviour
                     UpgradeEffect effect = node.Effects[effectIndex];
                     string effectError = null;
                     if (effect != null &&
-                        effect.TryApply(rebuiltRuntimeData, out effectError))
+                        effect.TryApply(effectContext, out effectError))
                     {
                         continue;
                     }
