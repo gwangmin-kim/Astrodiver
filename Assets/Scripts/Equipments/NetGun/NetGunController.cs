@@ -35,6 +35,17 @@ public class NetGunController : MonoBehaviour
 
     [SerializeField] private NetGunState _netGunState = NetGunState.Idle;
 
+    public bool IsUnlocked
+    {
+        get
+        {
+            GameDataManager manager = GameDataManager.Instance;
+            return manager != null && manager.Equipment != null
+                ? manager.Equipment.netGun.isUnlocked
+                : _data.isUnlocked;
+        }
+    }
+
     public bool IsSwitchable => _netGunState == NetGunState.Idle;
 
     private void Awake()
@@ -61,6 +72,8 @@ public class NetGunController : MonoBehaviour
 
     public bool OnPressCapture()
     {
+        if (!IsUnlocked) return false;
+
         switch (_netGunState)
         {
             case NetGunState.Idle:
@@ -509,6 +522,9 @@ public class NetGunController : MonoBehaviour
 [System.Serializable]
 public struct NetGunData
 {
+    [Header("Unlock Settings")]
+    public bool isUnlocked;
+
     [Header("Net Settings")]
     public NetData netData;
 

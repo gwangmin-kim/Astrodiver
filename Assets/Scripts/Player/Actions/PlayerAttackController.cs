@@ -13,7 +13,7 @@ public class PlayerAttackController : MonoBehaviour
         NetGun,
         PlasmaGun
     }
-    private HandEquipment _currentEquipment = HandEquipment.NetGun;
+    private HandEquipment _currentEquipment = HandEquipment.PlasmaGun;
 
     private void Awake()
     {
@@ -24,9 +24,9 @@ public class PlayerAttackController : MonoBehaviour
 
     private void Start()
     {
-        _currentEquipment = HandEquipment.NetGun;
-        SetEquipmentEquipped(_netGun, true);
-        SetEquipmentEquipped(_plasmaGun, false);
+        _currentEquipment = HandEquipment.PlasmaGun;
+        SetEquipmentEquipped(_netGun, false);
+        SetEquipmentEquipped(_plasmaGun, true);
     }
 
     private void OnEnable()
@@ -54,7 +54,7 @@ public class PlayerAttackController : MonoBehaviour
         switch (equipment)
         {
             case HandEquipment.NetGun:
-                if (!_plasmaGun.IsSwitchable) return false;
+                if (!_netGun.IsUnlocked || !_plasmaGun.IsSwitchable) return false;
 
                 SetEquipmentEquipped(_netGun, true);
                 SetEquipmentEquipped(_plasmaGun, false);
@@ -74,6 +74,7 @@ public class PlayerAttackController : MonoBehaviour
 
     private void OnPressCapture()
     {
+        if (!_netGun.IsUnlocked) return;
         if (!SwitchEquipment(HandEquipment.NetGun)) return;
         _netGun.OnPressCapture();
     }
