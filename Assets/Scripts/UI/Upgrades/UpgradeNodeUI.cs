@@ -72,7 +72,7 @@ public sealed class UpgradeNodeUI : MonoBehaviour, IPointerEnterHandler, IPointe
 
         if (_definition != null)
         {
-            name = _definition.DisplayName;
+            name = _definition.Id;
         }
 
         ApplyVisualState(_visualState);
