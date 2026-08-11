@@ -28,6 +28,22 @@ public sealed class UpgradeNodeDefinitionEditor : Editor
                 new NumericUpgradeEffect();
         }
 
+        if (GUILayout.Button("Add Unlock Effect"))
+        {
+            int index = _effects.arraySize;
+            _effects.arraySize++;
+            _effects.GetArrayElementAtIndex(index).managedReferenceValue =
+                new UnlockUpgradeEffect();
+        }
+
+        if (GUILayout.Button("Add Progress Event Effect"))
+        {
+            int index = _effects.arraySize;
+            _effects.arraySize++;
+            _effects.GetArrayElementAtIndex(index).managedReferenceValue =
+                new ProgressEventUpgradeEffect();
+        }
+
         serializedObject.ApplyModifiedProperties();
 
         UpgradeNodeDefinition node = (UpgradeNodeDefinition)target;
