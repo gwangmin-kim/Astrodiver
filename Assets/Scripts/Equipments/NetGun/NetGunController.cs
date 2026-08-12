@@ -25,6 +25,7 @@ public class NetGunController : MonoBehaviour
     private float _chargingTime;
     private NetRuntime _chargingNet;
     private NetRuntime _retractingNet;
+    private int _remainingAmmo;
 
     private enum NetGunState
     {
@@ -47,15 +48,15 @@ public class NetGunController : MonoBehaviour
     }
 
     public bool IsSwitchable => _netGunState == NetGunState.Idle;
-
-    private void Awake()
-    {
-        _data = GameDataManager.Instance.GetOrInitializeNetGun(_data);
-        BuildNetPool();
-    }
+    public int RemainingAmmo => _remainingAmmo;
+    public bool HasAmmo => _remainingAmmo > 0;
 
     private void Start()
     {
+        _data = GameDataManager.Instance.GetOrInitializeNetGun(_data);
+        BuildNetPool();
+        _remainingAmmo = Mathf.Max(0, _data.ammoCapacity);
+
         _playerInventory = PlayerInventoryController.Instance;
         ResetAllNetsToIdle();
     }
@@ -147,6 +148,13 @@ public class NetGunController : MonoBehaviour
 
     private bool TryHandleIdleCapturePress()
     {
+        if (!HasAmmo)
+        {
+            NetRuntime recallableNet = FindAimedRecallableNet()
+                ?? FindClosestRecallableNet();
+            return TryStartRetracting(recallableNet);
+        }
+
         if (!HasAvailableNet())
         {
             return TryStartRetracting(FindClosestRecallableNet());
@@ -183,6 +191,7 @@ public class NetGunController : MonoBehaviour
         NetRuntime net = _chargingNet;
         _chargingNet = null;
         _netGunState = NetGunState.Idle;
+        _remainingAmmo--;
 
         net.shootTween.Stop();
 
@@ -524,6 +533,10 @@ public struct NetGunData
 {
     [Header("Unlock Settings")]
     public bool isUnlocked;
+
+    [Header("Ammo Settings")]
+    [Tooltip("Maximum number of nets that can be fired during one exploration session.")]
+    [Min(0)] public int ammoCapacity;
 
     [Header("Net Settings")]
     public NetData netData;

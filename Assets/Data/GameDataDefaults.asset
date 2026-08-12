@@ -38,8 +38,9 @@ MonoBehaviour:
     netGunInitialized: 1
     netGun:
       isUnlocked: 0
+      ammoCapacity: 10
       netData:
-        captureCount: 2
+        captureCount: 1
         spreadDuration: 0.2
         foldDuration: 0.1
         radius: 2
@@ -51,12 +52,14 @@ MonoBehaviour:
       collectSpeed: 5
     plasmaGunInitialized: 1
     plasmaGun:
-      chargeTime: 0.5
+      ammoCapacity: 20
+      chargeTime: 2
       chargedRetentionTime: 0.5
       tickDamage: 100
       tickInterval: 0.5
+      tickSpeedRate: 1
       attackRange: 5
-      chainCount: 5
+      chainCount: 0
       chainedDamageRate: 0.5
       chainDetectRange: 5
   _inventory:

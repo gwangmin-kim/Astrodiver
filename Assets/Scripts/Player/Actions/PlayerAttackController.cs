@@ -87,6 +87,7 @@ public class PlayerAttackController : MonoBehaviour
 
     private void OnPressAttack()
     {
+        if (!_plasmaGun.HasAmmo) return;
         if (!SwitchEquipment(HandEquipment.PlasmaGun)) return;
         _plasmaGun.isAttacking = true;
     }

@@ -116,6 +116,7 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
             case NumericUpgradeTarget.NetShootRange:
             case NumericUpgradeTarget.NetChargeTime:
             case NumericUpgradeTarget.NetCollectSpeed:
+            case NumericUpgradeTarget.NetAmmoCapacity:
                 {
                     NetGunData value = equipment.netGun;
                     ApplyNetGun(ref value);
@@ -125,11 +126,12 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
                 }
             case NumericUpgradeTarget.PlasmaChargeTime:
             case NumericUpgradeTarget.PlasmaDamage:
-            case NumericUpgradeTarget.PlasmaAttackInterval:
+            case NumericUpgradeTarget.PlasmaTickSpeedRate:
             case NumericUpgradeTarget.PlasmaAttackRange:
             case NumericUpgradeTarget.PlasmaChainCount:
             case NumericUpgradeTarget.PlasmaChainDamageRate:
             case NumericUpgradeTarget.PlasmaChainDetectRange:
+            case NumericUpgradeTarget.PlasmaAmmoCapacity:
                 {
                     PlasmaGunData value = equipment.plasmaGun;
                     ApplyPlasmaGun(ref value);
@@ -184,6 +186,9 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
             case NumericUpgradeTarget.NetCollectSpeed:
                 data.collectSpeed = ApplyFloat(data.collectSpeed, 0f);
                 break;
+            case NumericUpgradeTarget.NetAmmoCapacity:
+                data.ammoCapacity = ApplyInt(data.ammoCapacity, 0);
+                break;
         }
     }
 
@@ -197,8 +202,8 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
             case NumericUpgradeTarget.PlasmaDamage:
                 data.tickDamage = ApplyInt(data.tickDamage, 0);
                 break;
-            case NumericUpgradeTarget.PlasmaAttackInterval:
-                data.tickInterval = ApplyFloat(data.tickInterval, 0f);
+            case NumericUpgradeTarget.PlasmaTickSpeedRate:
+                data.tickSpeedRate = ApplyFloat(data.tickSpeedRate, 0f);
                 break;
             case NumericUpgradeTarget.PlasmaAttackRange:
                 data.attackRange = ApplyFloat(data.attackRange, 0f);
@@ -211,6 +216,9 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
                 break;
             case NumericUpgradeTarget.PlasmaChainDetectRange:
                 data.chainDetectRange = ApplyFloat(data.chainDetectRange, 0f);
+                break;
+            case NumericUpgradeTarget.PlasmaAmmoCapacity:
+                data.ammoCapacity = ApplyInt(data.ammoCapacity, 0);
                 break;
         }
     }

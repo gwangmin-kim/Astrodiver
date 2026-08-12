@@ -23,6 +23,7 @@ public class PlasmaGunController : MonoBehaviour
     private float _attackTickTimer;
     private float _chargeTimer;
     private float _chargedRetentionTimer;
+    private int _remainingAmmo;
 
     // 상태 머신
     private enum ChargeState
@@ -34,15 +35,21 @@ public class PlasmaGunController : MonoBehaviour
     public bool isAttacking; // 외부 제어 상태
     [SerializeField] private ChargeState _chargeState = ChargeState.Uncharged; // 내부 제어 상태
     public bool IsSwitchable => !isAttacking;
+    public int RemainingAmmo => _remainingAmmo;
+    public bool HasAmmo => _remainingAmmo > 0;
 
     private void Awake()
     {
-        _data = GameDataManager.Instance.GetOrInitializePlasmaGun(_data);
-
         // 대상 탐색용 필터 초기화
         _targetFilter = new ContactFilter2D();
         _targetFilter.SetLayerMask(_targetLayer);
         _targetFilter.useTriggers = false;
+    }
+
+    private void Start()
+    {
+        _data = GameDataManager.Instance.GetOrInitializePlasmaGun(_data);
+        _remainingAmmo = Mathf.Max(0, _data.ammoCapacity);
     }
 
     private void Update()
@@ -50,7 +57,7 @@ public class PlasmaGunController : MonoBehaviour
         switch (_chargeState)
         {
             case ChargeState.Uncharged:
-                if (isAttacking)
+                if (isAttacking && HasAmmo)
                 {
                     _chargeTimer = _data.chargeTime;
                     _chargeState = ChargeState.Charging;
@@ -58,7 +65,7 @@ public class PlasmaGunController : MonoBehaviour
                 break;
 
             case ChargeState.Charging:
-                if (isAttacking)
+                if (isAttacking && HasAmmo)
                 {
                     _chargeTimer -= Time.deltaTime;
                     if (_chargeTimer < 0f)
@@ -72,15 +79,22 @@ public class PlasmaGunController : MonoBehaviour
                 break;
 
             case ChargeState.Charged:
-                if (isAttacking)
+                if (isAttacking && HasAmmo)
                 {
                     _chargedRetentionTimer = _data.chargedRetentionTime;
-                    _attackTickTimer -= Time.deltaTime;
+                    _attackTickTimer -= Time.deltaTime * _data.tickSpeedRate;
 
                     if (_attackTickTimer < 0f)
                     {
                         _attackTickTimer = _data.tickInterval;
+                        _remainingAmmo--;
                         ResolveAttack();
+
+                        if (!HasAmmo)
+                        {
+                            isAttacking = false;
+                            _chargeState = ChargeState.Uncharged;
+                        }
                     }
                 }
                 else
@@ -243,6 +257,10 @@ public class PlasmaGunController : MonoBehaviour
 [System.Serializable]
 public struct PlasmaGunData
 {
+    [Header("Ammo Settings")]
+    [Tooltip("Maximum number of attack ticks available during one exploration session.")]
+    [Min(0)] public int ammoCapacity;
+
     [Header("Charge Settings")]
     [Tooltip("최초 발사 시까지 필요한 충전 시간")]
     [Min(0f)] public float chargeTime;
@@ -254,6 +272,8 @@ public struct PlasmaGunData
     [Min(0)] public int tickDamage;
     [Tooltip("공격 키 홀드 시 타격 수행 간격")]
     [Range(0.1f, 1f)] public float tickInterval;
+    [Tooltip("Attack tick timer speed multiplier (1 = base speed)")]
+    [Min(0f)] public float tickSpeedRate;
     [Tooltip("최초 목표 탐지 거리 (CircleCast 거리)")]
     [Min(0.1f)] public float attackRange;
 

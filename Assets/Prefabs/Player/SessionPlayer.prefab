@@ -112,10 +112,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlasmaGunController
   _data:
+    ammoCapacity: 20
     chargeTime: 0.5
     chargedRetentionTime: 0.5
     tickDamage: 100
     tickInterval: 0.5
+    tickSpeedRate: 1
     attackRange: 5
     chainCount: 5
     chainedDamageRate: 0.5
@@ -176,6 +178,7 @@ MonoBehaviour:
   _playerInventory: {fileID: 0}
   _data:
     isUnlocked: 0
+    ammoCapacity: 10
     netData:
       captureCount: 4
       spreadDuration: 0.2

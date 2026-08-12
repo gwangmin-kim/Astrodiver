@@ -16,15 +16,17 @@ public enum NumericUpgradeTarget
     NetShootRange = 2003,
     NetChargeTime = 2004,
     NetCollectSpeed = 2005,
+    NetAmmoCapacity = 2006,
 
     // Plasma gun: 3000-3099
     PlasmaChargeTime = 3000,
     PlasmaDamage = 3001,
-    PlasmaAttackInterval = 3002,
+    PlasmaTickSpeedRate = 3002,
     PlasmaAttackRange = 3003,
     PlasmaChainCount = 3004,
     PlasmaChainDamageRate = 3005,
     PlasmaChainDetectRange = 3006,
+    PlasmaAmmoCapacity = 3007,
 
     // Inventory: 4000-4099
     CreatureSlotCapacity = 4000,
