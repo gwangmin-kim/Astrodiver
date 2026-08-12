@@ -152,7 +152,7 @@ public class PlasmaGunController : MonoBehaviour
             if (target == null || !target.TryGetComponent<IDamagable>(out var damagable)) continue;
 
             float damageRate = Mathf.Pow(_data.chainedDamageRate, i);
-            float currentDamage = _data.tickDamage * damageRate;
+            int currentDamage = Mathf.RoundToInt(_data.tickDamage * damageRate);
 
             AttackData attackData = new()
             {
@@ -251,7 +251,7 @@ public struct PlasmaGunData
 
     [Header("Attack Settings")]
     [Tooltip("매 틱 당 입히는 피해량")]
-    [Min(0.1f)] public float tickDamage;
+    [Min(0)] public int tickDamage;
     [Tooltip("공격 키 홀드 시 타격 수행 간격")]
     [Range(0.1f, 1f)] public float tickInterval;
     [Tooltip("최초 목표 탐지 거리 (CircleCast 거리)")]

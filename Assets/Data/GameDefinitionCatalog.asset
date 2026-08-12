@@ -24,6 +24,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: ea640806d4db64454b271caa530f2bef, type: 2}
   - {fileID: 11400000, guid: 5f34f37b180fd4b91809f6740b387847, type: 2}
   - {fileID: 11400000, guid: bd83bdcc849e2478fa43b3259d72762a, type: 2}
+  _floatages:
+  - {fileID: 11400000, guid: 91c96fb7709d44ac8559ef086ef06e74, type: 2}
+  - {fileID: 11400000, guid: 0e3e1d9b650248e59cd4f0354b003ec8, type: 2}
   _upgrades:
   - {fileID: 11400000, guid: 113959368ffda2f48bc3ded1f6a8c16e, type: 2}
   - {fileID: 11400000, guid: faefd56f90334c5428d05ad1175e318e, type: 2}
+  - {fileID: 11400000, guid: de02d7f8d6df8c24198505f9653b568f, type: 2}

@@ -170,9 +170,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: afb8676405ceb3644a8ebc5c84f3dd52, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FloatageController
-  _hp: 5
-  _dropData:
-    resource: {fileID: 11400000, guid: f7bf18dc02ff9454ca10d23514f6374d, type: 2}
-    radius: 1.4
-    count: 300
-    lifetime: 30
+  _definition: {fileID: 11400000, guid: 0e3e1d9b650248e59cd4f0354b003ec8, type: 2}

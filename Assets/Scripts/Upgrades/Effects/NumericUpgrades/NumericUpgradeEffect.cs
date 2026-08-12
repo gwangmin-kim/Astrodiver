@@ -193,7 +193,7 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
                 data.chargeTime = ApplyFloat(data.chargeTime, 0f);
                 break;
             case NumericUpgradeTarget.PlasmaDamage:
-                data.tickDamage = ApplyFloat(data.tickDamage, 0f);
+                data.tickDamage = ApplyInt(data.tickDamage, 0);
                 break;
             case NumericUpgradeTarget.PlasmaAttackInterval:
                 data.tickInterval = ApplyFloat(data.tickInterval, 0f);

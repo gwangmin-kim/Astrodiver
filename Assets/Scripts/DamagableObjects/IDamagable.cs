@@ -19,6 +19,6 @@ public enum DamageSource
 /// </summary>
 public struct AttackData
 {
-    public float damage; // 피해량
+    public int damage; // 피해량
     public DamageSource source; // 공격 주체
 }

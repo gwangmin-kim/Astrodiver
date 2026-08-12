@@ -9,10 +9,13 @@ public sealed class GameDefinitionCatalog : ScriptableObject
 {
     [SerializeField] private ResourceDefinition[] _resources = Array.Empty<ResourceDefinition>();
     [SerializeField] private CreatureDefinition[] _creatures = Array.Empty<CreatureDefinition>();
+    [SerializeField] private FloatageDefinition[] _floatages = Array.Empty<FloatageDefinition>();
     [SerializeField] private UpgradeNodeDefinition[] _upgrades = Array.Empty<UpgradeNodeDefinition>();
 
     public IReadOnlyList<ResourceDefinition> Resources => _resources;
     public IReadOnlyList<CreatureDefinition> Creatures => _creatures;
+    public IReadOnlyList<FloatageDefinition> Floatages =>
+        _floatages ?? Array.Empty<FloatageDefinition>();
     public IReadOnlyList<UpgradeNodeDefinition> Upgrades =>
         _upgrades ?? Array.Empty<UpgradeNodeDefinition>();
 
@@ -21,6 +24,9 @@ public sealed class GameDefinitionCatalog : ScriptableObject
         List<string> errors = new();
         ValidateDefinitions(_resources, definition => definition.Id, errors);
         ValidateDefinitions(_creatures, definition => definition.Id, errors);
+        _floatages ??= Array.Empty<FloatageDefinition>();
+        ValidateDefinitions(_floatages, definition => definition.Id, errors);
+        ValidateFloatages(errors);
         _upgrades ??= Array.Empty<UpgradeNodeDefinition>();
         ValidateDefinitions(_upgrades, definition => definition.Id, errors);
         ValidateUpgradeTree(errors);
@@ -32,10 +38,12 @@ public sealed class GameDefinitionCatalog : ScriptableObject
     public void SetDefinitionsForEditor(
         ResourceDefinition[] resources,
         CreatureDefinition[] creatures,
+        FloatageDefinition[] floatages,
         UpgradeNodeDefinition[] upgrades)
     {
         _resources = resources ?? Array.Empty<ResourceDefinition>();
         _creatures = creatures ?? Array.Empty<CreatureDefinition>();
+        _floatages = floatages ?? Array.Empty<FloatageDefinition>();
         _upgrades = upgrades ?? Array.Empty<UpgradeNodeDefinition>();
     }
 #endif
@@ -109,6 +117,32 @@ public sealed class GameDefinitionCatalog : ScriptableObject
                 }
 
                 current = current.Parent;
+            }
+        }
+    }
+
+    private void ValidateFloatages(ICollection<string> errors)
+    {
+        HashSet<ResourceDefinition> resources = new(_resources);
+        for (int i = 0; i < _floatages.Length; i++)
+        {
+            FloatageDefinition definition = _floatages[i];
+            if (definition == null)
+            {
+                continue;
+            }
+
+            if (!definition.TryValidate(out string definitionError))
+            {
+                errors.Add(definitionError);
+            }
+
+            ResourceDefinition resource = definition.DropData.resource;
+            if (resource != null && !resources.Contains(resource))
+            {
+                errors.Add(
+                    $"Floatage definition '{definition.Id}' uses resource " +
+                    $"'{resource.Id}', but that resource is not in this catalog.");
             }
         }
     }

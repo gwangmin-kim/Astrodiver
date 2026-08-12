@@ -4,16 +4,33 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]
 public class FloatageController : MonoBehaviour, IDamagable
 {
-    [Header("Durability Settings")]
-    [SerializeField] private float _hp;
+    [SerializeField] private FloatageDefinition _definition;
 
-    [Header("Drop Settings")]
-    [SerializeField] private FragmentDropData _dropData;
+    private int _hp;
+
+    public FloatageDefinition Definition => _definition;
+
+    private void Awake()
+    {
+        if (_definition == null)
+        {
+            Debug.LogError($"{nameof(FloatageController)} requires a floatage definition.", this);
+            enabled = false;
+            return;
+        }
+
+        _hp = _definition.Hp;
+    }
 
     public void ApplyDamage(AttackData data)
     {
+        if (_definition == null)
+        {
+            return;
+        }
+
         _hp -= data.damage;
-        if (_hp < 0f)
+        if (_hp <= 0)
         {
             ResolveDestroy();
         }
@@ -23,7 +40,9 @@ public class FloatageController : MonoBehaviour, IDamagable
     {
         if (FragmentParticleManager.Instance != null)
         {
-            FragmentParticleManager.Instance.DropFragment(transform.position, _dropData);
+            FragmentParticleManager.Instance.DropFragment(
+                transform.position,
+                _definition.DropData);
         }
 
         GetComponent<StageSpawnedObject>()?.NotifyRemovedFromStage();
@@ -33,24 +52,13 @@ public class FloatageController : MonoBehaviour, IDamagable
 #if UNITY_EDITOR
     private void OnDrawGizmosSelected()
     {
+        if (_definition == null)
+        {
+            return;
+        }
+
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, _dropData.radius);
+        Gizmos.DrawWireSphere(transform.position, _definition.DropData.radius);
     }
 #endif
-}
-
-[System.Serializable]
-public struct FragmentDropData
-{
-    [Tooltip("파괴 시 드롭할 자원의 종류")]
-    public ResourceDefinition resource;
-
-    [Tooltip("파티클 생성 범위 반지름")]
-    [Min(0f)] public float radius;
-
-    [Tooltip("파티클 생성 개수")]
-    public short count;
-
-    [Tooltip("파티클 유지 시간")]
-    [Min(1f)] public float lifetime;
 }

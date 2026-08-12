@@ -352,6 +352,12 @@ public sealed class GameDataWorkspaceWindow : EditorWindow
             GUILayout.Label("Icon", GUILayout.Width(75f));
             GUILayout.Label("Max Stack", GUILayout.Width(72f));
         }
+        else if (type == typeof(FloatageDefinition))
+        {
+            GUILayout.Label("HP", GUILayout.Width(55f));
+            GUILayout.Label("Drop Resource", GUILayout.Width(110f));
+            GUILayout.Label("Count", GUILayout.Width(55f));
+        }
         else if (type == typeof(UpgradeNodeDefinition))
         {
             GUILayout.Label("Icon", GUILayout.Width(75f));
@@ -376,6 +382,13 @@ public sealed class GameDataWorkspaceWindow : EditorWindow
             DrawProperty(serialized, "_icon", 75f);
             DrawProperty(serialized, "_maxStackCount", 72f);
         }
+        else if (entry is FloatageDefinition)
+        {
+            DrawProperty(serialized, "_hp", 55f);
+            SerializedProperty dropData = serialized.FindProperty("_dropData");
+            DrawProperty(dropData?.FindPropertyRelative("resource"), 110f);
+            DrawProperty(dropData?.FindPropertyRelative("count"), 55f);
+        }
         else if (entry is UpgradeNodeDefinition)
         {
             DrawProperty(serialized, "_icon", 75f);
@@ -393,7 +406,11 @@ public sealed class GameDataWorkspaceWindow : EditorWindow
         string propertyName,
         float width)
     {
-        SerializedProperty property = serialized.FindProperty(propertyName);
+        DrawProperty(serialized.FindProperty(propertyName), width);
+    }
+
+    private static void DrawProperty(SerializedProperty property, float width)
+    {
         if (property == null)
         {
             GUILayout.Label("-", GUILayout.Width(width));
@@ -1026,6 +1043,11 @@ public sealed class GameDataWorkspaceWindow : EditorWindow
                 !upgrade.TryValidate(out string upgradeError))
             {
                 messages.Add($"{label}: {upgradeError}");
+            }
+            else if (entry is FloatageDefinition floatage &&
+                     !floatage.TryValidate(out string floatageError))
+            {
+                messages.Add($"{label}: {floatageError}");
             }
             else if (entry is StageDefinition stage &&
                      !stage.TryValidate(out string stageError))

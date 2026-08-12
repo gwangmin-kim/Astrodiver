@@ -19,7 +19,7 @@ MonoBehaviour:
       _resourceAmounts: []
     upgradeNodes: []
     unlockedUpgradeIds: []
-    completedEvents: []
+    completedEvents: 
   _playerStats:
     movementInitialized: 1
     movement:
@@ -53,7 +53,7 @@ MonoBehaviour:
     plasmaGun:
       chargeTime: 0.5
       chargedRetentionTime: 0.5
-      tickDamage: 1
+      tickDamage: 100
       tickInterval: 0.5
       attackRange: 5
       chainCount: 5

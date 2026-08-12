@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5e5cf1b754e03e543b90772c7e13d2a2, type: 3}
+  m_Name: floatage_000_stone
+  m_EditorClassIdentifier: Assembly-CSharp::FloatageDefinition
+  _id: floatage.stone
+  _key: stone
+  _sortOrder: 0
+  _hp: 500
+  _dropData:
+    resource: {fileID: 11400000, guid: 1059946eedbea974699f29d697f124de, type: 2}
+    radius: 0.4
+    count: 100
+    lifetime: 30
