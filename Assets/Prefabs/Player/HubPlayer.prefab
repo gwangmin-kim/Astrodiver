@@ -137,9 +137,9 @@ MonoBehaviour:
   _rigidbody: {fileID: 7852614355243644505}
   _inputHandler: {fileID: 1733661268314778264}
   _data:
-    moveSpeed: 5
+    moveSpeed: 3
     dampingTime: 0.1
-    jumpHeight: 3
+    jumpHeight: 1.5
   _inputThreshold: 0.1
   _groundNormalThreshold: 0.7
   _coyoteTime: 0.15
