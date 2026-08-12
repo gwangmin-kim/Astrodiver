@@ -14,9 +14,6 @@ public class SessionManager : MonoBehaviour
     [SerializeField] private Transform _playerSpawnPoint;
     [SerializeField] private Transform _runtimeRoot;
 
-    [Header("Timeout Penalty")]
-    [SerializeField][Range(0f, 1f)] private float _timeoutInventoryLossRatio = 1f;
-
     [Header("Session End UI (Optional)")]
     [SerializeField] private GameObject _sessionEndPanel;
     [SerializeField] private Button _returnButton;
@@ -139,7 +136,9 @@ public class SessionManager : MonoBehaviour
             return;
         }
 
-        float lossRatio = isTimeout ? _timeoutInventoryLossRatio : 0f;
+        float lossRatio = isTimeout
+            ? GameDataManager.Instance.RuntimeData.Inventory.TimeoutInventoryLossRatio
+            : 0f;
         if (!inventory.CompleteExploreSession(lossRatio))
         {
             Debug.LogError("SessionManager: Failed to save the completed exploration session.", this);

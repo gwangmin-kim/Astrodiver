@@ -141,6 +141,7 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
                 }
             case NumericUpgradeTarget.CreatureSlotCapacity:
             case NumericUpgradeTarget.CreatureMaxStackCount:
+            case NumericUpgradeTarget.TimeoutInventoryLossRatio:
                 {
                     ApplyInventory(inventory);
                     break;
@@ -234,6 +235,10 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
             case NumericUpgradeTarget.CreatureMaxStackCount:
                 data.CreatureMaxStackCount =
                     ApplyInt(data.CreatureMaxStackCount, 1);
+                break;
+            case NumericUpgradeTarget.TimeoutInventoryLossRatio:
+                data.TimeoutInventoryLossRatio =
+                    ApplyFloat(data.TimeoutInventoryLossRatio, 0f);
                 break;
         }
     }
