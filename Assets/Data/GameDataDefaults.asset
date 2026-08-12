@@ -61,3 +61,4 @@ MonoBehaviour:
       chainDetectRange: 5
   _inventory:
     _creatureSlotCapacity: 1
+    _creatureMaxStackCount: 10

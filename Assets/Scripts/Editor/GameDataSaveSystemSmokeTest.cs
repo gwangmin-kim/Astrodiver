@@ -132,6 +132,63 @@ public static class GameDataSaveSystemSmokeTest
                 runtimeData.Inventory.CreatureSlotCapacity ==
                 creatureSlotCapacityBeforeEffect + 2,
                 "The inventory capacity upgrade did not update runtime data.");
+            Require(
+                runtimeData.Inventory.CreatureMaxStackCount == 10,
+                "The default creature max stack count is incorrect.");
+            UpgradeEffect creatureMaxStackEffect = new NumericUpgradeEffect(
+                NumericUpgradeTarget.CreatureMaxStackCount,
+                NumericUpgradeOperation.Add,
+                2f);
+            Require(
+                creatureMaxStackEffect.TryApply(
+                    effectContext,
+                    out string creatureMaxStackEffectError),
+                creatureMaxStackEffectError);
+            Require(
+                creatureMaxStackEffect.TryApply(
+                    effectContext,
+                    out creatureMaxStackEffectError),
+                creatureMaxStackEffectError);
+            Require(
+                runtimeData.Inventory.CreatureMaxStackCount == 14,
+                "The creature max stack count upgrade was not applied once per level.");
+            Require(
+                independentRuntimeData.Inventory.CreatureMaxStackCount == 10,
+                "The creature max stack count upgrade changed another defaults copy.");
+            GameRuntimeData rebuiltRuntimeData = defaults.CreateRuntimeData();
+            UpgradeEffectContext rebuiltEffectContext = new(
+                rebuiltRuntimeData,
+                _ => false);
+            Require(
+                creatureMaxStackEffect.TryApply(
+                    rebuiltEffectContext,
+                    out creatureMaxStackEffectError) &&
+                creatureMaxStackEffect.TryApply(
+                    rebuiltEffectContext,
+                    out creatureMaxStackEffectError),
+                creatureMaxStackEffectError);
+            Require(
+                rebuiltRuntimeData.Inventory.CreatureMaxStackCount ==
+                runtimeData.Inventory.CreatureMaxStackCount,
+                "Rebuilding runtime data did not reproduce the stack count upgrade levels.");
+
+            NumericUpgradeEffect decreasingStackAdd = new(
+                NumericUpgradeTarget.CreatureMaxStackCount,
+                NumericUpgradeOperation.Add,
+                -1f);
+            NumericUpgradeEffect decreasingStackMultiplier = new(
+                NumericUpgradeTarget.CreatureMaxStackCount,
+                NumericUpgradeOperation.Multiply,
+                0.5f);
+            NumericUpgradeEffect absoluteStackSetter = new(
+                NumericUpgradeTarget.CreatureMaxStackCount,
+                NumericUpgradeOperation.Set,
+                20f);
+            Require(
+                !decreasingStackAdd.TryValidate(out _) &&
+                !decreasingStackMultiplier.TryValidate(out _) &&
+                !absoluteStackSetter.TryValidate(out _),
+                "Creature max stack count effects accepted a decreasing or absolute operation.");
             UpgradeEffect netGunUnlockEffect = new UnlockUpgradeEffect(
                 UnlockUpgradeTarget.NetGun);
             Require(
@@ -168,7 +225,8 @@ public static class GameDataSaveSystemSmokeTest
             Require(
                 !savedJson.Contains("\"playerStats\"") &&
                 !savedJson.Contains("\"equipment\"") &&
-                !savedJson.Contains("creatureSlotCapacity"),
+                !savedJson.Contains("creatureSlotCapacity") &&
+                !savedJson.Contains("creatureMaxStackCount"),
                 "Derived runtime stats were written to the save file.");
             Require(
                 ReferenceEquals(source.inventory, inventoryReference),

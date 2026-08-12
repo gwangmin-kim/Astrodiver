@@ -350,7 +350,6 @@ public sealed class GameDataWorkspaceWindow : EditorWindow
         else if (type == typeof(CreatureDefinition))
         {
             GUILayout.Label("Icon", GUILayout.Width(75f));
-            GUILayout.Label("Max Stack", GUILayout.Width(72f));
         }
         else if (type == typeof(FloatageDefinition))
         {
@@ -380,7 +379,6 @@ public sealed class GameDataWorkspaceWindow : EditorWindow
         else if (entry is CreatureDefinition)
         {
             DrawProperty(serialized, "_icon", 75f);
-            DrawProperty(serialized, "_maxStackCount", 72f);
         }
         else if (entry is FloatageDefinition)
         {

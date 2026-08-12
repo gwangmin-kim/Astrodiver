@@ -17,4 +17,3 @@ MonoBehaviour:
   _sortOrder: 3
   _displayName: Crystal
   _icon: {fileID: 21300000, guid: 4782c5483fe4a4153b42b0463c929c12, type: 3}
-  _maxStackCount: 20

@@ -22,6 +22,8 @@ public sealed class PlayerInventoryController : MonoBehaviour
         _creatureSlots;
 
     public int CreatureSlotCapacity => _creatureSlots.Length;
+    public int CreatureMaxStackCount =>
+        _gameDataManager?.RuntimeData?.Inventory?.CreatureMaxStackCount ?? 10;
     public bool IsInitialized { get; private set; }
 
     public IReadOnlyList<ResourceInventoryEntry> ResourceAmounts =>
@@ -85,7 +87,10 @@ public sealed class PlayerInventoryController : MonoBehaviour
         }
 
         CreatureInventorySlot[] slots = _creatureSlots;
-        int targetIndex = FindCreatureSlot(slots, creature);
+        int targetIndex = FindCreatureSlot(
+            slots,
+            creature.Id,
+            CreatureMaxStackCount);
         if (targetIndex < 0)
         {
             Debug.Log("Inventory: Cannot Find Available Slot.", this);
@@ -369,14 +374,15 @@ public sealed class PlayerInventoryController : MonoBehaviour
 
     private static int FindCreatureSlot(
         IReadOnlyList<CreatureInventorySlot> slots,
-        CreatureDefinition creature)
+        string creatureId,
+        int maxStackCount)
     {
         // 일치하면서 자리가 남는 슬롯이 있는지 검사
         for (int i = 0; i < slots.Count; i++)
         {
             CreatureInventorySlot slot = slots[i];
-            if (slot != null && slot.Matches(creature.Id) &&
-                slot.Count < creature.MaxStackCount)
+            if (slot != null && slot.Matches(creatureId) &&
+                slot.Count < maxStackCount)
             {
                 return i;
             }
@@ -621,7 +627,7 @@ public sealed class PlayerInventoryController : MonoBehaviour
                     continue;
                 }
 
-                int stackCount = Mathf.Min(remaining, definition.MaxStackCount);
+                int stackCount = Mathf.Min(remaining, CreatureMaxStackCount);
                 slot.Set(definition.Id, stackCount);
                 remaining -= stackCount;
             }

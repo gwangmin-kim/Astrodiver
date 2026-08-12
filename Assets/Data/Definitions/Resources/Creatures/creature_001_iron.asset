@@ -17,4 +17,3 @@ MonoBehaviour:
   _sortOrder: 1
   _displayName: Iron
   _icon: {fileID: 21300000, guid: c29f4d132ac5a4ba487cb6fe7ea475d1, type: 3}
-  _maxStackCount: 20

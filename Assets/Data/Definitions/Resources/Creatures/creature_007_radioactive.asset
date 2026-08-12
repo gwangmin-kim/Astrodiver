@@ -17,4 +17,3 @@ MonoBehaviour:
   _sortOrder: 7
   _displayName: Radioactive
   _icon: {fileID: 21300000, guid: 885b44273c8c14e8ba9502316e649ebf, type: 3}
-  _maxStackCount: 20

@@ -17,4 +17,3 @@ MonoBehaviour:
   _sortOrder: 5
   _displayName: Water
   _icon: {fileID: 21300000, guid: 20425f9b7f4c44be58d77927d798f32f, type: 3}
-  _maxStackCount: 20

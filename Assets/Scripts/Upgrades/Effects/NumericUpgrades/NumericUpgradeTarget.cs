@@ -27,5 +27,6 @@ public enum NumericUpgradeTarget
     PlasmaChainDetectRange = 3006,
 
     // Inventory: 4000-4099
-    CreatureSlotCapacity = 4000
+    CreatureSlotCapacity = 4000,
+    CreatureMaxStackCount = 4001,
 }

@@ -138,9 +138,11 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
                     break;
                 }
             case NumericUpgradeTarget.CreatureSlotCapacity:
-                inventory.CreatureSlotCapacity =
-                    ApplyInt(inventory.CreatureSlotCapacity, 1);
-                break;
+            case NumericUpgradeTarget.CreatureMaxStackCount:
+                {
+                    ApplyInventory(inventory);
+                    break;
+                }
             default:
                 error = $"Unsupported numeric upgrade target '{_target}'.";
                 return false;
@@ -209,6 +211,21 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
                 break;
             case NumericUpgradeTarget.PlasmaChainDetectRange:
                 data.chainDetectRange = ApplyFloat(data.chainDetectRange, 0f);
+                break;
+        }
+    }
+
+    private void ApplyInventory(InventoryRuntimeData data)
+    {
+        switch (_target)
+        {
+            case NumericUpgradeTarget.CreatureSlotCapacity:
+                data.CreatureSlotCapacity =
+                    ApplyInt(data.CreatureSlotCapacity, 1);
+                break;
+            case NumericUpgradeTarget.CreatureMaxStackCount:
+                data.CreatureMaxStackCount =
+                    ApplyInt(data.CreatureMaxStackCount, 1);
                 break;
         }
     }
