@@ -55,7 +55,7 @@ public static class GameDataSaveSystemSmokeTest
                 new[]
                 {
                     new NumericUpgradeEffect(
-                        NumericUpgradeTarget.MovementSpeed,
+                        NumericUpgradeTarget.MovementSpeedRatio,
                         NumericUpgradeOperation.Add,
                         0.5f)
                 });
@@ -112,13 +112,56 @@ public static class GameDataSaveSystemSmokeTest
                     return true;
                 });
             float movementSpeedBeforeEffect =
-                runtimeData.PlayerStats.movement.moveSpeed;
+                runtimeData.PlayerStats.movement.baseMoveSpeed;
+            float movementSpeedRatioBeforeEffect =
+                runtimeData.PlayerStats.movement.moveSpeedRatio;
             Require(movementEffect.TryApply(effectContext, out string effectError), effectError);
             Require(
                 Mathf.Approximately(
-                    runtimeData.PlayerStats.movement.moveSpeed,
-                    movementSpeedBeforeEffect + 0.5f),
-                "The upgrade effect did not update runtime stats.");
+                    runtimeData.PlayerStats.movement.baseMoveSpeed,
+                    movementSpeedBeforeEffect) &&
+                Mathf.Approximately(
+                    runtimeData.PlayerStats.movement.moveSpeedRatio,
+                    movementSpeedRatioBeforeEffect + 0.5f) &&
+                Mathf.Approximately(
+                    runtimeData.PlayerStats.movement.MoveSpeed,
+                    movementSpeedBeforeEffect *
+                    (movementSpeedRatioBeforeEffect + 0.5f)),
+                "The ratio upgrade did not update only the ratio field.");
+
+            UpgradeEffect batteryCapacityEffect = new NumericUpgradeEffect(
+                NumericUpgradeTarget.BatteryCapacity,
+                NumericUpgradeOperation.Set,
+                20f);
+            Require(
+                batteryCapacityEffect.TryApply(effectContext, out string batteryEffectError),
+                batteryEffectError);
+            Require(
+                Mathf.Approximately(runtimeData.PlayerStats.battery.amount, 20f),
+                "Battery capacity was not applied as an absolute value.");
+
+            int plasmaDamageBeforeEffect = runtimeData.Equipment.plasmaGun.tickDamage;
+            UpgradeEffect plasmaDamageEffect = new NumericUpgradeEffect(
+                NumericUpgradeTarget.PlasmaDamage,
+                NumericUpgradeOperation.Add,
+                25f);
+            Require(
+                plasmaDamageEffect.TryApply(effectContext, out string plasmaDamageEffectError),
+                plasmaDamageEffectError);
+            Require(
+                runtimeData.Equipment.plasmaGun.tickDamage == plasmaDamageBeforeEffect + 25,
+                "Plasma damage was not applied as an absolute value.");
+
+            UpgradeEffect timeoutLossEffect = new NumericUpgradeEffect(
+                NumericUpgradeTarget.TimeoutInventoryLossRatio,
+                NumericUpgradeOperation.Set,
+                0.8f);
+            Require(
+                timeoutLossEffect.TryApply(effectContext, out string timeoutLossEffectError),
+                timeoutLossEffectError);
+            Require(
+                Mathf.Approximately(runtimeData.Inventory.TimeoutInventoryLossRatio, 0.8f),
+                "Timeout inventory loss ratio was not applied as an absolute value.");
             UpgradeEffect inventoryCapacityEffect = new NumericUpgradeEffect(
                 NumericUpgradeTarget.CreatureSlotCapacity,
                 NumericUpgradeOperation.Add,
@@ -172,23 +215,13 @@ public static class GameDataSaveSystemSmokeTest
                 runtimeData.Inventory.CreatureMaxStackCount,
                 "Rebuilding runtime data did not reproduce the stack count upgrade levels.");
 
-            NumericUpgradeEffect decreasingStackAdd = new(
-                NumericUpgradeTarget.CreatureMaxStackCount,
-                NumericUpgradeOperation.Add,
-                -1f);
             NumericUpgradeEffect decreasingStackMultiplier = new(
                 NumericUpgradeTarget.CreatureMaxStackCount,
                 NumericUpgradeOperation.Multiply,
-                0.5f);
-            NumericUpgradeEffect absoluteStackSetter = new(
-                NumericUpgradeTarget.CreatureMaxStackCount,
-                NumericUpgradeOperation.Set,
-                20f);
+                -0.5f);
             Require(
-                !decreasingStackAdd.TryValidate(out _) &&
-                !decreasingStackMultiplier.TryValidate(out _) &&
-                !absoluteStackSetter.TryValidate(out _),
-                "Creature max stack count effects accepted a decreasing or absolute operation.");
+                !decreasingStackMultiplier.TryValidate(out _),
+                "A numeric effect accepted a negative multiplier.");
             UpgradeEffect netGunUnlockEffect = new UnlockUpgradeEffect(
                 UnlockUpgradeTarget.NetGun);
             Require(
@@ -211,8 +244,8 @@ public static class GameDataSaveSystemSmokeTest
                 "The progress event upgrade effect was not idempotent.");
             Require(
                 !Mathf.Approximately(
-                    runtimeData.PlayerStats.movement.moveSpeed,
-                    independentPlayerStats.movement.moveSpeed),
+                    runtimeData.PlayerStats.movement.moveSpeedRatio,
+                    independentPlayerStats.movement.moveSpeedRatio),
                 "Applying an upgrade changed another defaults copy.");
             source.completedEvents.Add(GameProgressEventId.RootUpgradeUnlocked);
             source.completedEvents.Add(GameProgressEventId.RootUpgradeUnlocked);
@@ -350,4 +383,5 @@ public static class GameDataSaveSystemSmokeTest
             throw new InvalidOperationException(message);
         }
     }
+
 }

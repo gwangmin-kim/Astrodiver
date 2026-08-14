@@ -46,7 +46,7 @@ public class PlayerMovementController : MonoBehaviour
 
     private void Move(Vector2 moveInput, float deltaTime)
     {
-        Vector2 targetVelocity = _data.moveSpeed * moveInput;
+        Vector2 targetVelocity = _data.MoveSpeed * moveInput;
         bool isMoving = moveInput.sqrMagnitude > Mathf.Epsilon;
         float dampingTime = isMoving ? _data.moveDampingTime : _data.stopDampingTime;
 
@@ -161,7 +161,11 @@ public struct PlayerMovementData
 {
     [Header("Speed Settings")]
     [Tooltip("플레이어의 기본 이동 속도")]
-    [Min(0.1f)] public float moveSpeed;
+    [Min(0.1f)] public float baseMoveSpeed;
+    [Tooltip("기본 이동 속도에 적용되는 비율 (1 = 100%)")]
+    [Min(0f)] public float moveSpeedRatio;
+
+    public float MoveSpeed => Mathf.Max(0f, baseMoveSpeed * moveSpeedRatio);
 
     [Header("Inertia Settings")]
     [Tooltip("이동을 시작할 때 속도를 부드럽게 증가시키는 지연 시간")]

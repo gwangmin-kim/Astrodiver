@@ -20,7 +20,7 @@ public sealed class FragmentMagnetManager
         EnsureBufferCapacity(particleSystem.main.maxParticles);
         int activeCount = particleSystem.GetParticles(_particles);
 
-        float sqrMagnetRadius = _magnetData.radius * _magnetData.radius;
+        float sqrMagnetRadius = _magnetData.Radius * _magnetData.Radius;
         float sqrCollectRadius = _magnetData.collectRadius * _magnetData.collectRadius;
 
         for (int i = 0; i < activeCount; i++)
@@ -78,6 +78,10 @@ public struct MagnetData
 {
     [Tooltip("자석 효과가 적용되는 수집 범위")]
     [Min(0.1f)] public float radius;
+    [Tooltip("기본 자석 범위에 적용되는 비율 (1 = 100%)")]
+    [Min(0f)] public float radiusRatio;
+
+    public float Radius => Mathf.Max(0f, radius * radiusRatio);
 
     [Tooltip("자석에 이끌리는 속력 범위. X는 최대 거리에서의 속력, Y는 최소 거리에서의 속력. 유도 속력은 거리의 제곱에 반비례")]
     public Vector2 pullSpeedRange;

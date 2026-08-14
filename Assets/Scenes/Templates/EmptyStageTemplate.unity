@@ -1940,6 +1940,7 @@ MonoBehaviour:
   _fragmentParticleSystemPrefab: {fileID: 5093053517247149796, guid: adb0a8c4142515447881cd80610f6b88, type: 3}
   _magnetData:
     radius: 3
+    radiusRatio: 1
     pullSpeedRange: {x: 1, y: 10}
     collectRadius: 0.5
 --- !u!1660057539 &9223372036854775807

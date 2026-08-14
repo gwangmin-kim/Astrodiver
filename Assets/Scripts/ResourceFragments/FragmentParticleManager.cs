@@ -199,7 +199,7 @@ public sealed class FragmentParticleManager : MonoBehaviour
 
         Vector3 playerPosition = PlayerContext.Instance.transform.position;
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(playerPosition, _magnetData.radius);
+        Gizmos.DrawWireSphere(playerPosition, _magnetData.Radius);
 
         Gizmos.color = Color.orange;
         Gizmos.DrawWireSphere(playerPosition, _magnetData.collectRadius);

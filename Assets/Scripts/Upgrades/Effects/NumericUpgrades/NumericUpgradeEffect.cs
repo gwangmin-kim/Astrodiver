@@ -11,7 +11,9 @@ public enum NumericUpgradeOperation
 [Serializable]
 public sealed class NumericUpgradeEffect : UpgradeEffect
 {
-    [SerializeField] private NumericUpgradeTarget _target = NumericUpgradeTarget.MovementSpeed;
+    [SerializeField]
+    private NumericUpgradeTarget _target =
+        NumericUpgradeTarget.MovementSpeedRatio;
     [SerializeField] private NumericUpgradeOperation _operation = NumericUpgradeOperation.Add;
     [SerializeField] private float _value;
 
@@ -86,10 +88,10 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
 
         switch (_target)
         {
-            case NumericUpgradeTarget.MovementSpeed:
+            case NumericUpgradeTarget.MovementSpeedRatio:
                 {
                     PlayerMovementData value = player.movement;
-                    value.moveSpeed = ApplyFloat(value.moveSpeed, 0f);
+                    value.moveSpeedRatio = ApplyFloat(value.moveSpeedRatio, 0f);
                     player.movement = value;
                     player.movementInitialized = true;
                     break;
@@ -102,20 +104,20 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
                     player.batteryInitialized = true;
                     break;
                 }
-            case NumericUpgradeTarget.MagnetRadius:
+            case NumericUpgradeTarget.MagnetRadiusRatio:
                 {
                     MagnetData value = player.magnet;
-                    ApplyMagnet(ref value);
+                    value.radiusRatio = ApplyFloat(value.radiusRatio, 0f);
                     player.magnet = value;
                     player.magnetInitialized = true;
                     break;
                 }
             case NumericUpgradeTarget.NetCaptureCount:
             case NumericUpgradeTarget.NetCount:
-            case NumericUpgradeTarget.NetRadius:
-            case NumericUpgradeTarget.NetShootRange:
-            case NumericUpgradeTarget.NetChargeTime:
-            case NumericUpgradeTarget.NetCollectSpeed:
+            case NumericUpgradeTarget.NetRadiusRatio:
+            case NumericUpgradeTarget.NetShootRangeRatio:
+            case NumericUpgradeTarget.NetChargeTimeRatio:
+            case NumericUpgradeTarget.NetCollectSpeedRatio:
             case NumericUpgradeTarget.NetAmmoCapacity:
                 {
                     NetGunData value = equipment.netGun;
@@ -124,13 +126,13 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
                     equipment.netGunInitialized = true;
                     break;
                 }
-            case NumericUpgradeTarget.PlasmaChargeTime:
+            case NumericUpgradeTarget.PlasmaChargeTimeRatio:
             case NumericUpgradeTarget.PlasmaDamage:
-            case NumericUpgradeTarget.PlasmaTickSpeedRate:
-            case NumericUpgradeTarget.PlasmaAttackRange:
+            case NumericUpgradeTarget.PlasmaTickSpeedRatio:
+            case NumericUpgradeTarget.PlasmaAttackRangeRatio:
             case NumericUpgradeTarget.PlasmaChainCount:
-            case NumericUpgradeTarget.PlasmaChainDamageRate:
-            case NumericUpgradeTarget.PlasmaChainDetectRange:
+            case NumericUpgradeTarget.PlasmaChainDamageRateRatio:
+            case NumericUpgradeTarget.PlasmaChainDetectRangeRatio:
             case NumericUpgradeTarget.PlasmaAmmoCapacity:
                 {
                     PlasmaGunData value = equipment.plasmaGun;
@@ -155,16 +157,6 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
         return true;
     }
 
-    private void ApplyMagnet(ref MagnetData data)
-    {
-        switch (_target)
-        {
-            case NumericUpgradeTarget.MagnetRadius:
-                data.radius = ApplyFloat(data.radius, 0f);
-                break;
-        }
-    }
-
     private void ApplyNetGun(ref NetGunData data)
     {
         switch (_target)
@@ -175,17 +167,17 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
             case NumericUpgradeTarget.NetCount:
                 data.netCount = ApplyInt(data.netCount, 1);
                 break;
-            case NumericUpgradeTarget.NetRadius:
-                data.netData.radius = ApplyFloat(data.netData.radius, 0f);
+            case NumericUpgradeTarget.NetRadiusRatio:
+                data.netData.radiusRatio = ApplyFloat(data.netData.radiusRatio, 0f);
                 break;
-            case NumericUpgradeTarget.NetShootRange:
-                data.maxShootRange = ApplyFloat(data.maxShootRange, 0f);
+            case NumericUpgradeTarget.NetShootRangeRatio:
+                data.shootRangeRatio = ApplyFloat(data.shootRangeRatio, 0f);
                 break;
-            case NumericUpgradeTarget.NetChargeTime:
-                data.chargeTime = ApplyFloat(data.chargeTime, 0f);
+            case NumericUpgradeTarget.NetChargeTimeRatio:
+                data.chargeTimeRatio = ApplyFloat(data.chargeTimeRatio, 0f);
                 break;
-            case NumericUpgradeTarget.NetCollectSpeed:
-                data.collectSpeed = ApplyFloat(data.collectSpeed, 0f);
+            case NumericUpgradeTarget.NetCollectSpeedRatio:
+                data.collectSpeedRatio = ApplyFloat(data.collectSpeedRatio, 0f);
                 break;
             case NumericUpgradeTarget.NetAmmoCapacity:
                 data.ammoCapacity = ApplyInt(data.ammoCapacity, 0);
@@ -197,26 +189,30 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
     {
         switch (_target)
         {
-            case NumericUpgradeTarget.PlasmaChargeTime:
-                data.chargeTime = ApplyFloat(data.chargeTime, 0f);
+            case NumericUpgradeTarget.PlasmaChargeTimeRatio:
+                data.chargeTimeRatio = ApplyFloat(data.chargeTimeRatio, 0f);
                 break;
             case NumericUpgradeTarget.PlasmaDamage:
                 data.tickDamage = ApplyInt(data.tickDamage, 0);
                 break;
-            case NumericUpgradeTarget.PlasmaTickSpeedRate:
-                data.tickSpeedRate = ApplyFloat(data.tickSpeedRate, 0f);
+            case NumericUpgradeTarget.PlasmaTickSpeedRatio:
+                data.tickSpeedRatio = ApplyFloat(data.tickSpeedRatio, 0f);
                 break;
-            case NumericUpgradeTarget.PlasmaAttackRange:
-                data.attackRange = ApplyFloat(data.attackRange, 0f);
+            case NumericUpgradeTarget.PlasmaAttackRangeRatio:
+                data.attackRangeRatio = ApplyFloat(data.attackRangeRatio, 0f);
                 break;
             case NumericUpgradeTarget.PlasmaChainCount:
                 data.chainCount = ApplyInt(data.chainCount, 0);
                 break;
-            case NumericUpgradeTarget.PlasmaChainDamageRate:
-                data.chainedDamageRate = ApplyFloat(data.chainedDamageRate, 0f);
+            case NumericUpgradeTarget.PlasmaChainDamageRateRatio:
+                data.chainedDamageRateRatio = ApplyFloat(
+                    data.chainedDamageRateRatio,
+                    0f);
                 break;
-            case NumericUpgradeTarget.PlasmaChainDetectRange:
-                data.chainDetectRange = ApplyFloat(data.chainDetectRange, 0f);
+            case NumericUpgradeTarget.PlasmaChainDetectRangeRatio:
+                data.chainRangeRatio = ApplyFloat(
+                    data.chainRangeRatio,
+                    0f);
                 break;
             case NumericUpgradeTarget.PlasmaAmmoCapacity:
                 data.ammoCapacity = ApplyInt(data.ammoCapacity, 0);

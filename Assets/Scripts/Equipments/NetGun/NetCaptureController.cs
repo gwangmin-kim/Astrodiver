@@ -49,7 +49,7 @@ public sealed class NetCaptureController : MonoBehaviour
     public bool IsAvailable => !gameObject.activeSelf;
     public bool IsRecallable => IsDeployed;
     public bool CanCapture => IsDeployed;
-    public float Radius => Mathf.Max(0f, _data.radius);
+    public float Radius => _data.Radius;
     public float SpreadDuration => Mathf.Max(0f, _data.spreadDuration);
     public float FoldDuration => Mathf.Max(0f, _data.foldDuration);
 

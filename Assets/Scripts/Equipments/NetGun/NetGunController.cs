@@ -195,12 +195,11 @@ public class NetGunController : MonoBehaviour
 
         net.shootTween.Stop();
 
-        float chargeRatio = (_data.chargeTime <= 0f)
+        float chargeRatio = (_data.ChargeTime <= 0f)
             ? 1f
-            : Mathf.Clamp01(_chargingTime / _data.chargeTime);
-        float shootDistance = (_data.shootRangeRatioWithNoCharge >= 1f)
-            ? _data.maxShootRange
-            : Mathf.Lerp(_data.shootRangeRatioWithNoCharge, 1f, chargeRatio) * _data.maxShootRange;
+            : Mathf.Clamp01(_chargingTime / _data.ChargeTime);
+        float minShootRange = 0.1f;
+        float shootDistance = Mathf.Lerp(minShootRange, _data.MaxShootRange, chargeRatio);
 
         Vector2 startPosition = _shootOrigin.position;
         Vector2 shootDirection = _shootOrigin.up;
@@ -265,7 +264,7 @@ public class NetGunController : MonoBehaviour
             return;
         }
 
-        Vector2 targetVelocity = Mathf.Max(0f, _data.collectSpeed) * diff.normalized;
+        Vector2 targetVelocity = _data.CollectSpeed * diff.normalized;
         _movementManager.SetTargetVelocity(_retractingNet.net, targetVelocity);
     }
 
@@ -316,7 +315,7 @@ public class NetGunController : MonoBehaviour
         }
 
         float recallDistance = Vector2.Distance(net.net.transform.position, _shootOrigin.position);
-        float recallSpeed = Mathf.Max(0.01f, _data.collectSpeed);
+        float recallSpeed = Mathf.Max(0.01f, _data.CollectSpeed);
         float recallDuration = Mathf.Max(0.01f, recallDistance / recallSpeed);
 
         net.shootTween = Tween.Position(
@@ -404,7 +403,7 @@ public class NetGunController : MonoBehaviour
         float closestProjection = Mathf.Infinity;
         Vector2 origin = _shootOrigin.position;
         Vector2 direction = _shootOrigin.up;
-        float radiusSqr = _data.netData.radius * _data.netData.radius;
+        float radiusSqr = _data.netData.Radius * _data.netData.Radius;
 
         for (int i = 0; i < _netRuntimeList.Count; i++)
         {
@@ -414,7 +413,7 @@ public class NetGunController : MonoBehaviour
             Vector2 toNet = (Vector2)net.net.transform.position - origin;
             float projection = Vector2.Dot(toNet, direction);
             if (projection <= 0f && toNet.sqrMagnitude > radiusSqr) continue;
-            if (projection > _data.maxShootRange) continue;
+            if (projection > _data.MaxShootRange) continue;
 
             float perpendicularSqr = Mathf.Max(0f, toNet.sqrMagnitude - projection * projection);
             if (perpendicularSqr > radiusSqr) continue;
@@ -506,12 +505,11 @@ public class NetGunController : MonoBehaviour
         switch (_netGunState)
         {
             case NetGunState.Charging:
-                float chargeRatio = (_data.chargeTime <= 0f)
+                float chargeRatio = (_data.ChargeTime <= 0f)
                     ? 1f
-                    : Mathf.Clamp01(_chargingTime / _data.chargeTime);
-                float shootDistance = (_data.shootRangeRatioWithNoCharge >= 1f)
-                    ? _data.maxShootRange
-                    : Mathf.Lerp(_data.shootRangeRatioWithNoCharge, 1f, chargeRatio) * _data.maxShootRange;
+                    : Mathf.Clamp01(_chargingTime / _data.ChargeTime);
+                float minShootRange = 0.1f;
+                float shootDistance = Mathf.Lerp(minShootRange, _data.MaxShootRange, chargeRatio);
 
                 Gizmos.DrawWireSphere(_shootOrigin.position, shootDistance);
                 break;
@@ -523,7 +521,7 @@ public class NetGunController : MonoBehaviour
 
         Gizmos.DrawLine(
             _shootOrigin.position,
-            _shootOrigin.position + _shootOrigin.up * _data.maxShootRange);
+            _shootOrigin.position + _shootOrigin.up * _data.MaxShootRange);
     }
 #endif
 }
@@ -544,12 +542,18 @@ public struct NetGunData
     [Header("Shoot Settings")]
     [Min(1)] public int netCount;
     [Range(0.1f, 5f)] public float shootDuration;
-    [Min(0.1f)] public float maxShootRange;
-    [Range(0f, 1f)] public float shootRangeRatioWithNoCharge;
-    [Range(0f, 3f)] public float chargeTime;
+    [Min(0.1f)] public float baseShootRange;
+    [Min(0f)] public float shootRangeRatio;
+    [Range(0f, 3f)] public float baseChargeTime;
+    [Min(0f)] public float chargeTimeRatio;
 
     [Header("Collect Settings")]
-    public float collectSpeed;
+    public float baseCollectSpeed;
+    [Min(0f)] public float collectSpeedRatio;
+
+    public float MaxShootRange => Mathf.Max(0f, baseShootRange * shootRangeRatio);
+    public float ChargeTime => Mathf.Max(0f, baseChargeTime * chargeTimeRatio);
+    public float CollectSpeed => Mathf.Max(0f, baseCollectSpeed * collectSpeedRatio);
 }
 
 [System.Serializable]
@@ -559,4 +563,7 @@ public struct NetData
     [Range(0f, 0.5f)] public float spreadDuration;
     [Range(0f, 0.5f)] public float foldDuration;
     [Min(0.1f)] public float radius;
+    [Min(0f)] public float radiusRatio;
+
+    public float Radius => Mathf.Max(0f, radius * radiusRatio);
 }

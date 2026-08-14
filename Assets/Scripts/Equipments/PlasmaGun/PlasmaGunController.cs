@@ -59,7 +59,7 @@ public class PlasmaGunController : MonoBehaviour
             case ChargeState.Uncharged:
                 if (isAttacking && HasAmmo)
                 {
-                    _chargeTimer = _data.chargeTime;
+                    _chargeTimer = _data.ChargeTime;
                     _chargeState = ChargeState.Charging;
                 }
                 break;
@@ -82,7 +82,7 @@ public class PlasmaGunController : MonoBehaviour
                 if (isAttacking && HasAmmo)
                 {
                     _chargedRetentionTimer = _data.chargedRetentionTime;
-                    _attackTickTimer -= Time.deltaTime * _data.tickSpeedRate;
+                    _attackTickTimer -= Time.deltaTime * _data.TickSpeedRate;
 
                     if (_attackTickTimer < 0f)
                     {
@@ -129,7 +129,7 @@ public class PlasmaGunController : MonoBehaviour
             _shootOrigin.position,
             _initialCastRadius,
             _shootOrigin.up,
-            _data.attackRange,
+            _data.AttackRange,
             _targetLayer);
 
         // 아무것도 감지가 안됐다면 그대로 종료
@@ -146,7 +146,7 @@ public class PlasmaGunController : MonoBehaviour
         Vector2 chainOrigin = hit.transform.position;
         for (int i = 0; i < _data.chainCount; i++)
         {
-            Transform target = GetNearestTarget(chainOrigin, _data.chainDetectRange);
+            Transform target = GetNearestTarget(chainOrigin, _data.ChainDetectRange);
             if (target == null) break;
 
             _currentTargetList.Add(target);
@@ -165,7 +165,7 @@ public class PlasmaGunController : MonoBehaviour
 
             if (target == null || !target.TryGetComponent<IDamagable>(out var damagable)) continue;
 
-            float damageRate = Mathf.Pow(_data.chainedDamageRate, i);
+            float damageRate = Mathf.Pow(_data.ChainedDamageRate, i);
             int currentDamage = Mathf.RoundToInt(_data.tickDamage * damageRate);
 
             AttackData attackData = new()
@@ -228,7 +228,7 @@ public class PlasmaGunController : MonoBehaviour
             };
 
             if (_currentTargetList.Count == 0)
-                points.Add(_shootOrigin.position + _data.attackRange * _shootOrigin.up);
+                points.Add(_shootOrigin.position + _data.AttackRange * _shootOrigin.up);
             else if (_currentTargetList[0] != null)
             {
                 points.Add(_currentTargetList[0].position);
@@ -263,7 +263,8 @@ public struct PlasmaGunData
 
     [Header("Charge Settings")]
     [Tooltip("최초 발사 시까지 필요한 충전 시간")]
-    [Min(0f)] public float chargeTime;
+    [Min(0f)] public float baseChargeTime;
+    [Min(0f)] public float chargeTimeRatio;
     [Tooltip("충전 상태가 유지되는 시간")]
     [Min(0f)] public float chargedRetentionTime;
 
@@ -273,15 +274,26 @@ public struct PlasmaGunData
     [Tooltip("공격 키 홀드 시 타격 수행 간격")]
     [Range(0.1f, 1f)] public float tickInterval;
     [Tooltip("Attack tick timer speed multiplier (1 = base speed)")]
-    [Min(0f)] public float tickSpeedRate;
+    [Min(0f)] public float tickSpeedRatio;
     [Tooltip("최초 목표 탐지 거리 (CircleCast 거리)")]
-    [Min(0.1f)] public float attackRange;
+    [Min(0.1f)] public float baseAttackRange;
+    [Min(0f)] public float attackRangeRatio;
 
     [Header("Chaining Settings")]
     [Tooltip("첫 타격 이후 연쇄 가능한 최대 횟수")]
     [Min(0)] public int chainCount;
     [Tooltip("매 연쇄 당 변화되는 피해량 비율: 초기엔 감소하지만, 후반엔 오히려 증가하도록 설계")]
     [Min(0.4f)] public float chainedDamageRate;
+    [Min(0f)] public float chainedDamageRateRatio;
     [Tooltip("연쇄 대상 탐색 거리")]
-    [Min(0.1f)] public float chainDetectRange;
+    [Min(0.1f)] public float baseChainRange;
+    [Min(0f)] public float chainRangeRatio;
+
+    public float ChargeTime => Mathf.Max(0f, baseChargeTime * chargeTimeRatio);
+    public float TickSpeedRate => Mathf.Max(0f, tickSpeedRatio);
+    public float AttackRange => Mathf.Max(0f, baseAttackRange * attackRangeRatio);
+    public float ChainedDamageRate =>
+        Mathf.Max(0f, chainedDamageRate * chainedDamageRateRatio);
+    public float ChainDetectRange =>
+        Mathf.Max(0f, baseChainRange * chainRangeRatio);
 }
