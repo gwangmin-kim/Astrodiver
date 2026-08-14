@@ -10,8 +10,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ab2bf65536ae43849b5576c142677698, type: 3}
-  m_Name: SampleTileSet2
+  m_Name: tileset_002_crystal
   m_EditorClassIdentifier: Assembly-CSharp::StageTileSet
-  _displayName: Sample2
+  _displayName: "\uC218\uC815"
   _layers: 1
-  _automaticTile: {fileID: 11400000, guid: 41591151508f5f740873adae59c83a67, type: 2}
+  _automaticTile: {fileID: 11400000, guid: fafe89714bf0c084289ceeda38983adc, type: 2}
