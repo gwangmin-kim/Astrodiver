@@ -113,8 +113,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlasmaGunController
   _data:
     ammoCapacity: 20
-    chargeTime: 0.5
-    chargeTimeRatio: 1
+    baseChargeTime: 0.5
+    chargeSpeedMultiplier: 1
     chargedRetentionTime: 0.5
     tickDamage: 100
     tickInterval: 0.5

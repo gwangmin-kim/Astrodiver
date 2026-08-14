@@ -126,9 +126,9 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
                     equipment.netGunInitialized = true;
                     break;
                 }
-            case NumericUpgradeTarget.PlasmaChargeTimeRatio:
+            case NumericUpgradeTarget.PlasmaChargeSpeedMultiplier:
             case NumericUpgradeTarget.PlasmaDamage:
-            case NumericUpgradeTarget.PlasmaTickSpeedRatio:
+            case NumericUpgradeTarget.PlasmaTickSpeedMultiplier:
             case NumericUpgradeTarget.PlasmaAttackRangeRatio:
             case NumericUpgradeTarget.PlasmaChainCount:
             case NumericUpgradeTarget.PlasmaChainDamageRateRatio:
@@ -189,14 +189,14 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
     {
         switch (_target)
         {
-            case NumericUpgradeTarget.PlasmaChargeTimeRatio:
-                data.chargeTimeRatio = ApplyFloat(data.chargeTimeRatio, 0f);
+            case NumericUpgradeTarget.PlasmaChargeSpeedMultiplier:
+                data.chargeSpeedMultiplier = ApplyFloat(data.chargeSpeedMultiplier, 0f);
                 break;
             case NumericUpgradeTarget.PlasmaDamage:
                 data.tickDamage = ApplyInt(data.tickDamage, 0);
                 break;
-            case NumericUpgradeTarget.PlasmaTickSpeedRatio:
-                data.tickSpeedRatio = ApplyFloat(data.tickSpeedRatio, 0f);
+            case NumericUpgradeTarget.PlasmaTickSpeedMultiplier:
+                data.tickSpeedMultiplier = ApplyFloat(data.tickSpeedMultiplier, 0f);
                 break;
             case NumericUpgradeTarget.PlasmaAttackRangeRatio:
                 data.attackRangeRatio = ApplyFloat(data.attackRangeRatio, 0f);

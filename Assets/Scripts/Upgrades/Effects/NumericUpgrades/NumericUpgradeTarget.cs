@@ -19,9 +19,9 @@ public enum NumericUpgradeTarget
     NetAmmoCapacity = 2006,
 
     // Plasma gun: 3000-3099
-    PlasmaChargeTimeRatio = 3000,
+    PlasmaChargeSpeedMultiplier = 3000,
     PlasmaDamage = 3001,
-    PlasmaTickSpeedRatio = 3002,
+    PlasmaTickSpeedMultiplier = 3002,
     PlasmaAttackRangeRatio = 3003,
     PlasmaChainCount = 3004,
     PlasmaChainDamageRateRatio = 3005,

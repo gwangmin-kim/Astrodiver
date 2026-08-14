@@ -152,6 +152,28 @@ public static class GameDataSaveSystemSmokeTest
                 runtimeData.Equipment.plasmaGun.tickDamage == plasmaDamageBeforeEffect + 25,
                 "Plasma damage was not applied as an absolute value.");
 
+            float plasmaChargeTimeBeforeEffect =
+                runtimeData.Equipment.plasmaGun.baseChargeTime;
+            float plasmaChargeSpeedBeforeEffect =
+                runtimeData.Equipment.plasmaGun.chargeSpeedMultiplier;
+            UpgradeEffect plasmaChargeSpeedEffect = new NumericUpgradeEffect(
+                NumericUpgradeTarget.PlasmaChargeSpeedMultiplier,
+                NumericUpgradeOperation.Add,
+                0.5f);
+            Require(
+                plasmaChargeSpeedEffect.TryApply(
+                    effectContext,
+                    out string plasmaChargeSpeedEffectError),
+                plasmaChargeSpeedEffectError);
+            Require(
+                Mathf.Approximately(
+                    runtimeData.Equipment.plasmaGun.baseChargeTime,
+                    plasmaChargeTimeBeforeEffect) &&
+                Mathf.Approximately(
+                    runtimeData.Equipment.plasmaGun.chargeSpeedMultiplier,
+                    plasmaChargeSpeedBeforeEffect + 0.5f),
+                "Plasma charge speed upgrade changed the base charge time.");
+
             UpgradeEffect timeoutLossEffect = new NumericUpgradeEffect(
                 NumericUpgradeTarget.TimeoutInventoryLossRatio,
                 NumericUpgradeOperation.Set,

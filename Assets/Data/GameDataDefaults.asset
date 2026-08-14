@@ -23,7 +23,7 @@ MonoBehaviour:
   _playerStats:
     movementInitialized: 1
     movement:
-      moveSpeed: 3
+      baseMoveSpeed: 3
       moveSpeedRatio: 1
       moveDampingTime: 0.3
       stopDampingTime: 0.8
@@ -49,30 +49,29 @@ MonoBehaviour:
         radiusRatio: 1
       netCount: 1
       shootDuration: 1.5
-      maxShootRange: 7
-      maxShootRangeRatio: 1
-      shootRangeRatioWithNoCharge: 0.1
-      chargeTime: 1.5
+      baseShootRange: 5
+      shootRangeRatio: 1
+      baseChargeTime: 2
       chargeTimeRatio: 1
-      collectSpeed: 5
+      baseCollectSpeed: 5
       collectSpeedRatio: 1
     plasmaGunInitialized: 1
     plasmaGun:
       ammoCapacity: 20
-      chargeTime: 2
-      chargeTimeRatio: 1
+      baseChargeTime: 2
+      chargeSpeedMultiplier: 1
       chargedRetentionTime: 0.5
       tickDamage: 100
       tickInterval: 0.5
-      tickSpeedRate: 1
-      tickSpeedRatio: 1
-      attackRange: 5
+      tickSpeedMultiplier: 1
+      baseAttackRange: 3
       attackRangeRatio: 1
       chainCount: 0
       chainedDamageRate: 0.5
       chainedDamageRateRatio: 1
-      chainDetectRange: 5
-      chainDetectRangeRatio: 1
+      baseChainRange: 3
+      chainRangeRatio: 1
   _inventory:
     _creatureSlotCapacity: 1
     _creatureMaxStackCount: 10
+    _timeoutInventoryLossRatio: 1

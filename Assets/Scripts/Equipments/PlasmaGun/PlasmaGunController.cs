@@ -67,7 +67,7 @@ public class PlasmaGunController : MonoBehaviour
             case ChargeState.Charging:
                 if (isAttacking && HasAmmo)
                 {
-                    _chargeTimer -= Time.deltaTime;
+                    _chargeTimer -= Time.deltaTime * _data.ChargeSpeedMultiplier;
                     if (_chargeTimer < 0f)
                     {
                         _chargedRetentionTimer = _data.chargedRetentionTime;
@@ -82,7 +82,7 @@ public class PlasmaGunController : MonoBehaviour
                 if (isAttacking && HasAmmo)
                 {
                     _chargedRetentionTimer = _data.chargedRetentionTime;
-                    _attackTickTimer -= Time.deltaTime * _data.TickSpeedRate;
+                    _attackTickTimer -= Time.deltaTime * _data.TickSpeedMultiplier;
 
                     if (_attackTickTimer < 0f)
                     {
@@ -264,7 +264,8 @@ public struct PlasmaGunData
     [Header("Charge Settings")]
     [Tooltip("최초 발사 시까지 필요한 충전 시간")]
     [Min(0f)] public float baseChargeTime;
-    [Min(0f)] public float chargeTimeRatio;
+    [Tooltip("충전 타이머가 흐르는 속도 배율 (1 = 기본 속도)")]
+    [Min(0f)] public float chargeSpeedMultiplier;
     [Tooltip("충전 상태가 유지되는 시간")]
     [Min(0f)] public float chargedRetentionTime;
 
@@ -274,7 +275,7 @@ public struct PlasmaGunData
     [Tooltip("공격 키 홀드 시 타격 수행 간격")]
     [Range(0.1f, 1f)] public float tickInterval;
     [Tooltip("Attack tick timer speed multiplier (1 = base speed)")]
-    [Min(0f)] public float tickSpeedRatio;
+    [Min(0f)] public float tickSpeedMultiplier;
     [Tooltip("최초 목표 탐지 거리 (CircleCast 거리)")]
     [Min(0.1f)] public float baseAttackRange;
     [Min(0f)] public float attackRangeRatio;
@@ -289,8 +290,9 @@ public struct PlasmaGunData
     [Min(0.1f)] public float baseChainRange;
     [Min(0f)] public float chainRangeRatio;
 
-    public float ChargeTime => Mathf.Max(0f, baseChargeTime * chargeTimeRatio);
-    public float TickSpeedRate => Mathf.Max(0f, tickSpeedRatio);
+    public float ChargeTime => Mathf.Max(0f, baseChargeTime);
+    public float ChargeSpeedMultiplier => Mathf.Max(0f, chargeSpeedMultiplier);
+    public float TickSpeedMultiplier => Mathf.Max(0f, tickSpeedMultiplier);
     public float AttackRange => Mathf.Max(0f, baseAttackRange * attackRangeRatio);
     public float ChainedDamageRate =>
         Mathf.Max(0f, chainedDamageRate * chainedDamageRateRatio);
