@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dbdd3890f8c56ca489b72ff17909a566, type: 3}
-  m_Name: resource_000_stone
+  m_Name: resource_007_radioactive
   m_EditorClassIdentifier: Assembly-CSharp::ResourceDefinition
-  _id: resource.stone
-  _key: stone
-  _sortOrder: 0
-  _displayName: "\uC554\uC11D \uD30C\uD3B8"
-  _icon: {fileID: 21300000, guid: bdbaa95c18b16ee48813fcc4f41cb495, type: 3}
+  _id: resource.radioactive
+  _key: radioactive
+  _sortOrder: 7
+  _displayName: "\uBC29\uC0AC\uB2A5 \uC5D0\uB108\uC9C0"
+  _icon: {fileID: 0}
   _particleRowIndex: 0

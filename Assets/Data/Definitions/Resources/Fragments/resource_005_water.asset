@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dbdd3890f8c56ca489b72ff17909a566, type: 3}
-  m_Name: resource_000_stone
+  m_Name: resource_005_water
   m_EditorClassIdentifier: Assembly-CSharp::ResourceDefinition
-  _id: resource.stone
-  _key: stone
-  _sortOrder: 0
-  _displayName: "\uC554\uC11D \uD30C\uD3B8"
-  _icon: {fileID: 21300000, guid: bdbaa95c18b16ee48813fcc4f41cb495, type: 3}
+  _id: resource.water
+  _key: water
+  _sortOrder: 5
+  _displayName: "\uBB3C\uBC29\uC6B8"
+  _icon: {fileID: 21300000, guid: d8cbe44ec9da0564ab2d8a6395635d61, type: 3}
   _particleRowIndex: 0
