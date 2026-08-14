@@ -13,6 +13,9 @@ public sealed class UpgradeTreeUI : MonoBehaviour
     [Header("Prefabs")]
     [SerializeField] private UpgradeConnectionUI _connectionPrefab;
 
+    [Header("Tooltip")]
+    [SerializeField] private UpgradeTooltipUI _tooltip;
+
     [Header("Connections")]
     [SerializeField, Min(1f)] private float _connectionWidth = 4f;
     [SerializeField]
@@ -23,6 +26,7 @@ public sealed class UpgradeTreeUI : MonoBehaviour
     private readonly List<UpgradeConnectionUI> _connectionList = new();
     private UpgradeService _upgradeService;
     private bool _purchaseInProgress;
+    private UpgradeNodeUI _focusedNode;
 
     public event Action<UpgradeNodeUI, UpgradePurchaseResult> PurchaseAttempted;
 
@@ -33,6 +37,12 @@ public sealed class UpgradeTreeUI : MonoBehaviour
 
     private void OnDisable()
     {
+        _focusedNode = null;
+        if (_tooltip != null)
+        {
+            _tooltip.Hide();
+        }
+
         Unsubscribe();
         UnsubscribeNodes();
     }
@@ -63,6 +73,37 @@ public sealed class UpgradeTreeUI : MonoBehaviour
         }
     }
 
+#if UNITY_EDITOR
+    private void OnDrawGizmos()
+    {
+        if (Application.isPlaying || _nodeLayer == null)
+        {
+            return;
+        }
+
+        UpgradeNodeUI[] nodes = _nodeLayer.GetComponentsInChildren<UpgradeNodeUI>(true);
+        Dictionary<UpgradeNodeDefinition, UpgradeNodeUI> nodeLookup = new();
+        for (int i = 0; i < nodes.Length; i++)
+        {
+            UpgradeNodeUI node = nodes[i];
+            if (node.Definition != null)
+            {
+                nodeLookup.TryAdd(node.Definition, node);
+            }
+        }
+
+        Gizmos.color = Color.cyan;
+        foreach (KeyValuePair<UpgradeNodeDefinition, UpgradeNodeUI> pair in nodeLookup)
+        {
+            UpgradeNodeDefinition parent = pair.Key.Parent;
+            if (parent != null && nodeLookup.TryGetValue(parent, out UpgradeNodeUI parentNode))
+            {
+                Gizmos.DrawLine(parentNode.transform.position, pair.Value.transform.position);
+            }
+        }
+    }
+#endif
+
     public void RefreshAll()
     {
         foreach (KeyValuePair<UpgradeNodeDefinition, UpgradeNodeUI> pair in _nodeDict)
@@ -76,6 +117,8 @@ public sealed class UpgradeTreeUI : MonoBehaviour
             node.SetLevel(level);
             node.SetVisualState(GetVisualState(definition, level));
         }
+
+        RefreshTooltip();
     }
 
     private void Initialize()
@@ -188,6 +231,8 @@ public sealed class UpgradeTreeUI : MonoBehaviour
         foreach (UpgradeNodeUI node in _nodeDict.Values)
         {
             node.Clicked += HandleNodeClicked;
+            node.Focused += HandleNodeFocused;
+            node.Unfocused += HandleNodeUnfocused;
         }
     }
 
@@ -198,8 +243,80 @@ public sealed class UpgradeTreeUI : MonoBehaviour
             if (node != null)
             {
                 node.Clicked -= HandleNodeClicked;
+                node.Focused -= HandleNodeFocused;
+                node.Unfocused -= HandleNodeUnfocused;
             }
         }
+    }
+
+    private void HandleNodeFocused(UpgradeNodeUI node)
+    {
+        if (node == null)
+        {
+            return;
+        }
+
+        _focusedNode = node;
+        RefreshTooltip();
+    }
+
+    private void HandleNodeUnfocused(UpgradeNodeUI node)
+    {
+        if (_focusedNode != node)
+        {
+            return;
+        }
+
+        _focusedNode = FindFallbackFocusedNode();
+        if (_focusedNode != null)
+        {
+            RefreshTooltip();
+        }
+        else if (_tooltip != null)
+        {
+            _tooltip.Hide();
+        }
+    }
+
+    private UpgradeNodeUI FindFallbackFocusedNode()
+    {
+        UpgradeNodeUI selected = null;
+        foreach (UpgradeNodeUI node in _nodeDict.Values)
+        {
+            if (node == null || !node.IsFocused)
+            {
+                continue;
+            }
+
+            if (node.IsPointerInside)
+            {
+                return node;
+            }
+
+            if (node.IsSelected)
+            {
+                selected = node;
+            }
+        }
+
+        return selected;
+    }
+
+    private void RefreshTooltip()
+    {
+        if (_focusedNode == null || _tooltip == null)
+        {
+            return;
+        }
+
+        GameDataManager gameData = GameDataManager.Instance;
+        int level = _upgradeService != null && _focusedNode.Definition != null
+            ? _upgradeService.GetLevel(_focusedNode.Definition.Id)
+            : 0;
+        _tooltip.Show(
+            _focusedNode,
+            level,
+            gameData != null ? gameData.RuntimeData : null);
     }
 
     private void Unsubscribe()

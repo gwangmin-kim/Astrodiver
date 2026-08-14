@@ -36,7 +36,11 @@ public struct UpgradeNodeStateStyle
 }
 
 [DisallowMultipleComponent]
-public sealed class UpgradeNodeUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+public sealed class UpgradeNodeUI : MonoBehaviour,
+    IPointerEnterHandler,
+    IPointerExitHandler,
+    ISelectHandler,
+    IDeselectHandler
 {
     [Header("Upgrade")]
     [SerializeField] private UpgradeNodeDefinition _definition;
@@ -55,12 +59,21 @@ public sealed class UpgradeNodeUI : MonoBehaviour, IPointerEnterHandler, IPointe
     [SerializeField] private UpgradeNodeStateStyle _purchasedStyle;
     [SerializeField] private UpgradeNodeStateStyle _completedStyle;
 
+    private bool _pointerInside;
+    private bool _selected;
+    private bool _wasFocused;
+
     public UpgradeNodeDefinition Definition => _definition;
     public UpgradeNodeVisualState VisualState => _visualState;
+    public bool IsPointerInside => _pointerInside;
+    public bool IsSelected => _selected;
+    public bool IsFocused => _pointerInside || _selected;
 
     public event Action<UpgradeNodeUI> Clicked;
     public event Action<UpgradeNodeUI> PointerEntered;
     public event Action<UpgradeNodeUI> PointerExited;
+    public event Action<UpgradeNodeUI> Focused;
+    public event Action<UpgradeNodeUI> Unfocused;
 
     private void OnValidate()
     {
@@ -92,6 +105,10 @@ public sealed class UpgradeNodeUI : MonoBehaviour, IPointerEnterHandler, IPointe
         {
             _button.onClick.RemoveListener(HandleClick);
         }
+
+        _pointerInside = false;
+        _selected = false;
+        UpdateFocusState();
     }
 
     public void SetLevel(int currentLevel)
@@ -136,16 +153,51 @@ public sealed class UpgradeNodeUI : MonoBehaviour, IPointerEnterHandler, IPointe
 
     public void OnPointerEnter(PointerEventData eventData)
     {
+        _pointerInside = true;
         PointerEntered?.Invoke(this);
+        UpdateFocusState();
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
+        _pointerInside = false;
         PointerExited?.Invoke(this);
+        UpdateFocusState();
+    }
+
+    public void OnSelect(BaseEventData eventData)
+    {
+        _selected = true;
+        UpdateFocusState();
+    }
+
+    public void OnDeselect(BaseEventData eventData)
+    {
+        _selected = false;
+        UpdateFocusState();
     }
 
     private void HandleClick()
     {
         Clicked?.Invoke(this);
+    }
+
+    private void UpdateFocusState()
+    {
+        bool isFocused = IsFocused;
+        if (isFocused == _wasFocused)
+        {
+            return;
+        }
+
+        _wasFocused = isFocused;
+        if (isFocused)
+        {
+            Focused?.Invoke(this);
+        }
+        else
+        {
+            Unfocused?.Invoke(this);
+        }
     }
 }

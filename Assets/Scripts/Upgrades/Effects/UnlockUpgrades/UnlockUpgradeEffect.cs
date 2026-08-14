@@ -20,6 +20,20 @@ public sealed class UnlockUpgradeEffect : UpgradeEffect
     public UnlockUpgradeTarget Target => _target;
     public bool IsUnlocked => _isUnlocked;
 
+    public override bool TryCreatePreview(
+        GameRuntimeData runtimeData,
+        out UpgradeEffectPreview preview)
+    {
+        if (!_isUnlocked)
+        {
+            preview = default;
+            return false;
+        }
+
+        preview = UpgradeEffectPreview.Unlock();
+        return true;
+    }
+
     public override bool TryValidate(out string error)
     {
         if (!Enum.IsDefined(typeof(UnlockUpgradeTarget), _target))

@@ -35,6 +35,24 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
     public NumericUpgradeOperation Operation => _operation;
     public float Value => _value;
 
+    public override bool TryCreatePreview(
+        GameRuntimeData runtimeData,
+        out UpgradeEffectPreview preview)
+    {
+        if (runtimeData == null ||
+            !TryGetCurrentValue(runtimeData, out float currentValue, out bool isInteger))
+        {
+            preview = default;
+            return false;
+        }
+
+        float nextValue = isInteger
+            ? ApplyInt(Mathf.RoundToInt(currentValue), GetMinimumInt())
+            : ApplyFloat(currentValue, GetMinimumFloat());
+        preview = UpgradeEffectPreview.Numeric(currentValue, nextValue, isInteger);
+        return true;
+    }
+
     /// <summary>
     /// 유효한 업그레이드 효과인지 검증
     /// </summary>
@@ -237,6 +255,108 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
                     ApplyFloat(data.TimeoutInventoryLossRatio, 0f);
                 break;
         }
+    }
+
+    private bool TryGetCurrentValue(
+        GameRuntimeData data,
+        out float value,
+        out bool isInteger)
+    {
+        isInteger = false;
+        switch (_target)
+        {
+            case NumericUpgradeTarget.MovementSpeedRatio:
+                value = data.PlayerStats.movement.moveSpeedRatio;
+                return true;
+            case NumericUpgradeTarget.BatteryCapacity:
+                value = data.PlayerStats.battery.amount;
+                return true;
+            case NumericUpgradeTarget.MagnetRadiusRatio:
+                value = data.PlayerStats.magnet.radiusRatio;
+                return true;
+            case NumericUpgradeTarget.NetCaptureCount:
+                value = data.Equipment.netGun.netData.captureCount;
+                isInteger = true;
+                return true;
+            case NumericUpgradeTarget.NetCount:
+                value = data.Equipment.netGun.netCount;
+                isInteger = true;
+                return true;
+            case NumericUpgradeTarget.NetRadiusRatio:
+                value = data.Equipment.netGun.netData.radiusRatio;
+                return true;
+            case NumericUpgradeTarget.NetShootRangeRatio:
+                value = data.Equipment.netGun.shootRangeRatio;
+                return true;
+            case NumericUpgradeTarget.NetChargeTimeRatio:
+                value = data.Equipment.netGun.chargeTimeRatio;
+                return true;
+            case NumericUpgradeTarget.NetCollectSpeedRatio:
+                value = data.Equipment.netGun.collectSpeedRatio;
+                return true;
+            case NumericUpgradeTarget.NetAmmoCapacity:
+                value = data.Equipment.netGun.ammoCapacity;
+                isInteger = true;
+                return true;
+            case NumericUpgradeTarget.PlasmaChargeSpeedMultiplier:
+                value = data.Equipment.plasmaGun.chargeSpeedMultiplier;
+                return true;
+            case NumericUpgradeTarget.PlasmaDamage:
+                value = data.Equipment.plasmaGun.tickDamage;
+                isInteger = true;
+                return true;
+            case NumericUpgradeTarget.PlasmaTickSpeedMultiplier:
+                value = data.Equipment.plasmaGun.tickSpeedMultiplier;
+                return true;
+            case NumericUpgradeTarget.PlasmaAttackRangeRatio:
+                value = data.Equipment.plasmaGun.attackRangeRatio;
+                return true;
+            case NumericUpgradeTarget.PlasmaChainCount:
+                value = data.Equipment.plasmaGun.chainCount;
+                isInteger = true;
+                return true;
+            case NumericUpgradeTarget.PlasmaChainDamageRateRatio:
+                value = data.Equipment.plasmaGun.chainedDamageRateRatio;
+                return true;
+            case NumericUpgradeTarget.PlasmaChainDetectRangeRatio:
+                value = data.Equipment.plasmaGun.chainRangeRatio;
+                return true;
+            case NumericUpgradeTarget.PlasmaAmmoCapacity:
+                value = data.Equipment.plasmaGun.ammoCapacity;
+                isInteger = true;
+                return true;
+            case NumericUpgradeTarget.CreatureSlotCapacity:
+                value = data.Inventory.CreatureSlotCapacity;
+                isInteger = true;
+                return true;
+            case NumericUpgradeTarget.CreatureMaxStackCount:
+                value = data.Inventory.CreatureMaxStackCount;
+                isInteger = true;
+                return true;
+            case NumericUpgradeTarget.TimeoutInventoryLossRatio:
+                value = data.Inventory.TimeoutInventoryLossRatio;
+                return true;
+            default:
+                value = 0f;
+                return false;
+        }
+    }
+
+    private int GetMinimumInt()
+    {
+        return _target switch
+        {
+            NumericUpgradeTarget.NetCaptureCount => 1,
+            NumericUpgradeTarget.NetCount => 1,
+            NumericUpgradeTarget.CreatureSlotCapacity => 1,
+            NumericUpgradeTarget.CreatureMaxStackCount => 1,
+            _ => 0
+        };
+    }
+
+    private float GetMinimumFloat()
+    {
+        return 0f;
     }
 
     private float ApplyFloat(float current, float minimum)
