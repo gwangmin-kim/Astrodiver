@@ -1,10 +1,16 @@
 fileFormatVersion: 2
-guid: a0f51ca4e5443694b898d191e125222d
+guid: c04749263edd54c4987873d76aca7cf9
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 4367191224252515237
-    second: Template_0
+      213: -2181839972507197595
+    second: Tileset_Crystal_0
+  - first:
+      213: 3245792631985431337
+    second: Tileset_Crystal_1
+  - first:
+      213: 1689681167548156100
+    second: Tileset_Crystal_2
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -51,7 +57,7 @@ TextureImporter:
   spriteMeshType: 0
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 16
+  spritePixelsToUnits: 64
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -100,7 +106,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Template_0
+      name: Tileset_Crystal_0
       rect:
         serializedVersion: 2
         x: 0
@@ -115,14 +121,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 5a346c3b7416b9c30800000000000000
-      internalID: 4367191224252515237
+      spriteID: 56fd5f9da1c88b1e0800000000000000
+      internalID: -2181839972507197595
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_1
+      name: Tileset_Crystal_1
       rect:
         serializedVersion: 2
         x: 16
@@ -135,16 +141,16 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 91876a53bd18c2a439a6bb88afef63af
-      internalID: -1065692821
+      spriteID: 923621ca33f5b0d20800000000000000
+      internalID: 3245792631985431337
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_2
+      name: Tileset_Crystal_2
       rect:
         serializedVersion: 2
         x: 32
@@ -157,16 +163,16 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 1cecbc639b80dbb4ca92fdda390c78b1
-      internalID: -385915717
+      spriteID: 4c8006fc114f27710800000000000000
+      internalID: 1689681167548156100
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_3
+      name: Tileset_Crystal_3
       rect:
         serializedVersion: 2
         x: 48
@@ -181,14 +187,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 2891b35a11520274dbb62978b307fd31
-      internalID: -927717711
+      spriteID: f88544366b5304f47b419026298b8213
+      internalID: -991102820
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_4
+      name: Tileset_Crystal_4
       rect:
         serializedVersion: 2
         x: 64
@@ -203,14 +209,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: e0f93d912c13e7244968f4ae0aa63ea5
-      internalID: -640648944
+      spriteID: 6eeeed3ed15dced42bfa62194b26aa1e
+      internalID: -1967274283
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_5
+      name: Tileset_Crystal_5
       rect:
         serializedVersion: 2
         x: 80
@@ -225,14 +231,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: a34bb82afe9dd0a4eb641e345833254a
-      internalID: 786255774
+      spriteID: 95fc78714f9e8aa46b818932e9f1d199
+      internalID: 465957265
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_6
+      name: Tileset_Crystal_6
       rect:
         serializedVersion: 2
         x: 96
@@ -247,14 +253,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 4acb1c6b60b3dbd418579e790b4b1731
-      internalID: -1505637729
+      spriteID: 87eabdd4ad6d5bc41a7aede9927394fa
+      internalID: -1515880298
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_7
+      name: Tileset_Crystal_7
       rect:
         serializedVersion: 2
         x: 112
@@ -269,14 +275,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 9f4c4d00ff8b25f4b82dabbe08a03485
-      internalID: -176867899
+      spriteID: 4286b52e171c6174c9cc92b445475b6e
+      internalID: -1268063603
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_8
+      name: Tileset_Crystal_8
       rect:
         serializedVersion: 2
         x: 128
@@ -291,14 +297,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 1d586c85bafa8c145843e7a2a8ae0123
-      internalID: 642147189
+      spriteID: 4338c34dfac5bbc4dac0f5ac4d5e5e34
+      internalID: -741362962
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_9
+      name: Tileset_Crystal_9
       rect:
         serializedVersion: 2
         x: 144
@@ -313,14 +319,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 23a373c26415db14195a4924d14a8a2e
-      internalID: 653028596
+      spriteID: f9b9bd43d2291e947ac4b685c01af48d
+      internalID: 1087376257
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_10
+      name: Tileset_Crystal_10
       rect:
         serializedVersion: 2
         x: 160
@@ -335,14 +341,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 873f7987bc2dff448bba1154f693f80b
-      internalID: -946133076
+      spriteID: f18baebe9f7989f4192f068e0673e289
+      internalID: -908836297
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_11
+      name: Tileset_Crystal_11
       rect:
         serializedVersion: 2
         x: 176
@@ -357,14 +363,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 4d8868c6f317f3545b47b1b5f38e67a8
-      internalID: 1297689661
+      spriteID: 5f44b389054be3e41bc595213592f1ba
+      internalID: -677988801
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_12
+      name: Tileset_Crystal_12
       rect:
         serializedVersion: 2
         x: 0
@@ -379,14 +385,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 2c41bfa5cc3ef1743afbef37406ba43f
-      internalID: 1799382301
+      spriteID: b3ea4c43927acab47bd5293aee29e1d2
+      internalID: 1016290747
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_13
+      name: Tileset_Crystal_13
       rect:
         serializedVersion: 2
         x: 16
@@ -401,14 +407,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: bdc8d78f17349404d8d0fccb5fbe3ea8
-      internalID: -1506608214
+      spriteID: c72af0cb1fa95394abfdb41cb3375211
+      internalID: -2142470660
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_14
+      name: Tileset_Crystal_14
       rect:
         serializedVersion: 2
         x: 32
@@ -423,14 +429,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 072e693851f75204abecf1e99941dda2
-      internalID: 1777886854
+      spriteID: fc1f6ea26fdeaa843aaab554a267d6a8
+      internalID: 380010752
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_15
+      name: Tileset_Crystal_15
       rect:
         serializedVersion: 2
         x: 48
@@ -445,14 +451,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 3c359859f642b9a45bd2445dcf7dee3e
-      internalID: 1166798149
+      spriteID: a68eb71d64be1a44c9d5fde9eb0abab6
+      internalID: -1742024170
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_16
+      name: Tileset_Crystal_16
       rect:
         serializedVersion: 2
         x: 64
@@ -467,14 +473,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 1b7735b8d8271594f87c83750d96c262
-      internalID: -1566256669
+      spriteID: 16536eab00aa8b04d9b1802113716392
+      internalID: 80604597
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_17
+      name: Tileset_Crystal_17
       rect:
         serializedVersion: 2
         x: 80
@@ -489,14 +495,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 61481652c50456342bcec49d3777ba1a
-      internalID: -1656399685
+      spriteID: 2f26e013d6f34c3428ac45784ab32fa7
+      internalID: -908320383
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_18
+      name: Tileset_Crystal_18
       rect:
         serializedVersion: 2
         x: 96
@@ -511,14 +517,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 86d29d3e8bdb95741bce6ae9d71625ca
-      internalID: 1535622768
+      spriteID: 241fdacb3d4ce814583fdce14e1ff234
+      internalID: 1706209748
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_19
+      name: Tileset_Crystal_19
       rect:
         serializedVersion: 2
         x: 112
@@ -533,14 +539,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 9fff92e4eb2b58740b7ffed5fcd7fa89
-      internalID: -2073345172
+      spriteID: 196ce8216f615d94f94ce342de6cf54a
+      internalID: -454617443
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_20
+      name: Tileset_Crystal_20
       rect:
         serializedVersion: 2
         x: 128
@@ -555,14 +561,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 057f8f369e7a1cf48944c92a2d09e95c
-      internalID: 920044491
+      spriteID: 64dda3b89a1547c4e8587c774f4255a6
+      internalID: 592869381
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_21
+      name: Tileset_Crystal_21
       rect:
         serializedVersion: 2
         x: 144
@@ -577,14 +583,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 26a6698ae489e1144a16da2ba562aa5e
-      internalID: 1054065114
+      spriteID: 40d3614dbe0223d4c839d690fde3d178
+      internalID: 1474795660
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_22
+      name: Tileset_Crystal_22
       rect:
         serializedVersion: 2
         x: 176
@@ -599,14 +605,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: b08aa5b3bcb716c499d4fddc7d414d0b
-      internalID: -926471714
+      spriteID: 56bd2850aff5cdc42a047338299e8b14
+      internalID: 1055980427
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_23
+      name: Tileset_Crystal_23
       rect:
         serializedVersion: 2
         x: 0
@@ -621,14 +627,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 178ed9cd7266da54e9131a08d1c87cc0
-      internalID: 717548609
+      spriteID: 787e91ec171c13949820709998b8d915
+      internalID: 456301222
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_24
+      name: Tileset_Crystal_24
       rect:
         serializedVersion: 2
         x: 16
@@ -643,14 +649,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 6510a4bacfc967b498fcf91779eed48f
-      internalID: -286321408
+      spriteID: fcd01e7ad97da4a4b8d1417cbc8daada
+      internalID: 1721403746
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_25
+      name: Tileset_Crystal_25
       rect:
         serializedVersion: 2
         x: 32
@@ -665,14 +671,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: d5eae0c27abec384297f9317cded1029
-      internalID: 1063543896
+      spriteID: 7fa105a650dc32d47a17156bdb35e1fc
+      internalID: -1783752224
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_26
+      name: Tileset_Crystal_26
       rect:
         serializedVersion: 2
         x: 48
@@ -687,14 +693,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: b541ba2ea4785264cb501bbecd090a6d
-      internalID: -2084672043
+      spriteID: 7f011c7cda1b35841ba14ee8922da25b
+      internalID: 1038180602
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_27
+      name: Tileset_Crystal_27
       rect:
         serializedVersion: 2
         x: 64
@@ -709,14 +715,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 50cf1997e6816ab42837622fe0fa4ae5
-      internalID: 1702562531
+      spriteID: 804c93b098fc8a84e8ee49472f1c0014
+      internalID: 1268176757
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_28
+      name: Tileset_Crystal_28
       rect:
         serializedVersion: 2
         x: 80
@@ -731,14 +737,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: e4e13a4aa98681f44b0b5e050f27eadc
-      internalID: -284797480
+      spriteID: b39fc7223a8482847a17e504da47e2f1
+      internalID: 826017570
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_29
+      name: Tileset_Crystal_29
       rect:
         serializedVersion: 2
         x: 96
@@ -753,14 +759,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: dd1903004004f294faeb254651f2ebfe
-      internalID: 1590549291
+      spriteID: 4299166cc7a935740970cf419efc9cd1
+      internalID: 1716459985
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_30
+      name: Tileset_Crystal_30
       rect:
         serializedVersion: 2
         x: 112
@@ -775,14 +781,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: ba551e703c8ab8643bbbe5f3cb8d68b5
-      internalID: -263369153
+      spriteID: 8d5ce88271ce24048bc46ae3358352ad
+      internalID: 583672460
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_31
+      name: Tileset_Crystal_31
       rect:
         serializedVersion: 2
         x: 128
@@ -797,14 +803,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 5ffc8c311213b954b8f537fe07836c49
-      internalID: 1677444015
+      spriteID: a8185722f23cc1d4fa2807e2d968bca5
+      internalID: 1909579699
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_32
+      name: Tileset_Crystal_32
       rect:
         serializedVersion: 2
         x: 144
@@ -819,14 +825,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 4712478a5a452d04f8e7a0ad68ef7b44
-      internalID: 1934629596
+      spriteID: 15053646aa512d3418382eb24d8cd3de
+      internalID: 1668392854
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_33
+      name: Tileset_Crystal_33
       rect:
         serializedVersion: 2
         x: 160
@@ -841,14 +847,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: ed76478722ceaaf4a8b0626f62e3b0c7
-      internalID: -1338603488
+      spriteID: ff434d4c17416c14daea62de976fb9bd
+      internalID: 515219890
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_34
+      name: Tileset_Crystal_34
       rect:
         serializedVersion: 2
         x: 176
@@ -863,14 +869,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 3aae032a2e40d7a45b6919a9b6cc9dfb
-      internalID: -1372795473
+      spriteID: 0164cc2cf2534d34d918bf0a8caefcd8
+      internalID: -848825634
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_35
+      name: Tileset_Crystal_35
       rect:
         serializedVersion: 2
         x: 0
@@ -885,14 +891,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: da7e86a3c450104408a963b31eb528d0
-      internalID: -7997396
+      spriteID: c1521d8498b8e7d4996db77b94daf0a7
+      internalID: 595871761
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_36
+      name: Tileset_Crystal_36
       rect:
         serializedVersion: 2
         x: 16
@@ -907,14 +913,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 187ebacf2d337254a91edfbe342d6023
-      internalID: -26629258
+      spriteID: c4f107978ba751b4e8c595f8ae7d20ef
+      internalID: -937556936
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_37
+      name: Tileset_Crystal_37
       rect:
         serializedVersion: 2
         x: 32
@@ -929,14 +935,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 1eac5a7f74dc6cd4898ee8ec41a3a6d4
-      internalID: -1262252570
+      spriteID: fe12861edc8649442b373631d4226b5a
+      internalID: 884041625
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_38
+      name: Tileset_Crystal_38
       rect:
         serializedVersion: 2
         x: 48
@@ -951,14 +957,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: f22835743fca5664eaa77d373ab8b72a
-      internalID: 1684417733
+      spriteID: 0000ccd9253247a4ea8438742f6e699e
+      internalID: 1247863878
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_39
+      name: Tileset_Crystal_39
       rect:
         serializedVersion: 2
         x: 64
@@ -973,14 +979,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 5dbf0c0bd6585374cba67aad68fd8272
-      internalID: -747382666
+      spriteID: 950023a18839fc942a0a72a121ee95ef
+      internalID: 821897757
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_40
+      name: Tileset_Crystal_40
       rect:
         serializedVersion: 2
         x: 80
@@ -995,14 +1001,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 71cc9afa549edec4a8776aad1f6fb1f7
-      internalID: 340852509
+      spriteID: c68a22d46e5c5134dab508335bce8fbf
+      internalID: 1668923206
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_41
+      name: Tileset_Crystal_41
       rect:
         serializedVersion: 2
         x: 96
@@ -1017,14 +1023,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 05d8b7f7c716bec499c2e1570cef9acd
-      internalID: -1550692127
+      spriteID: dda81ee5b67ff604f8d42fff4a101994
+      internalID: -1663214651
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_42
+      name: Tileset_Crystal_42
       rect:
         serializedVersion: 2
         x: 112
@@ -1039,14 +1045,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: ecadce6297f49dd45a1f942a6ded2f60
-      internalID: 639319672
+      spriteID: 38f25c330a04d944aac8aab07f994781
+      internalID: 2035416394
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_43
+      name: Tileset_Crystal_43
       rect:
         serializedVersion: 2
         x: 128
@@ -1061,14 +1067,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 16c54b5cd2c9da846b91ddf85319c043
-      internalID: 1102445643
+      spriteID: d984d84c5ec304c4494f147c1f39f131
+      internalID: -247111191
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_44
+      name: Tileset_Crystal_44
       rect:
         serializedVersion: 2
         x: 144
@@ -1083,14 +1089,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: bc3228e0c58b2594b8260c18bfab24c3
-      internalID: -138192713
+      spriteID: 66f3d1dd1cc822c4c97e630acf2f51d1
+      internalID: 1058950991
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_45
+      name: Tileset_Crystal_45
       rect:
         serializedVersion: 2
         x: 160
@@ -1105,14 +1111,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 4a4008d830ac7d84c886019be3df94fb
-      internalID: 713908357
+      spriteID: 7717528d00efa6c4e87eaf95e4b5d85e
+      internalID: -1251224125
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Template_46
+      name: Tileset_Crystal_46
       rect:
         serializedVersion: 2
         x: 176
@@ -1127,8 +1133,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: efc98c1f3e51926498d13a90514c3ab3
-      internalID: -130095683
+      spriteID: 7dfc7470f8b88704fbfe9db9b88b8088
+      internalID: -1600299740
       vertices: []
       indices: 
       edges: []
@@ -1137,7 +1143,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 17c9b8ff7c02c8f4eb33c194d4853ba8
+    spriteID: 9b3fadab71f1dd7469b1ffd9e7cd270b
     internalID: 0
     vertices: []
     indices: 
@@ -1149,53 +1155,53 @@ TextureImporter:
       - key: SpriteEditor.SliceSettings
         value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":16.0,"y":16.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":1,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      Template_0: 4367191224252515237
-      Template_1: -1065692821
-      Template_10: -946133076
-      Template_11: 1297689661
-      Template_12: 1799382301
-      Template_13: -1506608214
-      Template_14: 1777886854
-      Template_15: 1166798149
-      Template_16: -1566256669
-      Template_17: -1656399685
-      Template_18: 1535622768
-      Template_19: -2073345172
-      Template_2: -385915717
-      Template_20: 920044491
-      Template_21: 1054065114
-      Template_22: -926471714
-      Template_23: 717548609
-      Template_24: -286321408
-      Template_25: 1063543896
-      Template_26: -2084672043
-      Template_27: 1702562531
-      Template_28: -284797480
-      Template_29: 1590549291
-      Template_3: -927717711
-      Template_30: -263369153
-      Template_31: 1677444015
-      Template_32: 1934629596
-      Template_33: -1338603488
-      Template_34: -1372795473
-      Template_35: -7997396
-      Template_36: -26629258
-      Template_37: -1262252570
-      Template_38: 1684417733
-      Template_39: -747382666
-      Template_4: -640648944
-      Template_40: 340852509
-      Template_41: -1550692127
-      Template_42: 639319672
-      Template_43: 1102445643
-      Template_44: -138192713
-      Template_45: 713908357
-      Template_46: -130095683
-      Template_5: 786255774
-      Template_6: -1505637729
-      Template_7: -176867899
-      Template_8: 642147189
-      Template_9: 653028596
+      Tileset_Crystal_0: -2181839972507197595
+      Tileset_Crystal_1: 3245792631985431337
+      Tileset_Crystal_10: -908836297
+      Tileset_Crystal_11: -677988801
+      Tileset_Crystal_12: 1016290747
+      Tileset_Crystal_13: -2142470660
+      Tileset_Crystal_14: 380010752
+      Tileset_Crystal_15: -1742024170
+      Tileset_Crystal_16: 80604597
+      Tileset_Crystal_17: -908320383
+      Tileset_Crystal_18: 1706209748
+      Tileset_Crystal_19: -454617443
+      Tileset_Crystal_2: 1689681167548156100
+      Tileset_Crystal_20: 592869381
+      Tileset_Crystal_21: 1474795660
+      Tileset_Crystal_22: 1055980427
+      Tileset_Crystal_23: 456301222
+      Tileset_Crystal_24: 1721403746
+      Tileset_Crystal_25: -1783752224
+      Tileset_Crystal_26: 1038180602
+      Tileset_Crystal_27: 1268176757
+      Tileset_Crystal_28: 826017570
+      Tileset_Crystal_29: 1716459985
+      Tileset_Crystal_3: -991102820
+      Tileset_Crystal_30: 583672460
+      Tileset_Crystal_31: 1909579699
+      Tileset_Crystal_32: 1668392854
+      Tileset_Crystal_33: 515219890
+      Tileset_Crystal_34: -848825634
+      Tileset_Crystal_35: 595871761
+      Tileset_Crystal_36: -937556936
+      Tileset_Crystal_37: 884041625
+      Tileset_Crystal_38: 1247863878
+      Tileset_Crystal_39: 821897757
+      Tileset_Crystal_4: -1967274283
+      Tileset_Crystal_40: 1668923206
+      Tileset_Crystal_41: -1663214651
+      Tileset_Crystal_42: 2035416394
+      Tileset_Crystal_43: -247111191
+      Tileset_Crystal_44: 1058950991
+      Tileset_Crystal_45: -1251224125
+      Tileset_Crystal_46: -1600299740
+      Tileset_Crystal_5: 465957265
+      Tileset_Crystal_6: -1515880298
+      Tileset_Crystal_7: -1268063603
+      Tileset_Crystal_8: -741362962
+      Tileset_Crystal_9: 1087376257
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
