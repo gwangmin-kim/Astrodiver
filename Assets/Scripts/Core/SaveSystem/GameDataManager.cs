@@ -60,7 +60,47 @@ public class GameDataManager : MonoBehaviour
 
         Definitions = new GameDefinitionRegistry(_definitionCatalog);
         Upgrades = new UpgradeService(this);
+
+#if UNITY_EDITOR
+        InitializeForEditorScenePlay();
+#endif
     }
+
+#if UNITY_EDITOR
+    private void InitializeForEditorScenePlay()
+    {
+        if (IsInitialized)
+        {
+            return;
+        }
+
+        if (HasSaveData)
+        {
+            if (TryLoadSavedGame(out string loadError))
+            {
+                return;
+            }
+
+            Debug.LogWarning(
+                $"Editor scene-start save load failed. Using default in-memory data. {loadError}",
+                this);
+        }
+
+        GameSaveData defaultData = _defaults.CreateSaveData();
+        if (!TryPrepareData(
+                defaultData,
+                out PreparedGameData prepared,
+                out string prepareError))
+        {
+            Debug.LogError(
+                $"Could not initialize editor scene-start data. {prepareError}",
+                this);
+            return;
+        }
+
+        CommitPreparedData(prepared, false, false);
+    }
+#endif
 
     public bool TryStartNewGame(out string error)
     {
