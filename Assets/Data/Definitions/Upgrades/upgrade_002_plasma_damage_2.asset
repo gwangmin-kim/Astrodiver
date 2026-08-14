@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3de66ce8d56b7747b6ac728bd78f710, type: 3}
+  m_Name: upgrade_002_plasma_damage_2
+  m_EditorClassIdentifier: Assembly-CSharp::UpgradeNodeDefinition
+  _id: upgrade.plasma_damage_2
+  _key: plasma_damage_2
+  _sortOrder: 2
+  _displayName: "\uACE0\uCD9C\uB825 \uB808\uC774\uC800 II"
+  _description: "\uB808\uC774\uC800 \uD53C\uD574\uB7C9\uC774 \uC99D\uAC00\uD569\uB2C8\uB2E4."
+  _icon: {fileID: 0}
+  _parent: {fileID: 11400000, guid: de02d7f8d6df8c24198505f9653b568f, type: 2}
+  _maxLevel: 10
+  _baseCosts:
+  - _resource: {fileID: 11400000, guid: 1059946eedbea974699f29d697f124de, type: 2}
+    _amount: 250
+  _costIncreases: []
+  _effects:
+  - rid: 8656187040778420321
+  references:
+    version: 2
+    RefIds:
+    - rid: 8656187040778420321
+      type: {class: NumericUpgradeEffect, ns: , asm: Assembly-CSharp}
+      data:
+        _target: 3001
+        _operation: 0
+        _value: 25

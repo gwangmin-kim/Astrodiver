@@ -10,27 +10,28 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a3de66ce8d56b7747b6ac728bd78f710, type: 3}
-  m_Name: upgrade_001_unlock_netgun
+  m_Name: upgrade_003_plasma_damage_3
   m_EditorClassIdentifier: Assembly-CSharp::UpgradeNodeDefinition
-  _id: upgrade.unlock_netgun
-  _key: unlock_netgun
-  _sortOrder: 1
-  _displayName: "\uADF8\uBB3C\uCD1D \uC81C\uC791"
-  _description: "\uD3EC\uD68D\uC6A9 \uADF8\uBB3C\uCD1D\uC744 \uC7A0\uAE08 \uD574\uC81C\uD569\uB2C8\uB2E4."
+  _id: upgrade.plasma_damage_3
+  _key: plasma_damage_3
+  _sortOrder: 3
+  _displayName: "\uACE0\uCD9C\uB825 \uB808\uC774\uC800 III"
+  _description: "\uB808\uC774\uC800 \uD53C\uD574\uB7C9\uC774 \uC99D\uAC00\uD569\uB2C8\uB2E4."
   _icon: {fileID: 0}
-  _parent: {fileID: 11400000, guid: 113959368ffda2f48bc3ded1f6a8c16e, type: 2}
-  _maxLevel: 1
+  _parent: {fileID: 11400000, guid: 65f88cf542762bf4eb1a43ff3a0d2ddb, type: 2}
+  _maxLevel: 10
   _baseCosts:
   - _resource: {fileID: 11400000, guid: 1059946eedbea974699f29d697f124de, type: 2}
-    _amount: 20
+    _amount: 750
   _costIncreases: []
   _effects:
-  - rid: 8656187017407234134
+  - rid: 8656187084178194542
   references:
     version: 2
     RefIds:
-    - rid: 8656187017407234134
-      type: {class: UnlockUpgradeEffect, ns: , asm: Assembly-CSharp}
+    - rid: 8656187084178194542
+      type: {class: NumericUpgradeEffect, ns: , asm: Assembly-CSharp}
       data:
-        _target: 2000
-        _isUnlocked: 1
+        _target: 3001
+        _operation: 0
+        _value: 75
