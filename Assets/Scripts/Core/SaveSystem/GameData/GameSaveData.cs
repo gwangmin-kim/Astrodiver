@@ -9,10 +9,11 @@ using UnityEngine;
 [Serializable]
 public sealed class GameSaveData
 {
-    public const int CurrentSchemaVersion = 8;
+    public const int CurrentSchemaVersion = 10;
 
     public int schemaVersion = CurrentSchemaVersion;
     public InventoryData inventory = new();
+    public InventoryData resourceChest = new();
     public List<UpgradeNodeSaveData> upgradeNodes = new();
     [HideInInspector] public List<string> unlockedUpgradeIds = new();
     public List<GameProgressEventId> completedEvents = new();
@@ -21,11 +22,13 @@ public sealed class GameSaveData
     {
         schemaVersion = Mathf.Max(CurrentSchemaVersion, schemaVersion);
         inventory ??= new InventoryData();
+        resourceChest ??= new InventoryData();
         upgradeNodes ??= new List<UpgradeNodeSaveData>();
         unlockedUpgradeIds ??= new List<string>();
         completedEvents ??= new List<GameProgressEventId>();
 
         inventory.RepairAfterLoad();
+        resourceChest.RepairAfterLoad();
         NormalizeUpgradeNodes();
         MigrateLegacyUpgradeIds();
         NormalizeCompletedEvents();
@@ -46,6 +49,18 @@ public sealed class GameSaveData
 
         if (!inventory.TryValidate(out error))
         {
+            return false;
+        }
+
+        if (resourceChest == null)
+        {
+            error = "Resource chest data is null.";
+            return false;
+        }
+
+        if (!resourceChest.TryValidate(out error))
+        {
+            error = $"Resource chest data is invalid: {error}";
             return false;
         }
 

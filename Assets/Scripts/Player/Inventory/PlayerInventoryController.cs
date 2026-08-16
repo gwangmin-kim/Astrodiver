@@ -10,6 +10,7 @@ public sealed class PlayerInventoryController : MonoBehaviour
         new(StringComparer.Ordinal);
 
     private InventoryData _inventory;
+    private InventoryData _resourceChest;
     private GameDataManager _gameDataManager;
     private CreatureInventorySlot[] _creatureSlots = Array.Empty<CreatureInventorySlot>();
     private InventoryData _sessionStartSnapshot;
@@ -28,6 +29,20 @@ public sealed class PlayerInventoryController : MonoBehaviour
 
     public IReadOnlyList<ResourceInventoryEntry> ResourceAmounts =>
         _inventory?.ResourceAmounts;
+
+    public IReadOnlyList<ResourceInventoryEntry> ChestResourceAmounts =>
+        _resourceChest?.ResourceAmounts;
+
+    public bool IsResourceChestUnlocked =>
+        _gameDataManager?.RuntimeData?.Facilities?.ResourceChestUnlocked ?? false;
+
+    private InventoryData SpendableResourceInventory =>
+        IsResourceChestUnlocked ? _resourceChest : _inventory;
+
+    private InventoryData ResourceCollectionInventory =>
+        IsResourceChestUnlocked && !_isExploreSessionActive
+            ? _resourceChest
+            : _inventory;
 
     private void Awake()
     {
@@ -97,7 +112,7 @@ public sealed class PlayerInventoryController : MonoBehaviour
             return false;
         }
 
-        InventoryData snapshot = CreateHubRollbackSnapshot();
+        InventoryData snapshot = CreateHubRollbackSnapshot(_inventory);
         bool wasDirty = GameDataManager.Instance.HasUnsavedChanges;
         CreatureInventorySlot slot = slots[targetIndex];
         if (slot == null)
@@ -110,7 +125,7 @@ public sealed class PlayerInventoryController : MonoBehaviour
         slot.Set(creature.Id, nextCount);
         SyncCreatureSaveData();
 
-        return CompleteInventoryMutation(snapshot, wasDirty);
+        return CompleteInventoryMutation(_inventory, snapshot, wasDirty);
     }
 
     /// <summary>
@@ -163,7 +178,7 @@ public sealed class PlayerInventoryController : MonoBehaviour
             return 0;
         }
 
-        return CompleteHubSpend(snapshot, wasDirty)
+        return CompleteHubSpend(_inventory, snapshot, wasDirty)
             ? takenAmount
             : 0;
     }
@@ -176,10 +191,11 @@ public sealed class PlayerInventoryController : MonoBehaviour
             return false;
         }
 
-        InventoryData snapshot = CreateHubRollbackSnapshot();
+        InventoryData destination = ResourceCollectionInventory;
+        InventoryData snapshot = CreateHubRollbackSnapshot(destination);
         bool wasDirty = GameDataManager.Instance.HasUnsavedChanges;
-        _inventory.AddResource(resource.Id, amount);
-        return CompleteInventoryMutation(snapshot, wasDirty);
+        destination.AddResource(resource.Id, amount);
+        return CompleteInventoryMutation(destination, snapshot, wasDirty);
     }
 
     public int GetResourceAmount(ResourceDefinition resource)
@@ -189,19 +205,27 @@ public sealed class PlayerInventoryController : MonoBehaviour
             : _inventory.GetResourceAmount(resource.Id);
     }
 
+    public int GetChestResourceAmount(ResourceDefinition resource)
+    {
+        return resource == null || _resourceChest == null
+            ? 0
+            : _resourceChest.GetResourceAmount(resource.Id);
+    }
+
     /// <summary>
     /// 업그레이드 지불 가능 여부 검사
     /// </summary>
     public bool CanAfford(IReadOnlyList<UpgradeResourceCost> costs)
     {
-        if (!TryAggregateCosts(costs))
+        InventoryData spendableInventory = SpendableResourceInventory;
+        if (spendableInventory == null || !TryAggregateCosts(costs))
         {
             return false;
         }
 
         foreach (KeyValuePair<string, int> cost in _resourceCostBuffer)
         {
-            if (_inventory.GetResourceAmount(cost.Key) < cost.Value)
+            if (spendableInventory.GetResourceAmount(cost.Key) < cost.Value)
             {
                 return false;
             }
@@ -222,14 +246,15 @@ public sealed class PlayerInventoryController : MonoBehaviour
             return false;
         }
 
-        InventoryData snapshot = _inventory.Clone();
+        InventoryData spendableInventory = SpendableResourceInventory;
+        InventoryData snapshot = spendableInventory.Clone();
         bool wasDirty = GameDataManager.Instance.HasUnsavedChanges;
         if (!TrySpendResourceInternal(resource.Id, amount))
         {
             return false;
         }
 
-        return CompleteHubSpend(snapshot, wasDirty);
+        return CompleteHubSpend(spendableInventory, snapshot, wasDirty);
     }
 
     /// <summary>
@@ -243,14 +268,15 @@ public sealed class PlayerInventoryController : MonoBehaviour
             return false;
         }
 
-        InventoryData snapshot = _inventory.Clone();
+        InventoryData spendableInventory = SpendableResourceInventory;
+        InventoryData snapshot = spendableInventory.Clone();
         bool wasDirty = GameDataManager.Instance.HasUnsavedChanges;
         if (!TrySpendResourcesForTransaction(costs))
         {
             return false;
         }
 
-        return CompleteHubSpend(snapshot, wasDirty);
+        return CompleteHubSpend(spendableInventory, snapshot, wasDirty);
     }
 
     internal bool TrySpendResourcesForTransaction(IReadOnlyList<UpgradeResourceCost> costs)
@@ -291,8 +317,19 @@ public sealed class PlayerInventoryController : MonoBehaviour
         }
 
         GameDataManager manager = GameDataManager.Instance;
+        InventoryData playerBeforeDeposit = _inventory.Clone();
+        InventoryData chestBeforeDeposit = _resourceChest.Clone();
+        bool wasDirtyBeforeDeposit = manager.HasUnsavedChanges;
+        if (DepositCarriedResourcesToChest())
+        {
+            manager.MarkDirty();
+        }
+
         if (manager.HasUnsavedChanges && !manager.SaveNow())
         {
+            _inventory.CopyFrom(playerBeforeDeposit);
+            _resourceChest.CopyFrom(chestBeforeDeposit);
+            manager.RestoreDirtyState(wasDirtyBeforeDeposit);
             Debug.LogError("Cannot start exploration with unsaved hub data.", this);
             return false;
         }
@@ -319,13 +356,16 @@ public sealed class PlayerInventoryController : MonoBehaviour
 
         GameDataManager manager = GameDataManager.Instance;
         InventoryData runtimeBeforePenalty = _inventory.Clone();
+        InventoryData chestBeforeDeposit = _resourceChest.Clone();
         bool wasDirty = manager.HasUnsavedChanges;
         ApplySessionLoss(lossRatio);
+        DepositCarriedResourcesToChest();
         manager.MarkDirty();
 
         if (!manager.SaveExplorationResult())
         {
             _inventory.CopyFrom(runtimeBeforePenalty);
+            _resourceChest.CopyFrom(chestBeforeDeposit);
             InitializeCreatureSlots(
                 manager.RuntimeData?.Inventory.CreatureSlotCapacity ?? 1,
                 _inventory.Creatures);
@@ -456,25 +496,28 @@ public sealed class PlayerInventoryController : MonoBehaviour
 
     private bool TrySpendResourceInternal(string resourceId, int amount)
     {
-        return _inventory.TrySpendResource(resourceId, amount);
+        return SpendableResourceInventory.TrySpendResource(resourceId, amount);
     }
 
     /// <summary>
     /// Hub(우주선)에서 저장 실패에 대비해 롤백 스냅샷 생성
     /// </summary>
-    private InventoryData CreateHubRollbackSnapshot()
+    private InventoryData CreateHubRollbackSnapshot(InventoryData inventory)
     {
-        return _isExploreSessionActive ? null : _inventory.Clone();
+        return _isExploreSessionActive ? null : inventory.Clone();
     }
 
-    private bool CompleteInventoryMutation(InventoryData hubSnapshot, bool wasDirty)
+    private bool CompleteInventoryMutation(
+        InventoryData mutatedInventory,
+        InventoryData hubSnapshot,
+        bool wasDirty)
     {
         GameDataManager manager = GameDataManager.Instance;
         manager.MarkDirty();
 
         if (!_isExploreSessionActive && !manager.SaveNow())
         {
-            _inventory.CopyFrom(hubSnapshot);
+            mutatedInventory.CopyFrom(hubSnapshot);
             InitializeCreatureSlots(
                 manager.RuntimeData?.Inventory.CreatureSlotCapacity ?? 1,
                 _inventory.Creatures);
@@ -486,7 +529,10 @@ public sealed class PlayerInventoryController : MonoBehaviour
         return true;
     }
 
-    private bool CompleteHubSpend(InventoryData snapshot, bool wasDirty)
+    private bool CompleteHubSpend(
+        InventoryData spentInventory,
+        InventoryData snapshot,
+        bool wasDirty)
     {
         if (_isExploreSessionActive)
         {
@@ -501,7 +547,7 @@ public sealed class PlayerInventoryController : MonoBehaviour
             return true;
         }
 
-        _inventory.CopyFrom(snapshot);
+        spentInventory.CopyFrom(snapshot);
         InitializeCreatureSlots(
             manager.RuntimeData?.Inventory.CreatureSlotCapacity ?? 1,
             _inventory.Creatures);
@@ -553,6 +599,14 @@ public sealed class PlayerInventoryController : MonoBehaviour
         GameDataManager.Instance.EndSaveSuspension();
     }
 
+    private bool DepositCarriedResourcesToChest()
+    {
+        return IsResourceChestUnlocked &&
+               _inventory != null &&
+               _resourceChest != null &&
+               _inventory.TransferAllResourcesTo(_resourceChest);
+    }
+
     private void OnGameDataChanged(GameSaveData data)
     {
         InitializeFromGameData(data);
@@ -561,7 +615,8 @@ public sealed class PlayerInventoryController : MonoBehaviour
     private void InitializeFromGameData(GameSaveData data)
     {
         _inventory = data?.inventory;
-        if (_inventory == null)
+        _resourceChest = data?.resourceChest;
+        if (_inventory == null || _resourceChest == null)
         {
             _creatureSlots = Array.Empty<CreatureInventorySlot>();
             IsInitialized = false;

@@ -255,6 +255,38 @@ public sealed class InventoryData
         }
     }
 
+    /// <summary>
+    /// 인벤토리 데이터의 ResourceInventoryEntry를 이관하는 함수
+    /// 플레이어 인벤토리의 자원을 상자 인벤토리로 이동시키기 위한 용도
+    /// 다른 용도로 사용되어선 안됨
+    /// </summary>
+    internal bool TransferAllResourcesTo(InventoryData destination)
+    {
+        if (destination == null || ReferenceEquals(this, destination))
+        {
+            return false;
+        }
+
+        _resourceAmounts ??= new List<ResourceInventoryEntry>();
+        destination._resourceAmounts ??= new List<ResourceInventoryEntry>();
+        if (_resourceAmounts.Count == 0)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < _resourceAmounts.Count; i++)
+        {
+            ResourceInventoryEntry entry = _resourceAmounts[i];
+            if (entry != null && !entry.IsEmpty)
+            {
+                destination.AddResource(entry.DefinitionId, entry.Amount);
+            }
+        }
+
+        _resourceAmounts.Clear();
+        return true;
+    }
+
     private ResourceInventoryEntry FindResource(string definitionId)
     {
         if (string.IsNullOrEmpty(definitionId))

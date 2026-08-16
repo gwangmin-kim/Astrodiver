@@ -9,6 +9,7 @@ public sealed class GameDataDefaults : ScriptableObject
     [SerializeField] private PlayerStatsRuntimeData _playerStats = new();
     [SerializeField] private EquipmentRuntimeData _equipment = new();
     [SerializeField] private InventoryRuntimeData _inventory = new();
+    [SerializeField] private FacilityRuntimeData _facilities = new();
 
     public GameSaveData CreateSaveData()
     {
@@ -26,7 +27,8 @@ public sealed class GameDataDefaults : ScriptableObject
         return new GameRuntimeData(
             CreatePlayerStats(),
             CreateEquipment(),
-            CreateInventory());
+            CreateInventory(),
+            CreateFacilities());
     }
 
     public PlayerStatsRuntimeData CreatePlayerStats()
@@ -47,12 +49,19 @@ public sealed class GameDataDefaults : ScriptableObject
         return Clone(_inventory) ?? new InventoryRuntimeData();
     }
 
+    public FacilityRuntimeData CreateFacilities()
+    {
+        _facilities ??= new FacilityRuntimeData();
+        return Clone(_facilities) ?? new FacilityRuntimeData();
+    }
+
     private void OnValidate()
     {
         _data ??= new GameSaveData();
         _playerStats ??= new PlayerStatsRuntimeData();
         _equipment ??= new EquipmentRuntimeData();
         _inventory ??= new InventoryRuntimeData();
+        _facilities ??= new FacilityRuntimeData();
         _data.RepairAfterLoad();
     }
 

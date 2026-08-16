@@ -9,14 +9,17 @@ public sealed class GameRuntimeData
     public GameRuntimeData(
         PlayerStatsRuntimeData playerStats,
         EquipmentRuntimeData equipment,
-        InventoryRuntimeData inventory)
+        InventoryRuntimeData inventory,
+        FacilityRuntimeData facilities)
     {
         PlayerStats = playerStats ?? throw new ArgumentNullException(nameof(playerStats));
         Equipment = equipment ?? throw new ArgumentNullException(nameof(equipment));
         Inventory = inventory ?? throw new ArgumentNullException(nameof(inventory));
+        Facilities = facilities ?? throw new ArgumentNullException(nameof(facilities));
     }
 
     public PlayerStatsRuntimeData PlayerStats { get; }
     public EquipmentRuntimeData Equipment { get; }
     public InventoryRuntimeData Inventory { get; }
+    public FacilityRuntimeData Facilities { get; }
 }

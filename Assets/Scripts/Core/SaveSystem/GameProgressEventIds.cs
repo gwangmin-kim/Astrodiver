@@ -3,6 +3,5 @@
 /// </summary>
 public enum GameProgressEventId
 {
-    None = 0,
-    RootUpgradeUnlocked = 1000
+    None = 0
 }

@@ -73,15 +73,19 @@ public static class GameDataSaveSystemSmokeTest
             PlayerStatsRuntimeData independentPlayerStats = independentRuntimeData.PlayerStats;
             EquipmentRuntimeData equipment = runtimeData.Equipment;
             EquipmentRuntimeData independentEquipment = independentRuntimeData.Equipment;
+            FacilityRuntimeData facilities = runtimeData.Facilities;
+            FacilityRuntimeData independentFacilities = independentRuntimeData.Facilities;
             Require(
                 !ReferenceEquals(source, independentDefaultsCopy) &&
-                !ReferenceEquals(source.inventory, independentDefaultsCopy.inventory),
+                !ReferenceEquals(source.inventory, independentDefaultsCopy.inventory) &&
+                !ReferenceEquals(source.resourceChest, independentDefaultsCopy.resourceChest),
                 "GameDataDefaults returned a shared mutable data object.");
             Require(
                 !ReferenceEquals(runtimeData, independentRuntimeData) &&
                 !ReferenceEquals(playerStats, independentPlayerStats) &&
                 !ReferenceEquals(equipment, independentEquipment) &&
-                !ReferenceEquals(runtimeData.Inventory, independentRuntimeData.Inventory),
+                !ReferenceEquals(runtimeData.Inventory, independentRuntimeData.Inventory) &&
+                !ReferenceEquals(facilities, independentFacilities),
                 "GameDataDefaults returned shared mutable runtime data.");
             InventoryData inventoryReference = source.inventory;
             source.inventory = new InventoryData(
@@ -91,6 +95,10 @@ public static class GameDataSaveSystemSmokeTest
             Require(
                 independentDefaultsCopy.inventory.GetResourceAmount(resourceDefinition.Id) == 0,
                 "Mutating a defaults copy changed another defaults copy.");
+
+            source.resourceChest = new InventoryData(
+                null,
+                new[] { new ResourceInventoryEntry(resourceDefinition.Id, 9) });
             source.unlockedUpgradeIds.Add("movement.speed");
             source.upgradeNodes.Add(new UpgradeNodeSaveData
             {
@@ -98,19 +106,7 @@ public static class GameDataSaveSystemSmokeTest
                 level = 3
             });
             UpgradeEffect movementEffect = temporaryNode.Effects[0];
-            List<GameProgressEventId> completedEvents = new();
-            UpgradeEffectContext effectContext = new(
-                runtimeData,
-                eventId =>
-                {
-                    if (completedEvents.Contains(eventId))
-                    {
-                        return false;
-                    }
-
-                    completedEvents.Add(eventId);
-                    return true;
-                });
+            UpgradeEffectContext effectContext = new(runtimeData);
             float movementSpeedBeforeEffect =
                 runtimeData.PlayerStats.movement.baseMoveSpeed;
             float movementSpeedRatioBeforeEffect =
@@ -221,9 +217,7 @@ public static class GameDataSaveSystemSmokeTest
                 independentRuntimeData.Inventory.CreatureMaxStackCount == 10,
                 "The creature max stack count upgrade changed another defaults copy.");
             GameRuntimeData rebuiltRuntimeData = defaults.CreateRuntimeData();
-            UpgradeEffectContext rebuiltEffectContext = new(
-                rebuiltRuntimeData,
-                _ => false);
+            UpgradeEffectContext rebuiltEffectContext = new(rebuiltRuntimeData);
             Require(
                 creatureMaxStackEffect.TryApply(
                     rebuiltEffectContext,
@@ -252,25 +246,23 @@ public static class GameDataSaveSystemSmokeTest
             Require(
                 runtimeData.Equipment.netGun.isUnlocked,
                 "The unlock upgrade effect did not unlock the net gun.");
-            UpgradeEffect progressEventEffect = new ProgressEventUpgradeEffect(
-                GameProgressEventId.RootUpgradeUnlocked);
+
+            UpgradeEffect resourceChestUnlockEffect = new UnlockUpgradeEffect(
+                UnlockUpgradeTarget.ResourceChest);
             Require(
-                progressEventEffect.TryApply(effectContext, out string progressEventError),
-                progressEventError);
+                resourceChestUnlockEffect.TryApply(
+                    effectContext,
+                    out string facilityUnlockError),
+                facilityUnlockError);
             Require(
-                progressEventEffect.TryApply(effectContext, out progressEventError),
-                progressEventError);
-            Require(
-                completedEvents.Count == 1 &&
-                completedEvents[0] == GameProgressEventId.RootUpgradeUnlocked,
-                "The progress event upgrade effect was not idempotent.");
+                runtimeData.Facilities.ResourceChestUnlocked &&
+                !independentRuntimeData.Facilities.ResourceChestUnlocked,
+                "The unlock upgrade effect did not isolate the resource chest state.");
             Require(
                 !Mathf.Approximately(
                     runtimeData.PlayerStats.movement.moveSpeedRatio,
                     independentPlayerStats.movement.moveSpeedRatio),
                 "Applying an upgrade changed another defaults copy.");
-            source.completedEvents.Add(GameProgressEventId.RootUpgradeUnlocked);
-            source.completedEvents.Add(GameProgressEventId.RootUpgradeUnlocked);
             source.completedEvents.Add(GameProgressEventId.None);
 
             Require(
@@ -304,6 +296,9 @@ public static class GameDataSaveSystemSmokeTest
                 "Resource id changed.");
             Require(loaded.inventory.ResourceAmounts[0].Amount == 42, "Resource amount changed.");
             Require(
+                loaded.resourceChest.GetResourceAmount(resourceDefinition.Id) == 9,
+                "Resource chest amount was not preserved.");
+            Require(
                 loaded.upgradeNodes.Exists(entry =>
                     entry.nodeId == "movement.speed" && entry.level == 1),
                 "The legacy upgrade id was not migrated to level 1.");
@@ -312,10 +307,13 @@ public static class GameDataSaveSystemSmokeTest
                     entry.nodeId == "battery.capacity" && entry.level == 3),
                 "Upgrade node level was not preserved.");
             Require(
-                loaded.completedEvents.Count == 1 &&
-                loaded.completedEvents.Contains(GameProgressEventId.RootUpgradeUnlocked),
-                "Progress event ids were not normalized as a unique collection.");
+                loaded.completedEvents.Count == 0,
+                "Invalid progress event ids were not removed during normalization.");
 
+            source.completedEvents.Clear();
+            source.completedEvents.Add((GameProgressEventId)1000);
+            source.completedEvents.Add((GameProgressEventId)1100);
+            // Retired initialized fields remain here only to verify that legacy saves ignore them.
             string legacyJson = JsonUtility.ToJson(source, true)
                 .Replace(
                     $"\"schemaVersion\": {GameSaveData.CurrentSchemaVersion}",
@@ -346,6 +344,9 @@ public static class GameDataSaveSystemSmokeTest
                 migrated.inventory.Creatures[0].DefinitionId == creatureDefinition.Id &&
                 migrated.inventory.Creatures[0].Count == 2,
                 "Legacy creature slots were not migrated to creature entries.");
+            Require(
+                migrated.completedEvents.Count == 0,
+                "Legacy upgrade unlock events were not removed from progress events.");
 
             GameSaveData previousRun = defaults.CreateSaveData();
             previousRun.inventory = new InventoryData(
