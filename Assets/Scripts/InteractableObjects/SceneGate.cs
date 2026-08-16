@@ -5,6 +5,7 @@ public class SceneGate : MonoBehaviour, IInteractable
 {
     [Header("Hub Stage Selection")]
     [SerializeField] private StageSelectionUI _stageSelectionUI;
+    [SerializeField] private UpgradeNodeDefinition _requiredHubUpgrade;
 
     [Header("Direct Scene Transition (Optional)")]
     [SerializeField] private string _destinationSceneName;
@@ -73,9 +74,10 @@ public class SceneGate : MonoBehaviour, IInteractable
     private bool IsHubGateLocked()
     {
         return gameObject.scene.name == "Hub" &&
-               (GameDataManager.Instance == null ||
-                !GameDataManager.Instance.IsEventCompleted(
-                    GameProgressEventId.RootUpgradeUnlocked));
+               (_requiredHubUpgrade == null ||
+                GameDataManager.Instance == null ||
+                !GameDataManager.Instance.IsUpgradeUnlocked(
+                    _requiredHubUpgrade.Id));
     }
 
     private void HandleFirstUpgradeLocked()
