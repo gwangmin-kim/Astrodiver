@@ -1146,6 +1146,7 @@ MonoBehaviour:
   _dashActionName: Dash
   _captureActionName: Capture
   _attackActionName: Attack
+  _cancelActionName: Cancel
   _mouseAimThreshold: 5
   _inputBufferTime: 0.15
 --- !u!114 &8686139265353281528
@@ -1264,5 +1265,3 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PauseMenuController
   _titleSceneName: MainMenu
   _pauseMenuPrefab: {fileID: 3858735769217438660, guid: d45ca5b1dbf176049a872cb53d6baae9, type: 3}
-  _playerMapName: Player
-  _cancelActionName: Cancel

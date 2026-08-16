@@ -12,6 +12,7 @@ public class PlayerInputHandler : MonoBehaviour
     [SerializeField] private string _dashActionName = "Dash"; // 스페이스바/A(하단 버튼)
     [SerializeField] private string _captureActionName = "Capture"; // 좌클릭/Right Button
     [SerializeField] private string _attackActionName = "Attack"; // 우클릭/Right Trigger
+    [SerializeField] private string _cancelActionName = "Cancel"; // ESC/Start Button
 
     [Header("Mouse Aim Settings")]
     [Tooltip("마우스 사용 시 임계 조준 거리\n"
@@ -34,6 +35,7 @@ public class PlayerInputHandler : MonoBehaviour
     private InputAction _dashAction;
     private InputAction _captureAction;
     private InputAction _attackAction;
+    private InputAction _cancelAction;
 
     // 캐싱된 입력값
     // 값 타입
@@ -69,6 +71,7 @@ public class PlayerInputHandler : MonoBehaviour
     public bool AttackInput { get; private set; } // Pass Through 타입으로 별도의 소비 함수 필요 없음
     public Action pressAttackEvent;
     public Action releaseAttackEvent;
+    public event Action CancelPressed;
 
     public bool InputEnabled { get; private set; } = true;
 
@@ -80,6 +83,7 @@ public class PlayerInputHandler : MonoBehaviour
         _dashAction = FindAction(_dashActionName);
         _captureAction = FindAction(_captureActionName);
         _attackAction = FindAction(_attackActionName);
+        _cancelAction = FindAction(_cancelActionName);
 
         _mainCamera = Camera.main;
     }
@@ -92,8 +96,15 @@ public class PlayerInputHandler : MonoBehaviour
         InputActionMap map = InputSystem.actions.FindActionMap(_playerMapName);
         if (map == null) return;
 
-        if (enabled) map.Enable();
-        else map.Disable();
+        if (enabled)
+        {
+            map.Enable();
+        }
+        else
+        {
+            map.Disable();
+            _cancelAction?.Enable();
+        }
     }
 
     public void ResetInputState()
@@ -120,6 +131,12 @@ public class PlayerInputHandler : MonoBehaviour
 
     private void Update()
     {
+        if (_cancelAction?.WasPressedThisFrame() ?? false)
+        {
+            CancelPressed?.Invoke();
+            return;
+        }
+
         if (!InputEnabled) return;
 
         MoveInput = _moveAction?.ReadValue<Vector2>() ?? Vector2.zero;

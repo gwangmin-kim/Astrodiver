@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -14,13 +13,8 @@ public sealed class PauseMenuController : MonoBehaviour
     [Header("UI")]
     [SerializeField] private PauseMenuView _pauseMenuPrefab;
 
-    [Header("Input")]
-    [SerializeField] private string _playerMapName = "Player";
-    [SerializeField] private string _cancelActionName = "Cancel";
-
     private PlayerInputHandler _playerInput;
     private UIInputHandler _uiInput;
-    private InputAction _cancelAction;
     private PauseMenuView _pauseMenuInstance;
     private Button _continueButton;
     private Button _exitButton;
@@ -62,19 +56,7 @@ public sealed class PauseMenuController : MonoBehaviour
     private void Start()
     {
         _uiInput = FindAnyObjectByType<UIInputHandler>();
-        _cancelAction = InputSystem.actions.FindAction($"{_playerMapName}/{_cancelActionName}");
-
-        if (_cancelAction == null)
-        {
-            Debug.LogError(
-                $"PauseMenuController: 전역 Input Actions에서 '{_playerMapName}/{_cancelActionName}' 액션을 찾을 수 없습니다.",
-                this);
-            enabled = false;
-            return;
-        }
-
-        _cancelAction.performed += HandleCancelPerformed;
-        _cancelAction.Enable();
+        _playerInput.CancelPressed += HandleCancelPressed;
 
         _continueButton.onClick.AddListener(Resume);
         _exitButton.onClick.AddListener(ExitToTitle);
@@ -82,9 +64,9 @@ public sealed class PauseMenuController : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (_cancelAction != null)
+        if (_playerInput != null)
         {
-            _cancelAction.performed -= HandleCancelPerformed;
+            _playerInput.CancelPressed -= HandleCancelPressed;
         }
 
         if (_continueButton != null)
@@ -103,7 +85,7 @@ public sealed class PauseMenuController : MonoBehaviour
         }
     }
 
-    private void HandleCancelPerformed(InputAction.CallbackContext context)
+    private void HandleCancelPressed()
     {
         if (_isLeaving)
         {
@@ -144,7 +126,6 @@ public sealed class PauseMenuController : MonoBehaviour
 
         Time.timeScale = 0f;
         _playerInput?.SetInputEnabled(false);
-        _cancelAction?.Enable();
         _uiInput?.SetInputEnabled(true);
 
         _pauseMenuInstance.gameObject.SetActive(true);
