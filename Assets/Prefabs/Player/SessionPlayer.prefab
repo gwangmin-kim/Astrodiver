@@ -111,21 +111,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 427c0eee49ce73443b786a9073dd8a45, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlasmaGunController
-  _data:
-    ammoCapacity: 20
-    baseChargeTime: 0.5
-    chargeSpeedMultiplier: 1
-    chargedRetentionTime: 0.5
-    tickDamage: 100
-    tickInterval: 0.5
-    tickSpeedMultiplier: 0
-    baseAttackRange: 0
-    attackRangeRatio: 1
-    chainCount: 5
-    chainedDamageRate: 0.5
-    chainedDamageRateRatio: 1
-    baseChainRange: 0
-    chainRangeRatio: 0
   _shootOrigin: {fileID: 4447825118581759863}
   _targetLayer:
     serializedVersion: 2
@@ -180,24 +165,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NetGunController
   _playerInventory: {fileID: 0}
-  _data:
-    isUnlocked: 0
-    ammoCapacity: 10
-    netData:
-      captureCount: 4
-      spreadDuration: 0.2
-      foldDuration: 0.1
-      radius: 2
-      radiusRatio: 1
-    netCount: 1
-    baseShootSpeed: 3
-    shootSpeedRatio: 1
-    baseShootRange: 0
-    shootRangeRatio: 0
-    baseChargeTime: 0
-    chargeTimeRatio: 1
-    baseCollectSpeed: 0
-    collectSpeedRatio: 1
   _netPrefab: {fileID: 7273118580323007915, guid: 67c17912089619c4091ec5e6a8606b05, type: 3}
   _shootOrigin: {fileID: 3709298215211875513}
   _collectRadiusThreshold: 1
@@ -1163,11 +1130,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
   _rigidbody: {fileID: 2519992166632233461}
   _inputHandler: {fileID: 2112401720433368642}
-  _data:
-    baseMoveSpeed: 0
-    moveSpeedRatio: 1
-    moveDampingTime: 0.3
-    stopDampingTime: 0.8
   _movementBounds: {fileID: 0}
   _playerBoundsMin: {x: -0.5, y: -0.8}
   _playerBoundsMax: {x: 0.5, y: 0.5}
@@ -1249,8 +1211,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9533bce6c323b71409484e0557046a14, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerBatteryController
-  _batteryData:
-    amount: 60
 --- !u!114 &4411118983089712679
 MonoBehaviour:
   m_ObjectHideFlags: 0

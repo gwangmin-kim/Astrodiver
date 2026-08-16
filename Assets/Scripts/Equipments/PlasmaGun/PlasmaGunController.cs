@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class PlasmaGunController : MonoBehaviour
 {
-    [SerializeField] private PlasmaGunData _data;
+    private PlasmaGunData _data;
 
     [Header("Detect Settings")]
     [Tooltip("플라즈마 광선 시작점")]
@@ -48,7 +48,7 @@ public class PlasmaGunController : MonoBehaviour
 
     private void Start()
     {
-        _data = GameDataManager.Instance.GetOrInitializePlasmaGun(_data);
+        _data = GameDataManager.Instance.GetPlasmaGun();
         _remainingAmmo = Mathf.Max(0, _data.ammoCapacity);
     }
 

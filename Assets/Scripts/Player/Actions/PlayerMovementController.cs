@@ -10,8 +10,7 @@ public class PlayerMovementController : MonoBehaviour
     [SerializeField] private Rigidbody2D _rigidbody;
     [SerializeField] private PlayerInputHandler _inputHandler;
 
-    [Header("Movement")]
-    [SerializeField] private PlayerMovementData _data;
+    private PlayerMovementData _data;
 
     [Header("Stage Bounds")]
     [Tooltip("비어 있으면 현재 씬의 WorldBounds2D를 자동으로 사용합니다.")]
@@ -29,7 +28,7 @@ public class PlayerMovementController : MonoBehaviour
     private void Awake()
     {
         ResolveReferences();
-        _data = GameDataManager.Instance.GetOrInitializeMovement(_data);
+        _data = GameDataManager.Instance.GetMovement();
     }
 
     private void OnValidate()

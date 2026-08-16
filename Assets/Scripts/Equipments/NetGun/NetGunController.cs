@@ -7,8 +7,9 @@ public class NetGunController : MonoBehaviour
     [Header("Required Components")]
     [SerializeField] private PlayerInventoryController _playerInventory;
 
+    private NetGunData _data;
+
     [Header("Net Gun Settings")]
-    [SerializeField] private NetGunData _data;
     [SerializeField] private NetCaptureController _netPrefab;
 
     [Header("Capture Settings")]
@@ -53,7 +54,7 @@ public class NetGunController : MonoBehaviour
 
     private void Start()
     {
-        _data = GameDataManager.Instance.GetOrInitializeNetGun(_data);
+        _data = GameDataManager.Instance.GetNetGun();
         BuildNetPool();
         _remainingAmmo = Mathf.Max(0, _data.ammoCapacity);
 

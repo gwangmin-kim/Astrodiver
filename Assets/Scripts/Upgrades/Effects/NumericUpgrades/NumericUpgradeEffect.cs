@@ -111,7 +111,6 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
                     PlayerMovementData value = player.movement;
                     value.moveSpeedRatio = ApplyFloat(value.moveSpeedRatio, 0f);
                     player.movement = value;
-                    player.movementInitialized = true;
                     break;
                 }
             case NumericUpgradeTarget.BatteryCapacity:
@@ -119,7 +118,6 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
                     BatteryData value = player.battery;
                     value.amount = ApplyFloat(value.amount, 0f);
                     player.battery = value;
-                    player.batteryInitialized = true;
                     break;
                 }
             case NumericUpgradeTarget.MagnetRadiusRatio:
@@ -127,7 +125,6 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
                     MagnetData value = player.magnet;
                     value.radiusRatio = ApplyFloat(value.radiusRatio, 0f);
                     player.magnet = value;
-                    player.magnetInitialized = true;
                     break;
                 }
             case NumericUpgradeTarget.NetCaptureCount:
@@ -142,7 +139,6 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
                     NetGunData value = equipment.netGun;
                     ApplyNetGun(ref value);
                     equipment.netGun = value;
-                    equipment.netGunInitialized = true;
                     break;
                 }
             case NumericUpgradeTarget.PlasmaChargeSpeedMultiplier:
@@ -157,7 +153,6 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
                     PlasmaGunData value = equipment.plasmaGun;
                     ApplyPlasmaGun(ref value);
                     equipment.plasmaGun = value;
-                    equipment.plasmaGunInitialized = true;
                     break;
                 }
             case NumericUpgradeTarget.CreatureSlotCapacity:

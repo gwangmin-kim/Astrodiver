@@ -7,8 +7,7 @@ public sealed class FragmentParticleManager : MonoBehaviour
     [Header("Particle System Setup")]
     [SerializeField] private ParticleSystem _fragmentParticleSystemPrefab;
 
-    [Header("Magnet Settings")]
-    [SerializeField] private MagnetData _magnetData;
+    private MagnetData _magnetData;
 
     private readonly Dictionary<string, FragmentParticleEntry> _particleSystems =
         new(StringComparer.Ordinal);
@@ -65,7 +64,7 @@ public sealed class FragmentParticleManager : MonoBehaviour
 
         if (GameDataManager.Instance != null)
         {
-            _magnetData = GameDataManager.Instance.GetOrInitializeMagnet(_magnetData);
+            _magnetData = GameDataManager.Instance.GetMagnet();
         }
 
         _magnetManager = new FragmentMagnetManager(_magnetData);

@@ -225,99 +225,29 @@ public class GameDataManager : MonoBehaviour
         _isDirty = true;
     }
 
-    public PlayerMovementData GetOrInitializeMovement(PlayerMovementData fallback)
+    public PlayerMovementData GetMovement()
     {
-        PlayerStatsRuntimeData playerStats = RequireRuntimeData().PlayerStats;
-        if (!playerStats.movementInitialized)
-        {
-            playerStats.movement = fallback;
-            playerStats.movementInitialized = true;
-        }
-
-        return playerStats.movement;
+        return RequireRuntimeData().PlayerStats.movement;
     }
 
-    public void SetMovement(PlayerMovementData value)
+    public BatteryData GetBattery()
     {
-        PlayerStatsRuntimeData playerStats = RequireRuntimeData().PlayerStats;
-        playerStats.movement = value;
-        playerStats.movementInitialized = true;
+        return RequireRuntimeData().PlayerStats.battery;
     }
 
-    public BatteryData GetOrInitializeBattery(BatteryData fallback)
+    public MagnetData GetMagnet()
     {
-        PlayerStatsRuntimeData playerStats = RequireRuntimeData().PlayerStats;
-        if (!playerStats.batteryInitialized)
-        {
-            playerStats.battery = fallback;
-            playerStats.batteryInitialized = true;
-        }
-
-        return playerStats.battery;
+        return RequireRuntimeData().PlayerStats.magnet;
     }
 
-    public void SetBattery(BatteryData value)
+    public NetGunData GetNetGun()
     {
-        PlayerStatsRuntimeData playerStats = RequireRuntimeData().PlayerStats;
-        playerStats.battery = value;
-        playerStats.batteryInitialized = true;
+        return RequireRuntimeData().Equipment.netGun;
     }
 
-    public MagnetData GetOrInitializeMagnet(MagnetData fallback)
+    public PlasmaGunData GetPlasmaGun()
     {
-        PlayerStatsRuntimeData playerStats = RequireRuntimeData().PlayerStats;
-        if (!playerStats.magnetInitialized)
-        {
-            playerStats.magnet = fallback;
-            playerStats.magnetInitialized = true;
-        }
-
-        return playerStats.magnet;
-    }
-
-    public void SetMagnet(MagnetData value)
-    {
-        PlayerStatsRuntimeData playerStats = RequireRuntimeData().PlayerStats;
-        playerStats.magnet = value;
-        playerStats.magnetInitialized = true;
-    }
-
-    public NetGunData GetOrInitializeNetGun(NetGunData fallback)
-    {
-        EquipmentRuntimeData equipment = RequireRuntimeData().Equipment;
-        if (!equipment.netGunInitialized)
-        {
-            equipment.netGun = fallback;
-            equipment.netGunInitialized = true;
-        }
-
-        return equipment.netGun;
-    }
-
-    public void SetNetGun(NetGunData value)
-    {
-        EquipmentRuntimeData equipment = RequireRuntimeData().Equipment;
-        equipment.netGun = value;
-        equipment.netGunInitialized = true;
-    }
-
-    public PlasmaGunData GetOrInitializePlasmaGun(PlasmaGunData fallback)
-    {
-        EquipmentRuntimeData equipment = RequireRuntimeData().Equipment;
-        if (!equipment.plasmaGunInitialized)
-        {
-            equipment.plasmaGun = fallback;
-            equipment.plasmaGunInitialized = true;
-        }
-
-        return equipment.plasmaGun;
-    }
-
-    public void SetPlasmaGun(PlasmaGunData value)
-    {
-        EquipmentRuntimeData equipment = RequireRuntimeData().Equipment;
-        equipment.plasmaGun = value;
-        equipment.plasmaGunInitialized = true;
+        return RequireRuntimeData().Equipment.plasmaGun;
     }
 
     public int GetUpgradeLevel(string upgradeId)
@@ -493,15 +423,7 @@ public class GameDataManager : MonoBehaviour
 
         bool hasDerivedChanges = false;
 
-        UpgradeEffectContext effectContext =
-            new(
-                rebuiltRuntimeData,
-                eventId =>
-                {
-                    bool completed = TryCompleteEvent(data, eventId);
-                    hasDerivedChanges |= completed;
-                    return completed;
-                });
+        UpgradeEffectContext effectContext = new(rebuiltRuntimeData);
 
         for (int definitionIndex = 0;
              definitionIndex < _definitionCatalog.Upgrades.Count;
@@ -543,6 +465,10 @@ public class GameDataManager : MonoBehaviour
             }
         }
 
+        hasDerivedChanges |= ReconcilePersistentInvariants(
+            data,
+            rebuiltRuntimeData);
+
         prepared = new PreparedGameData
         {
             saveData = data,
@@ -551,6 +477,14 @@ public class GameDataManager : MonoBehaviour
         };
         error = null;
         return true;
+    }
+
+    private static bool ReconcilePersistentInvariants(
+        GameSaveData data,
+        GameRuntimeData runtimeData)
+    {
+        return runtimeData.Facilities.ResourceChestUnlocked &&
+               data.inventory.TransferAllResourcesTo(data.resourceChest);
     }
 
     /// <summary>

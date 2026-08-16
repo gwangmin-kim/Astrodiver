@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class PlayerBatteryController : MonoBehaviour
 {
-    [SerializeField] private BatteryData _batteryData;
+    private BatteryData _batteryData;
 
     private float _currentBatteryAmount;
     private bool _isDepleted;
@@ -15,7 +15,7 @@ public class PlayerBatteryController : MonoBehaviour
 
     private void Awake()
     {
-        _batteryData = GameDataManager.Instance.GetOrInitializeBattery(_batteryData);
+        _batteryData = GameDataManager.Instance.GetBattery();
         _currentBatteryAmount = MaxBatteryAmount;
     }
 
