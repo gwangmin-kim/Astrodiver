@@ -1025,6 +1025,7 @@ GameObject:
   - component: {fileID: 2207706936952557159}
   - component: {fileID: 2038724707605539685}
   - component: {fileID: 7190800629875981115}
+  - component: {fileID: 4411118983089712679}
   m_Layer: 3
   m_Name: SessionPlayer
   m_TagString: Player
@@ -1249,3 +1250,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerBatteryController
   _batteryData:
     amount: 60
+--- !u!114 &4411118983089712679
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8562921575549458465}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 464e9880b0585bd4e991997a4df48acd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PauseMenuController
+  _titleSceneName: MainMenu
+  _pauseMenuPrefab: {fileID: 3858735769217438660, guid: d45ca5b1dbf176049a872cb53d6baae9, type: 3}
+  _playerMapName: Player
+  _cancelActionName: Cancel
