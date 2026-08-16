@@ -62,7 +62,7 @@ public struct FragmentDropData
     [Min(0f)] public float radius;
 
     [Tooltip("Number of fragments to spawn")]
-    [Min(1)] public short count;
+    public short count;
 
     [Tooltip("Lifetime of spawned fragments")]
     [Min(1f)] public float lifetime;
