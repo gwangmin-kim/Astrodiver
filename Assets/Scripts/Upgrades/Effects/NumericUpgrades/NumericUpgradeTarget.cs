@@ -17,6 +17,7 @@ public enum NumericUpgradeTarget
     NetChargeTimeRatio = 2004,
     NetCollectSpeedRatio = 2005,
     NetAmmoCapacity = 2006,
+    NetShootSpeedRatio = 2007,
 
     // Plasma gun: 3000-3099
     PlasmaChargeSpeedMultiplier = 3000,

@@ -137,6 +137,7 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
             case NumericUpgradeTarget.NetChargeTimeRatio:
             case NumericUpgradeTarget.NetCollectSpeedRatio:
             case NumericUpgradeTarget.NetAmmoCapacity:
+            case NumericUpgradeTarget.NetShootSpeedRatio:
                 {
                     NetGunData value = equipment.netGun;
                     ApplyNetGun(ref value);
@@ -199,6 +200,9 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
                 break;
             case NumericUpgradeTarget.NetAmmoCapacity:
                 data.ammoCapacity = ApplyInt(data.ammoCapacity, 0);
+                break;
+            case NumericUpgradeTarget.NetShootSpeedRatio:
+                data.shootSpeedRatio = ApplyFloat(data.shootSpeedRatio, 0f);
                 break;
         }
     }
@@ -297,6 +301,9 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
             case NumericUpgradeTarget.NetAmmoCapacity:
                 value = data.Equipment.netGun.ammoCapacity;
                 isInteger = true;
+                return true;
+            case NumericUpgradeTarget.NetShootSpeedRatio:
+                value = data.Equipment.netGun.shootSpeedRatio;
                 return true;
             case NumericUpgradeTarget.PlasmaChargeSpeedMultiplier:
                 value = data.Equipment.plasmaGun.chargeSpeedMultiplier;

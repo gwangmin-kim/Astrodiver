@@ -48,7 +48,8 @@ MonoBehaviour:
         radius: 2
         radiusRatio: 1
       netCount: 1
-      shootDuration: 1.5
+      baseShootSpeed: 3
+      shootSpeedRatio: 1
       baseShootRange: 5
       shootRangeRatio: 1
       baseChargeTime: 2

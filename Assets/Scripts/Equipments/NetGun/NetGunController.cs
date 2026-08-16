@@ -211,7 +211,8 @@ public class NetGunController : MonoBehaviour
         net.net.PrepareForLaunch();
         net.net.gameObject.SetActive(true);
 
-        float shootDuration = Mathf.Max(_data.shootDuration, 0.01f);
+        float shootSpeed = Mathf.Max(0.01f, _data.ShootSpeed);
+        float shootDuration = Mathf.Max(0.01f, shootDistance / shootSpeed);
 
         net.shootTween = Tween.Position(
                 net.net.transform,
@@ -541,7 +542,8 @@ public struct NetGunData
 
     [Header("Shoot Settings")]
     [Min(1)] public int netCount;
-    [Range(0.1f, 5f)] public float shootDuration;
+    [Min(0.1f)] public float baseShootSpeed;
+    [Min(0f)] public float shootSpeedRatio;
     [Min(0.1f)] public float baseShootRange;
     [Min(0f)] public float shootRangeRatio;
     [Range(0f, 3f)] public float baseChargeTime;
@@ -551,6 +553,7 @@ public struct NetGunData
     public float baseCollectSpeed;
     [Min(0f)] public float collectSpeedRatio;
 
+    public float ShootSpeed => Mathf.Max(0f, baseShootSpeed * shootSpeedRatio);
     public float MaxShootRange => Mathf.Max(0f, baseShootRange * shootRangeRatio);
     public float ChargeTime => Mathf.Max(0f, baseChargeTime * chargeTimeRatio);
     public float CollectSpeed => Mathf.Max(0f, baseCollectSpeed * collectSpeedRatio);

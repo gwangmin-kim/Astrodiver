@@ -118,15 +118,14 @@ MonoBehaviour:
     chargedRetentionTime: 0.5
     tickDamage: 100
     tickInterval: 0.5
-    tickSpeedRate: 1
-    tickSpeedRatio: 1
-    attackRange: 5
+    tickSpeedMultiplier: 0
+    baseAttackRange: 0
     attackRangeRatio: 1
     chainCount: 5
     chainedDamageRate: 0.5
     chainedDamageRateRatio: 1
-    chainDetectRange: 5
-    chainDetectRangeRatio: 1
+    baseChainRange: 0
+    chainRangeRatio: 0
   _shootOrigin: {fileID: 4447825118581759863}
   _targetLayer:
     serializedVersion: 2
@@ -191,13 +190,13 @@ MonoBehaviour:
       radius: 2
       radiusRatio: 1
     netCount: 1
-    shootDuration: 1.5
-    maxShootRange: 7
-    maxShootRangeRatio: 1
-    shootRangeRatioWithNoCharge: 0.1
-    chargeTime: 1.5
+    baseShootSpeed: 3
+    shootSpeedRatio: 1
+    baseShootRange: 0
+    shootRangeRatio: 0
+    baseChargeTime: 0
     chargeTimeRatio: 1
-    collectSpeed: 5
+    baseCollectSpeed: 0
     collectSpeedRatio: 1
   _netPrefab: {fileID: 7273118580323007915, guid: 67c17912089619c4091ec5e6a8606b05, type: 3}
   _shootOrigin: {fileID: 3709298215211875513}
@@ -1163,7 +1162,7 @@ MonoBehaviour:
   _rigidbody: {fileID: 2519992166632233461}
   _inputHandler: {fileID: 2112401720433368642}
   _data:
-    moveSpeed: 5
+    baseMoveSpeed: 0
     moveSpeedRatio: 1
     moveDampingTime: 0.3
     stopDampingTime: 0.8
