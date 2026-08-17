@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5e5cf1b754e03e543b90772c7e13d2a2, type: 3}
-  m_Name: floatage_000_stone
+  m_Name: floatage_004_fire
   m_EditorClassIdentifier: Assembly-CSharp::FloatageDefinition
-  _id: floatage.stone
-  _key: stone
-  _sortOrder: 0
-  _hp: 500
+  _id: floatage.fire
+  _key: fire
+  _sortOrder: 4
+  _hp: 100
   _dropData:
-    resource: {fileID: 11400000, guid: 1059946eedbea974699f29d697f124de, type: 2}
-    radius: 0.4
+    resource: {fileID: 11400000, guid: 246d193ca3bf20f4dbc65e8fdd2dbbd2, type: 2}
+    radius: 0
     count: 5
-    lifetime: 30
+    lifetime: 0
