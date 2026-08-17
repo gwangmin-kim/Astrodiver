@@ -105,6 +105,8 @@ public sealed class ResourceFragmentListUI : MonoBehaviour
         }
 
         ResourceFragmentEntryUI entry = GetOrCreateEntry(definition);
+        if (entry == null) return;
+
         entry.SetResource(definition, amount);
     }
 
@@ -133,26 +135,15 @@ public sealed class ResourceFragmentListUI : MonoBehaviour
             return entry;
         }
 
-        GameObject entryObject = CreateEntryObject(definition);
-        LayoutElement layoutElement = EnsureComponent<LayoutElement>(entryObject);
-        layoutElement.preferredWidth = _size.x;
-        layoutElement.preferredHeight = 28f;
+        if (_entryPrefab == null)
+        {
+            return null;
+        }
 
-        entry = EnsureComponent<ResourceFragmentEntryUI>(entryObject);
+        entry = Instantiate(_entryPrefab, transform, false);
+        entry.name = GetEntryName(definition);
         _entries[definition] = entry;
         return entry;
-    }
-
-    private GameObject CreateEntryObject(ResourceDefinition definition)
-    {
-        string entryName = GetEntryName(definition);
-        GameObject entryObject = _entryPrefab != null
-            ? Instantiate(_entryPrefab.gameObject)
-            : new GameObject(entryName, typeof(RectTransform));
-
-        entryObject.name = entryName;
-        entryObject.transform.SetParent(transform, false);
-        return entryObject;
     }
 
     private void RemoveEntry(ResourceDefinition definition)

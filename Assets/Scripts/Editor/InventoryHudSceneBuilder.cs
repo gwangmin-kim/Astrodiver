@@ -14,7 +14,8 @@ public static class InventoryHudSceneBuilder
     private const string CreatureBarName = "Creature Inventory Bar";
     private const string ResourceListName = "Resource Fragment List";
     private const string CreatureSlotPrefabPath = "Assets/Prefabs/UI/CreatureInventorySlot.prefab";
-    private const string ResourceEntryPrefabPath = "Assets/Prefabs/UI/ResourceFragmentEntry.prefab";
+    private const string ResourceEntryPrefabPath =
+        "Assets/Prefabs/UI/Inventory/ResourceFragmentEntry.prefab";
     private const float CreatureSlotSize = 64f;
     private const float CreatureSlotSpacing = 8f;
 
@@ -97,7 +98,7 @@ public static class InventoryHudSceneBuilder
 
     private static void BuildResourceFragmentList(Transform parent)
     {
-        ResourceFragmentEntryUI entryPrefab = GetOrCreateResourceEntryPrefab();
+        ResourceFragmentEntryUI entryPrefab = GetResourceEntryPrefab();
 
         GameObject listObject = FindOrCreateChild(parent, ResourceListName);
         RectTransform rectTransform = EnsureRectTransform(listObject);
@@ -184,18 +185,19 @@ public static class InventoryHudSceneBuilder
         return savedPrefab.GetComponent<CreatureInventorySlotUI>();
     }
 
-    private static ResourceFragmentEntryUI GetOrCreateResourceEntryPrefab()
+    private static ResourceFragmentEntryUI GetResourceEntryPrefab()
     {
-        Directory.CreateDirectory(Path.GetDirectoryName(ResourceEntryPrefabPath));
+        ResourceFragmentEntryUI entry =
+            AssetDatabase.LoadAssetAtPath<ResourceFragmentEntryUI>(
+                ResourceEntryPrefabPath);
+        if (entry == null)
+        {
+            throw new FileNotFoundException(
+                "Resource entry prefab is missing.",
+                ResourceEntryPrefabPath);
+        }
 
-        GameObject entryObject = new("ResourceFragmentEntry", typeof(RectTransform));
-        ResourceFragmentEntryUI entry = EnsureComponent<ResourceFragmentEntryUI>(entryObject);
-        entry.SetResource(null, 0);
-        RemoveLegacyTextComponents(entryObject);
-
-        GameObject savedPrefab = PrefabUtility.SaveAsPrefabAsset(entryObject, ResourceEntryPrefabPath);
-        Object.DestroyImmediate(entryObject);
-        return savedPrefab.GetComponent<ResourceFragmentEntryUI>();
+        return entry;
     }
 
     private static GameObject InstantiateSlotPrefab(CreatureInventorySlotUI slotPrefab, Transform parent, string slotName)
