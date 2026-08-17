@@ -10,28 +10,27 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a3de66ce8d56b7747b6ac728bd78f710, type: 3}
-  m_Name: upgrade_008_plasma_chain_2
+  m_Name: upgrade_020_chest_unlock
   m_EditorClassIdentifier: Assembly-CSharp::UpgradeNodeDefinition
-  _id: upgrade.plasma_chain_2
-  _key: plasma_chain_2
-  _sortOrder: 8
-  _displayName: "\uB808\uC774\uC800 \uC5F0\uC1C4 II"
-  _description: "\uB808\uC774\uC800 \uC5F0\uC1C4 \uD69F\uC218\uAC00 \uC99D\uAC00\uD569\uB2C8\uB2E4."
+  _id: upgrade.chest_unlock
+  _key: chest_unlock
+  _sortOrder: 20
+  _displayName: "\uC790\uC6D0 \uCC3D\uACE0"
+  _description: "\uD0D0\uC0AC\uC5D0\uC11C \uD68D\uB4DD\uD55C \uC790\uC6D0\uC744 \uC548\uC804\uD558\uAC8C
+    \uBCF4\uAD00\uD558\uB294 \uC0C1\uC790\uB97C \uB9CC\uB4ED\uB2C8\uB2E4."
   _icon: {fileID: 0}
-  _parent: {fileID: 11400000, guid: 12e133644286fb74abe405bfa3439e01, type: 2}
+  _parent: {fileID: 11400000, guid: 113959368ffda2f48bc3ded1f6a8c16e, type: 2}
   _maxLevel: 1
   _baseCosts:
   - _resource: {fileID: 11400000, guid: 1059946eedbea974699f29d697f124de, type: 2}
-    _amount: 750
+    _amount: 10
   _costIncreases: []
   _effects:
-  - rid: 8656187084178194573
+  - rid: 8656187132053815417
   references:
     version: 2
     RefIds:
-    - rid: 8656187084178194573
-      type: {class: NumericUpgradeEffect, ns: , asm: Assembly-CSharp}
+    - rid: 8656187132053815417
+      type: {class: UnlockUpgradeEffect, ns: , asm: Assembly-CSharp}
       data:
-        _target: 3004
-        _operation: 0
-        _value: 2
+        _target: 3000

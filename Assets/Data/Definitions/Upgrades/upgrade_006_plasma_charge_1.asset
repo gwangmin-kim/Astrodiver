@@ -22,7 +22,7 @@ MonoBehaviour:
   _maxLevel: 5
   _baseCosts:
   - _resource: {fileID: 11400000, guid: 1059946eedbea974699f29d697f124de, type: 2}
-    _amount: 1000
+    _amount: 30
   _costIncreases: []
   _effects:
   - rid: 8656187040778420322

@@ -24,7 +24,6 @@ MonoBehaviour:
   _costIncreases: []
   _effects:
   - rid: 8656187004515778646
-  - rid: 8656187004515778647
   references:
     version: 2
     RefIds:
@@ -34,7 +33,3 @@ MonoBehaviour:
         _target: 1100
         _operation: 2
         _value: 20
-    - rid: 8656187004515778647
-      type: {class: ProgressEventUpgradeEffect, ns: , asm: Assembly-CSharp}
-      data:
-        _eventId: 1000
