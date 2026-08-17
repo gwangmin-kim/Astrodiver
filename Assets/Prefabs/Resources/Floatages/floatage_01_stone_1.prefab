@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 582000401992344535}
   - component: {fileID: 3899131526997146315}
   m_Layer: 7
-  m_Name: Floatage_1_Stone
+  m_Name: floatage_01_stone_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -172,5 +172,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FloatageController
   _definition: {fileID: 11400000, guid: 91c96fb7709d44ac8559ef086ef06e74, type: 2}
-  _dropRadius: 0.4
-  _dropCount: 5
+  _dropRadius: 0.5
+  _dropCount: 8

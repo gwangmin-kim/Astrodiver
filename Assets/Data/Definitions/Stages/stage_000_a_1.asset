@@ -20,13 +20,16 @@ MonoBehaviour:
     _maxCount: 3
     _respawnProbability: 0
     _entries:
-    - _entryId: stone_creature
+    - _entryId: creature_stone
       _prefab: {fileID: 508475945939948788, guid: f5efb60079e5dcf47844a132d8f43fd4, type: 3}
       _spawnWeight: 1
   _resourceFloatages:
     _maxCount: 6
     _respawnProbability: 0
     _entries:
-    - _entryId: stone_floatage
+    - _entryId: floatage_stone_1
       _prefab: {fileID: 5706660221163112332, guid: 031d5af0176d3c7469ea5f9a2cdd2d67, type: 3}
+      _spawnWeight: 1
+    - _entryId: floatage_stone_2
+      _prefab: {fileID: 5706660221163112332, guid: a49b9cb8237caac4cb576b35066b5edd, type: 3}
       _spawnWeight: 1
