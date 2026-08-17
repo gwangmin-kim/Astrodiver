@@ -17,5 +17,5 @@ MonoBehaviour:
   _sortOrder: 2
   _displayName: "\uD751\uC694\uC11D \uD30C\uD3B8"
   _icon: {fileID: 21300000, guid: 66e20e9fea2eab54fa97e91d64cc5403, type: 3}
-  _particleRowIndex: 0
+  _particleRowIndex: 2
   _fragmentLifetime: 30

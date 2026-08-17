@@ -17,5 +17,5 @@ MonoBehaviour:
   _sortOrder: 4
   _displayName: "\uBD88\uC528"
   _icon: {fileID: 21300000, guid: 7e53f4087d8d29e4fac160bd08b736d9, type: 3}
-  _particleRowIndex: 0
-  _fragmentLifetime: 30
+  _particleRowIndex: 4
+  _fragmentLifetime: 10
