@@ -172,3 +172,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FloatageController
   _definition: {fileID: 11400000, guid: 91c96fb7709d44ac8559ef086ef06e74, type: 2}
+  _dropRadius: 0.4
+  _dropCount: 5

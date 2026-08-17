@@ -18,21 +18,25 @@ public sealed class FragmentParticleManager : MonoBehaviour
 
     public static FragmentParticleManager Instance { get; private set; }
 
-    public void DropFragment(Vector3 position, FragmentDropData data)
+    public void DropFragment(
+        Vector3 position,
+        ResourceDefinition resource,
+        float radius,
+        int count)
     {
-        if (data.resource == null)
+        if (resource == null)
         {
             Debug.LogError("Cannot drop fragments without a resource definition.", this);
             return;
         }
 
-        if (data.count <= 0)
+        if (count <= 0)
         {
             return;
         }
 
         if (!TryGetOrCreateParticleSystem(
-                data.resource,
+                resource,
                 out FragmentParticleEntry entry))
         {
             return;
@@ -40,13 +44,12 @@ public sealed class FragmentParticleManager : MonoBehaviour
 
         ParticleSystem particleSystem = entry.ParticleSystem;
         var shape = particleSystem.shape;
-        shape.radius = data.radius;
+        shape.radius = Mathf.Max(0f, radius);
 
         _emitParams.position = position;
-        _emitParams.startLifetime = data.lifetime;
         _emitParams.applyShapeToPosition = true;
 
-        particleSystem.Emit(_emitParams, data.count);
+        particleSystem.Emit(_emitParams, count);
     }
 
     private void Awake()
@@ -168,6 +171,7 @@ public sealed class FragmentParticleManager : MonoBehaviour
         var main = particleSystem.main;
         main.playOnAwake = false;
         main.simulationSpace = ParticleSystemSimulationSpace.World;
+        main.startLifetime = resource.FragmentLifetime;
 
         var textureSheet = particleSystem.textureSheetAnimation;
         textureSheet.enabled = true;

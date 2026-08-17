@@ -18,3 +18,4 @@ MonoBehaviour:
   _displayName: "\uC554\uC11D \uD30C\uD3B8"
   _icon: {fileID: 21300000, guid: bdbaa95c18b16ee48813fcc4f41cb495, type: 3}
   _particleRowIndex: 0
+  _fragmentLifetime: 30

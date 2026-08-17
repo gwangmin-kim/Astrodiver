@@ -346,6 +346,7 @@ public sealed class GameDataWorkspaceWindow : EditorWindow
         {
             GUILayout.Label("Icon", GUILayout.Width(75f));
             GUILayout.Label("Particle Row", GUILayout.Width(82f));
+            GUILayout.Label("Lifetime", GUILayout.Width(65f));
         }
         else if (type == typeof(CreatureDefinition))
         {
@@ -355,7 +356,6 @@ public sealed class GameDataWorkspaceWindow : EditorWindow
         {
             GUILayout.Label("HP", GUILayout.Width(55f));
             GUILayout.Label("Drop Resource", GUILayout.Width(110f));
-            GUILayout.Label("Count", GUILayout.Width(55f));
         }
         else if (type == typeof(UpgradeNodeDefinition))
         {
@@ -375,6 +375,7 @@ public sealed class GameDataWorkspaceWindow : EditorWindow
         {
             DrawProperty(serialized, "_icon", 75f);
             DrawProperty(serialized, "_particleRowIndex", 82f);
+            DrawProperty(serialized, "_fragmentLifetime", 65f);
         }
         else if (entry is CreatureDefinition)
         {
@@ -383,9 +384,7 @@ public sealed class GameDataWorkspaceWindow : EditorWindow
         else if (entry is FloatageDefinition)
         {
             DrawProperty(serialized, "_hp", 55f);
-            SerializedProperty dropData = serialized.FindProperty("_dropData");
-            DrawProperty(dropData?.FindPropertyRelative("resource"), 110f);
-            DrawProperty(dropData?.FindPropertyRelative("count"), 55f);
+            DrawProperty(serialized, "_dropResource", 110f);
         }
         else if (entry is UpgradeNodeDefinition)
         {

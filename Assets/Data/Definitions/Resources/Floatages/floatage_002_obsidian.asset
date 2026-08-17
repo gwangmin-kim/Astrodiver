@@ -16,8 +16,4 @@ MonoBehaviour:
   _key: obsidian
   _sortOrder: 2
   _hp: 2000
-  _dropData:
-    resource: {fileID: 11400000, guid: 6b79aa7fa28661e4aafbef73e29d4a80, type: 2}
-    radius: 0
-    count: 5
-    lifetime: 0
+  _dropResource: {fileID: 11400000, guid: 6b79aa7fa28661e4aafbef73e29d4a80, type: 2}

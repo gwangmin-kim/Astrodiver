@@ -16,8 +16,4 @@ MonoBehaviour:
   _key: radioactive
   _sortOrder: 7
   _hp: 100
-  _dropData:
-    resource: {fileID: 11400000, guid: 638a3c683b64a614196a293dcf5fcb2f, type: 2}
-    radius: 0
-    count: 5
-    lifetime: 0
+  _dropResource: {fileID: 11400000, guid: 638a3c683b64a614196a293dcf5fcb2f, type: 2}

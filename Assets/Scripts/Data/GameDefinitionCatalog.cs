@@ -23,6 +23,7 @@ public sealed class GameDefinitionCatalog : ScriptableObject
     {
         List<string> errors = new();
         ValidateDefinitions(_resources, definition => definition.Id, errors);
+        ValidateResources(errors);
         ValidateDefinitions(_creatures, definition => definition.Id, errors);
         _floatages ??= Array.Empty<FloatageDefinition>();
         ValidateDefinitions(_floatages, definition => definition.Id, errors);
@@ -137,12 +138,24 @@ public sealed class GameDefinitionCatalog : ScriptableObject
                 errors.Add(definitionError);
             }
 
-            ResourceDefinition resource = definition.DropData.resource;
+            ResourceDefinition resource = definition.DropResource;
             if (resource != null && !resources.Contains(resource))
             {
                 errors.Add(
                     $"Floatage definition '{definition.Id}' uses resource " +
                     $"'{resource.Id}', but that resource is not in this catalog.");
+            }
+        }
+    }
+
+    private void ValidateResources(ICollection<string> errors)
+    {
+        for (int i = 0; i < _resources.Length; i++)
+        {
+            ResourceDefinition resource = _resources[i];
+            if (resource != null && !resource.TryValidate(out string resourceError))
+            {
+                errors.Add(resourceError);
             }
         }
     }

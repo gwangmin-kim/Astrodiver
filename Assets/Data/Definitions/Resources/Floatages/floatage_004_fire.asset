@@ -16,8 +16,4 @@ MonoBehaviour:
   _key: fire
   _sortOrder: 4
   _hp: 100
-  _dropData:
-    resource: {fileID: 11400000, guid: 246d193ca3bf20f4dbc65e8fdd2dbbd2, type: 2}
-    radius: 0
-    count: 5
-    lifetime: 0
+  _dropResource: {fileID: 11400000, guid: 246d193ca3bf20f4dbc65e8fdd2dbbd2, type: 2}

@@ -16,8 +16,4 @@ MonoBehaviour:
   _key: water
   _sortOrder: 5
   _hp: 100
-  _dropData:
-    resource: {fileID: 11400000, guid: add969f825baea148a7ac8973072816b, type: 2}
-    radius: 0
-    count: 5
-    lifetime: 0
+  _dropResource: {fileID: 11400000, guid: add969f825baea148a7ac8973072816b, type: 2}

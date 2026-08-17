@@ -16,8 +16,4 @@ MonoBehaviour:
   _key: stone
   _sortOrder: 0
   _hp: 500
-  _dropData:
-    resource: {fileID: 11400000, guid: 1059946eedbea974699f29d697f124de, type: 2}
-    radius: 0.4
-    count: 5
-    lifetime: 30
+  _dropResource: {fileID: 11400000, guid: 1059946eedbea974699f29d697f124de, type: 2}

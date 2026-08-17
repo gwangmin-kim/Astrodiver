@@ -5,6 +5,8 @@ using UnityEngine;
 public class FloatageController : MonoBehaviour, IDamagable
 {
     [SerializeField] private FloatageDefinition _definition;
+    [SerializeField, Min(0f)] private float _dropRadius;
+    [SerializeField, Min(1)] private int _dropCount = 1;
 
     private int _hp;
 
@@ -42,7 +44,9 @@ public class FloatageController : MonoBehaviour, IDamagable
         {
             FragmentParticleManager.Instance.DropFragment(
                 transform.position,
-                _definition.DropData);
+                _definition.DropResource,
+                _dropRadius,
+                _dropCount);
         }
 
         GetComponent<StageSpawnedObject>()?.NotifyRemovedFromStage();
@@ -58,7 +62,7 @@ public class FloatageController : MonoBehaviour, IDamagable
         }
 
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, _definition.DropData.radius);
+        Gizmos.DrawWireSphere(transform.position, _dropRadius);
     }
 #endif
 }
