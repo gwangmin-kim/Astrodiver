@@ -13,17 +13,19 @@ using UnityEngine.UI;
 public static class MainMenuSceneBuilder
 {
     private const string ScenePath = "Assets/Scenes/MainMenu.unity";
-    private const string RegularFontPath = "Assets/Arts/99_Fonts/NotoSansKR/NotoSansKR-Regular.ttf";
-    private const string BoldFontPath = "Assets/Arts/99_Fonts/NotoSansKR/NotoSansKR-Bold.ttf";
-    private const string FontAssetFolder = "Assets/Arts/99_Fonts/NotoSansKR/TMP";
-    private const string RegularFontAssetPath = FontAssetFolder + "/NotoSansKR-Regular SDF.asset";
-    private const string BoldFontAssetPath = FontAssetFolder + "/NotoSansKR-Bold SDF.asset";
+    private const string RegularFontPath = "Assets/Arts/99_Fonts/PFStardust/PFStardust-3.0-Regular.ttf";
+    private const string BoldFontPath = "Assets/Arts/99_Fonts/PFStardust/PFStardust-3.0-Bold.ttf";
+    private const string ExtraBoldFontPath = "Assets/Arts/99_Fonts/PFStardust/PFStardust-3.0-ExtraBold.ttf";
+    private const string FontAssetFolder = "Assets/Arts/99_Fonts/PFStardust/TMP";
+    private const string RegularFontAssetPath = FontAssetFolder + "/PFStardust-Regular SDF.asset";
+    private const string BoldFontAssetPath = FontAssetFolder + "/PFStardust-Bold SDF.asset";
+    private const string ExtraBoldFontAssetPath = FontAssetFolder + "/PFStardust-ExtraBold SDF.asset";
 
     [MenuItem("Astrodiver/UI/Rebuild Main Menu Scene")]
     public static void Rebuild()
     {
         TMP_FontAsset regularFont = GetOrCreateFontAsset(RegularFontPath, RegularFontAssetPath);
-        TMP_FontAsset boldFont = GetOrCreateFontAsset(BoldFontPath, BoldFontAssetPath);
+        TMP_FontAsset extraBoldFont = GetOrCreateFontAsset(ExtraBoldFontPath, ExtraBoldFontAssetPath);
 
         Scene scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         CreateCamera();
@@ -38,7 +40,7 @@ public static class MainMenuSceneBuilder
         scaler.matchWidthOrHeight = 0.5f;
         canvasObject.AddComponent<GraphicRaycaster>();
 
-        CreateTitle(canvasObject.transform, boldFont);
+        CreateTitle(canvasObject.transform, extraBoldFont);
 
         GameObject menuLayout = CreateMenuLayout(canvasObject.transform);
         Button newGameButton = CreateTextButton(menuLayout.transform, "New Game Button", "새 게임", regularFont);
@@ -181,12 +183,12 @@ public static class MainMenuSceneBuilder
         Font sourceFont = AssetDatabase.LoadAssetAtPath<Font>(sourcePath);
         if (sourceFont == null)
         {
-            throw new FileNotFoundException($"NotoSansKR font was not found at {sourcePath}");
+            throw new FileNotFoundException($"PF Stardust font was not found at {sourcePath}");
         }
 
         if (!AssetDatabase.IsValidFolder(FontAssetFolder))
         {
-            AssetDatabase.CreateFolder("Assets/Arts/99_Fonts/NotoSansKR", "TMP");
+            AssetDatabase.CreateFolder("Assets/Arts/99_Fonts/PFStardust", "TMP");
         }
 
         TMP_FontAsset fontAsset = TMP_FontAsset.CreateFontAsset(
