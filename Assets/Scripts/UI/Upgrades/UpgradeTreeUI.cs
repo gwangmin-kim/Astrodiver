@@ -18,13 +18,11 @@ public sealed class UpgradeTreeUI : MonoBehaviour
 
     [Header("Connections")]
     [SerializeField, Min(1f)] private float _connectionWidth = 4f;
-    [SerializeField]
-    private Color _connectionColor =
-        new(0.42f, 0.68f, 0.92f, 0.8f);
 
     private readonly Dictionary<UpgradeNodeDefinition, UpgradeNodeUI> _nodeDict = new();
     private readonly List<UpgradeConnectionUI> _connectionList = new();
     private UpgradeService _upgradeService;
+    private PlayerInventoryController _playerInventory;
     private bool _purchaseInProgress;
     private UpgradeNodeUI _focusedNode;
 
@@ -118,6 +116,11 @@ public sealed class UpgradeTreeUI : MonoBehaviour
             node.SetVisualState(GetVisualState(definition, level));
         }
 
+        for (int i = 0; i < _connectionList.Count; i++)
+        {
+            _connectionList[i].RefreshColor();
+        }
+
         RefreshTooltip();
     }
 
@@ -137,6 +140,12 @@ public sealed class UpgradeTreeUI : MonoBehaviour
         else
         {
             Debug.LogError("UpgradeService is not available.", this);
+        }
+
+        _playerInventory = PlayerInventoryController.Instance;
+        if (_playerInventory != null)
+        {
+            _playerInventory.Changed += RefreshAll;
         }
 
         SubscribeNodes();
@@ -193,10 +202,9 @@ public sealed class UpgradeTreeUI : MonoBehaviour
             connection.name = $"{childDefinition.Parent.Id} -> {childDefinition.Id}";
             connection.SetNodes(
                 (RectTransform)parentNode.transform,
-                (RectTransform)pair.Value.transform,
+                pair.Value,
                 _connectionLayer,
-                _connectionWidth,
-                _connectionColor);
+                _connectionWidth);
             _connectionList.Add(connection);
         }
     }
@@ -221,9 +229,12 @@ public sealed class UpgradeTreeUI : MonoBehaviour
             }
         }
 
-        return level <= 0
-            ? UpgradeNodeVisualState.Unlocked
-            : UpgradeNodeVisualState.Purchased;
+        UpgradePurchaseStatus purchaseStatus = _upgradeService != null
+            ? _upgradeService.GetPurchaseStatus(definition)
+            : UpgradePurchaseStatus.InventoryUnavailable;
+        return purchaseStatus == UpgradePurchaseStatus.Success
+            ? UpgradeNodeVisualState.Purchasable
+            : UpgradeNodeVisualState.Unavailable;
     }
 
     private void SubscribeNodes()
@@ -321,6 +332,12 @@ public sealed class UpgradeTreeUI : MonoBehaviour
 
     private void Unsubscribe()
     {
+        if (_playerInventory != null)
+        {
+            _playerInventory.Changed -= RefreshAll;
+            _playerInventory = null;
+        }
+
         if (_upgradeService != null)
         {
             _upgradeService.UpgradePurchased -= HandleUpgradePurchased;

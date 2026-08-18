@@ -9,22 +9,37 @@ public sealed class UpgradeConnectionUI : MonoBehaviour
 
     private RectTransform _parentNode;
     private RectTransform _childNode;
+    private UpgradeNodeUI _childNodeUI;
     private RectTransform _coordinateSpace;
     private float _width;
 
     public void SetNodes(
         RectTransform parentNode,
-        RectTransform childNode,
+        UpgradeNodeUI childNode,
         RectTransform coordinateSpace,
-        float width,
-        Color color)
+        float width)
     {
         _parentNode = parentNode;
-        _childNode = childNode;
+        _childNodeUI = childNode;
+        _childNode = childNode != null ? (RectTransform)childNode.transform : null;
         _coordinateSpace = coordinateSpace;
         _width = Mathf.Max(1f, width);
-        _lineImage.color = color;
+        RefreshColor();
         RefreshGeometry();
+    }
+
+    public void RefreshColor()
+    {
+        bool isVisible = _childNodeUI != null && _childNodeUI.gameObject.activeSelf;
+        if (gameObject.activeSelf != isVisible)
+        {
+            gameObject.SetActive(isVisible);
+        }
+
+        if (_lineImage != null && isVisible)
+        {
+            _lineImage.color = _childNodeUI.OutlineColor;
+        }
     }
 
     public void RefreshGeometry()
