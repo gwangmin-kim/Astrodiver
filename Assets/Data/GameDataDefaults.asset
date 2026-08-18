@@ -22,10 +22,10 @@ MonoBehaviour:
       _resourceAmounts: []
     upgradeNodes: []
     unlockedUpgradeIds: []
-    completedEvents: []
+    completedEvents: 
   _playerStats:
     movement:
-      baseMoveSpeed: 3
+      baseMoveSpeed: 4
       moveSpeedRatio: 1
       moveDampingTime: 0.3
       stopDampingTime: 0.8
