@@ -87,7 +87,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 878, y: -466}
+  m_AnchoredPosition: {x: -32, y: 24}
   m_SizeDelta: {x: 190, y: 240}
   m_Pivot: {x: 1, y: 0}
 --- !u!114 &5242115495883411739
@@ -130,9 +130,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ResourceFragmentListUI
   _entryPrefab: {fileID: 5662638313103722865, guid: 12a66e1562356fd49a680f4d85bb02f4, type: 3}
   _playerInventory: {fileID: 0}
-  _anchoredPosition: {x: -32, y: 24}
-  _size: {x: 190, y: 240}
-  _entrySpacing: 4
 --- !u!1 &8973262742789817982
 GameObject:
   m_ObjectHideFlags: 0
@@ -172,7 +169,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
   m_AnchoredPosition: {x: 0, y: 24}
-  m_SizeDelta: {x: 280, y: 64}
+  m_SizeDelta: {x: 1000, y: 80}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &561918121673731324
 MonoBehaviour:
@@ -194,8 +191,8 @@ MonoBehaviour:
   m_ChildAlignment: 4
   m_StartCorner: 0
   m_StartAxis: 0
-  m_CellSize: {x: 64, y: 64}
-  m_Spacing: {x: 8, y: 0}
+  m_CellSize: {x: 80, y: 80}
+  m_Spacing: {x: 16, y: 0}
   m_Constraint: 2
   m_ConstraintCount: 1
 --- !u!114 &2631971945829888857
@@ -212,9 +209,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CreatureInventoryBarUI
   _playerInventory: {fileID: 0}
   _slotPrefab: {fileID: 3614621462921878589, guid: 596188f0d6cbc9e4e8924ddbc9d9cd9c, type: 3}
-  _slotSize: 64
-  _slotSpacing: 8
-  _anchoredPosition: {x: 0, y: 24}
 --- !u!1001 &2042761013618530662
 PrefabInstance:
   m_ObjectHideFlags: 0
