@@ -212,8 +212,26 @@ public class PlayerInputHandler : MonoBehaviour
         if (isMouse)
         {
             Vector2 mouseScreenPosition = _aimAction.ReadValue<Vector2>(); // 마우스의 화면 좌표
-            Vector3 mouseWorldPosition = _mainCamera.ScreenToWorldPoint(
-                new Vector3(mouseScreenPosition.x, mouseScreenPosition.y, 0f)); // 마우스의 월드 좌표
+            if (_mainCamera == null)
+            {
+                _mainCamera = Camera.main;
+                if (_mainCamera == null) return default;
+            }
+
+            // Camera가 저해상도 Render Texture를 출력하면 Screen 좌표계와
+            // Camera 픽셀 좌표계의 크기가 달라진다. 화면 좌표를 Viewport 좌표로
+            // 정규화한 뒤 변환해야 RawImage로 확대된 화면과 조준 방향이 일치한다.
+            Vector2 mouseViewportPosition = new(
+                mouseScreenPosition.x / Screen.width,
+                mouseScreenPosition.y / Screen.height);
+
+            float playerPlaneDistance =
+                transform.position.z - _mainCamera.transform.position.z;
+            Vector3 mouseWorldPosition = _mainCamera.ViewportToWorldPoint(
+                new Vector3(
+                    mouseViewportPosition.x,
+                    mouseViewportPosition.y,
+                    playerPlaneDistance));
 
             Vector2 diff = (Vector2)mouseWorldPosition - (Vector2)transform.position;
             float distance = diff.magnitude;

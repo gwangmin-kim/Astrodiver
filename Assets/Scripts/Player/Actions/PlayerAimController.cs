@@ -21,7 +21,7 @@ public class PlayerAimController : MonoBehaviour
 
     private void Awake()
     {
-        if (_inputHandler == null) GetComponent<PlayerInputHandler>();
+        if (_inputHandler == null) _inputHandler = GetComponent<PlayerInputHandler>();
     }
 
     private void Update()
