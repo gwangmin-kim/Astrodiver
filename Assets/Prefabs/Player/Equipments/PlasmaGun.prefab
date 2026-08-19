@@ -5016,7 +5016,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: -1487310541
-  m_SortingLayer: 1
+  m_SortingLayer: 2
   m_SortingOrder: 5
   m_MaskInteraction: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
@@ -5108,6 +5108,30 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 487087860310846065, guid: a45f85f3e220cd34d8c7748a0dcc05f8, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3736447461282787406, guid: a45f85f3e220cd34d8c7748a0dcc05f8, type: 3}
+      propertyPath: _middleColor.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3736447461282787406, guid: a45f85f3e220cd34d8c7748a0dcc05f8, type: 3}
+      propertyPath: _middleColor.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3736447461282787406, guid: a45f85f3e220cd34d8c7748a0dcc05f8, type: 3}
+      propertyPath: _middleColor.r
+      value: 0.69411767
+      objectReference: {fileID: 0}
+    - target: {fileID: 3736447461282787406, guid: a45f85f3e220cd34d8c7748a0dcc05f8, type: 3}
+      propertyPath: _outlineColor.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3736447461282787406, guid: a45f85f3e220cd34d8c7748a0dcc05f8, type: 3}
+      propertyPath: _outlineColor.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3736447461282787406, guid: a45f85f3e220cd34d8c7748a0dcc05f8, type: 3}
+      propertyPath: _outlineColor.r
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4398968519512137614, guid: a45f85f3e220cd34d8c7748a0dcc05f8, type: 3}

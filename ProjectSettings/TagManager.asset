@@ -39,11 +39,26 @@ TagManager:
   - 
   - Platform
   m_SortingLayers:
+  - name: Back
+    uniqueID: 1875436737
+    locked: 0
+  - name: Platform
+    uniqueID: 2447840601
+    locked: 0
   - name: Default
     uniqueID: 0
     locked: 0
   - name: Player
     uniqueID: 2807656755
+    locked: 0
+  - name: Floatage
+    uniqueID: 1544239319
+    locked: 0
+  - name: Creature
+    uniqueID: 2017737355
+    locked: 0
+  - name: Front
+    uniqueID: 3478127563
     locked: 0
   m_RenderingLayers:
   - Default
