@@ -5,6 +5,7 @@ using UnityEngine;
 public class FloatageController : MonoBehaviour, IDamagable
 {
     [SerializeField] private FloatageDefinition _definition;
+    [SerializeField, Min(1)] private int _maxHp = 100;
     [SerializeField, Min(0f)] private float _dropRadius;
     [SerializeField, Min(1)] private int _dropCount = 1;
 
@@ -21,7 +22,7 @@ public class FloatageController : MonoBehaviour, IDamagable
             return;
         }
 
-        _hp = _definition.Hp;
+        _hp = Mathf.Max(1, _maxHp);
     }
 
     public void ApplyDamage(AttackData data)

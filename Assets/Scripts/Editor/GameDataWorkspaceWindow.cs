@@ -354,7 +354,6 @@ public sealed class GameDataWorkspaceWindow : EditorWindow
         }
         else if (type == typeof(FloatageDefinition))
         {
-            GUILayout.Label("HP", GUILayout.Width(55f));
             GUILayout.Label("Drop Resource", GUILayout.Width(110f));
         }
         else if (type == typeof(UpgradeNodeDefinition))
@@ -383,7 +382,6 @@ public sealed class GameDataWorkspaceWindow : EditorWindow
         }
         else if (entry is FloatageDefinition)
         {
-            DrawProperty(serialized, "_hp", 55f);
             DrawProperty(serialized, "_dropResource", 110f);
         }
         else if (entry is UpgradeNodeDefinition)
