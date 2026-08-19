@@ -16,10 +16,9 @@ public sealed class PlasmaGunChargeParticles : MonoBehaviour
     [SerializeField, Min(0.001f)] private float _particleSize = 0.05f;
     [SerializeField, Min(0f)] private float _initialConvergeSpeed = 0.4f;
     [SerializeField, Min(0f)] private float _finalConvergeSpeed = 3.5f;
+    [SerializeField] private Vector2 _particleRotationSpeedRange = new(-180f, 180f);
     [SerializeField] private AnimationCurve _convergeSpeedOverCharge =
         AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
-    [SerializeField] private Color _particleColor = new(0.2f, 1f, 1f, 1f);
-    [SerializeField, Min(0f)] private float _glowIntensity = 2f;
 
     private ParticleSystem.Particle[] _particles = new ParticleSystem.Particle[64];
     private bool _isCharging;
@@ -98,7 +97,13 @@ public sealed class PlasmaGunChargeParticles : MonoBehaviour
         main.startLifetime = _particleLifetime;
         main.startSize = _particleSize;
         main.startSpeed = 0f;
-        main.startColor = ToHdr(_particleColor);
+        main.startRotation = new ParticleSystem.MinMaxCurve(0f, Mathf.PI * 2f);
+
+        ParticleSystem.RotationOverLifetimeModule rotation = _particleSystem.rotationOverLifetime;
+        rotation.enabled = true;
+        rotation.z = new ParticleSystem.MinMaxCurve(
+            _particleRotationSpeedRange.x * Mathf.Deg2Rad,
+            _particleRotationSpeedRange.y * Mathf.Deg2Rad);
 
         ParticleSystem.EmissionModule emission = _particleSystem.emission;
         emission.enabled = true;
@@ -110,12 +115,8 @@ public sealed class PlasmaGunChargeParticles : MonoBehaviour
         shape.radius = _spawnRadius;
     }
 
-    private Color ToHdr(Color color)
+    public void ApplyPalette(PlasmaGunVisualPalette palette)
     {
-        return new Color(
-            color.r * _glowIntensity,
-            color.g * _glowIntensity,
-            color.b * _glowIntensity,
-            color.a);
+        if (palette != null) palette.ApplyTo(_particleSystem);
     }
 }

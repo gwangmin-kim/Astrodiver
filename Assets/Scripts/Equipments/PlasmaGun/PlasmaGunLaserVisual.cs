@@ -19,18 +19,14 @@ public sealed class PlasmaGunLaserVisual : MonoBehaviour
     [Header("Sprite Settings")]
     [SerializeField, Min(0.01f)] private float _beamWidth = 0.32f;
 
-    [Header("Color Settings")]
-    [SerializeField] private Color _innerColor = Color.white;
-    [SerializeField] private Color _middleColor = new(1f, 0.6933962f, 0.97642165f, 1f);
-    [SerializeField] private Color _outlineColor = new(1f, 0f, 0.65657973f, 1f);
-    [SerializeField, Min(0f)] private float _glowIntensity = 2f;
-
     [Header("Particle Settings")]
     [SerializeField, Min(0f)] private float _particlesPerUnitLength = 12f;
+    [SerializeField] private Vector2 _particleRotationSpeedRange = new(-180f, 180f);
 
     private Vector3 _defaultLocalScale;
     private Material _laserMaterial;
     private ParticleSystem _laserParticles;
+    private PlasmaGunVisualPalette _palette;
 
     private void Awake()
     {
@@ -39,7 +35,8 @@ public sealed class PlasmaGunLaserVisual : MonoBehaviour
             _defaultLocalScale = _laserRenderer.transform.localScale;
             _laserMaterial = _laserRenderer.material;
             _laserParticles = _laserRenderer.GetComponent<ParticleSystem>();
-            ApplyColors();
+            ConfigureParticleRotation(_laserParticles, _particleRotationSpeedRange);
+            ApplyPalette(_palette);
         }
     }
 
@@ -73,12 +70,15 @@ public sealed class PlasmaGunLaserVisual : MonoBehaviour
         Hide();
     }
 
-    public void SetColors(Color inner, Color middle, Color outline)
+    public void ApplyPalette(PlasmaGunVisualPalette palette)
     {
-        _innerColor = inner;
-        _middleColor = middle;
-        _outlineColor = outline;
-        ApplyColors();
+        _palette = palette;
+        if (_laserMaterial == null || _palette == null) return;
+        _laserMaterial.SetColor(_innerColorId, _palette.InnerColor);
+        _laserMaterial.SetColor(_middleColorId, _palette.MiddleColor);
+        _laserMaterial.SetColor(_outlineColorId, _palette.OutlineColor);
+        _laserMaterial.SetFloat(_glowIntensityId, _palette.GlowIntensity);
+        if (_laserParticles != null) _palette.ApplyTo(_laserParticles);
     }
 
     private void ConfigureBeam(Vector2 start, Vector2 end)
@@ -110,25 +110,6 @@ public sealed class PlasmaGunLaserVisual : MonoBehaviour
         _laserRenderer.gameObject.SetActive(true);
     }
 
-    private void ApplyColors()
-    {
-        if (_laserMaterial != null)
-        {
-            _laserMaterial.SetColor(_innerColorId, _innerColor);
-            _laserMaterial.SetColor(_middleColorId, _middleColor);
-            _laserMaterial.SetColor(_outlineColorId, _outlineColor);
-            _laserMaterial.SetFloat(_glowIntensityId, _glowIntensity);
-        }
-
-        if (_laserParticles != null)
-        {
-            ParticleSystem.MainModule main = _laserParticles.main;
-            main.startColor = new ParticleSystem.MinMaxGradient(
-                ToHdr(_innerColor),
-                ToHdr(_outlineColor));
-        }
-    }
-
     private void UpdateParticleShape(float width, float height, float transformScale)
     {
         if (_laserParticles == null) return;
@@ -151,12 +132,16 @@ public sealed class PlasmaGunLaserVisual : MonoBehaviour
         emission.rateOverTime = beamLength * _particlesPerUnitLength;
     }
 
-    private Color ToHdr(Color color)
+    private static void ConfigureParticleRotation(ParticleSystem particles, Vector2 speedRange)
     {
-        return new Color(
-            color.r * _glowIntensity,
-            color.g * _glowIntensity,
-            color.b * _glowIntensity,
-            color.a);
+        if (particles == null) return;
+        ParticleSystem.MainModule main = particles.main;
+        main.startRotation = new ParticleSystem.MinMaxCurve(0f, Mathf.PI * 2f);
+        ParticleSystem.RotationOverLifetimeModule rotation = particles.rotationOverLifetime;
+        rotation.enabled = true;
+        rotation.z = new ParticleSystem.MinMaxCurve(
+            speedRange.x * Mathf.Deg2Rad,
+            speedRange.y * Mathf.Deg2Rad);
     }
+
 }

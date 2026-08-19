@@ -10,6 +10,8 @@ public class PlasmaGunController : MonoBehaviour
     [SerializeField] private Transform _shootOrigin;
     [SerializeField] private PlasmaGunLaserVisual _laserVisual;
     [SerializeField] private PlasmaGunChargeParticles _chargeParticles;
+    [SerializeField] private PlasmaGunVisualPalette _visualPalette;
+    [SerializeField] private PlasmaGunParticleEffects _particleEffects;
     [SerializeField] private LayerMask _targetLayer;
     [Tooltip("첫 목표 탐색 시 수행하는 CircleCast의 반지름")]
     [SerializeField, Min(0.01f)] private float _initialCastRadius = 0.05f;
@@ -54,6 +56,9 @@ public class PlasmaGunController : MonoBehaviour
         _data = GameDataManager.Instance.GetPlasmaGun();
         _remainingAmmo = Mathf.Max(0, _data.ammoCapacity);
         CreateChainLaserVisuals();
+        _visualPalette?.ApplyTo(_laserVisual);
+        _chargeParticles?.ApplyPalette(_visualPalette);
+        _particleEffects?.Initialize(_visualPalette, _data.chainCount + 1);
     }
 
     private void Update()
@@ -61,6 +66,7 @@ public class PlasmaGunController : MonoBehaviour
         if (_chargeState != ChargeState.Charged || !isAttacking || !HasAmmo)
         {
             HideAttackEffects();
+            _particleEffects?.HideAll();
         }
 
         switch (_chargeState)
@@ -91,6 +97,8 @@ public class PlasmaGunController : MonoBehaviour
                 if (isAttacking && HasAmmo)
                 {
                     DrawAttackEffect();
+                    _particleEffects?.SetMuzzleFiring(true, _shootOrigin);
+                    _particleEffects?.SetImpactTargets(_currentTargetList);
                     _chargedRetentionTimer = _data.chargedRetentionTime;
                     _attackTickTimer -= Time.deltaTime * _data.TickSpeedMultiplier;
 
@@ -136,6 +144,8 @@ public class PlasmaGunController : MonoBehaviour
     {
         SetTarget();
         AttackTarget();
+        _particleEffects?.SetImpactTargets(_currentTargetList);
+        _particleEffects?.EmitImpactBursts(_currentTargetList);
         DrawAttackEffect();
     }
 
@@ -248,6 +258,7 @@ public class PlasmaGunController : MonoBehaviour
         {
             PlasmaGunLaserVisual chainLaser = Instantiate(_laserVisual, transform);
             chainLaser.name = $"Chain Laser {i + 1}";
+            _visualPalette?.ApplyTo(chainLaser);
             chainLaser.Hide();
             _chainLaserVisuals.Add(chainLaser);
         }
