@@ -13,9 +13,8 @@ GameObject:
   - component: {fileID: 3453313594667399551}
   - component: {fileID: 582000401992344535}
   - component: {fileID: 3899131526997146315}
-  - component: {fileID: 4814361042675619038}
   m_Layer: 7
-  m_Name: floatage_01_stone_2
+  m_Name: floatage_07_methane_2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -85,7 +84,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: 5de302216d5977f47bc599cb89f1a29e, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 14c44074230e1b744bf48a154e3fb7a2, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -130,8 +129,8 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
-  m_Size: {x: 0.6, y: 0.4}
+  m_Offset: {x: 0.03, y: 0.03}
+  m_Size: {x: 0.7, y: 0.7}
   m_Direction: 1
 --- !u!50 &582000401992344535
 Rigidbody2D:
@@ -172,22 +171,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: afb8676405ceb3644a8ebc5c84f3dd52, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FloatageController
-  _definition: {fileID: 11400000, guid: 91c96fb7709d44ac8559ef086ef06e74, type: 2}
-  _dropRadius: 0.4
+  _definition: {fileID: 11400000, guid: 5e23ec5ec25758c4fa4d779610152833, type: 2}
+  _dropRadius: 0.7
   _dropCount: 4
---- !u!114 &4814361042675619038
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5706660221163112332}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3ad68708fbbd5834985ede9b2f12be44, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::MineralFloatageMovement
-  _minSpeed: 0.15
-  _maxSpeed: 0.4
-  _minAngularSpeed: 15
-  _maxAngularSpeed: 45

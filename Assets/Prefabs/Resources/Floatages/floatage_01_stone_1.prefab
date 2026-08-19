@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 3453313594667399551}
   - component: {fileID: 582000401992344535}
   - component: {fileID: 3899131526997146315}
+  - component: {fileID: 332494766347733807}
   m_Layer: 7
   m_Name: floatage_01_stone_1
   m_TagString: Untagged
@@ -145,7 +146,7 @@ Rigidbody2D:
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
   m_Mass: 1
-  m_LinearDamping: 0.5
+  m_LinearDamping: 0
   m_AngularDamping: 0.05
   m_GravityScale: 0
   m_Material: {fileID: 0}
@@ -174,3 +175,19 @@ MonoBehaviour:
   _definition: {fileID: 11400000, guid: 91c96fb7709d44ac8559ef086ef06e74, type: 2}
   _dropRadius: 0.5
   _dropCount: 8
+--- !u!114 &332494766347733807
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5706660221163112332}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ad68708fbbd5834985ede9b2f12be44, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MineralFloatageMovement
+  _minSpeed: 0.15
+  _maxSpeed: 0.4
+  _minAngularSpeed: 15
+  _maxAngularSpeed: 45
