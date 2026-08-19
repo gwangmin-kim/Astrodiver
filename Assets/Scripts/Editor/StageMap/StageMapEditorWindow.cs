@@ -32,6 +32,9 @@ public sealed class StageMapEditorWindow : EditorWindow
     private const float TileSetCardWidth = 104f;
     private const float TileSetCardHeight = 116f;
     private const float TileSetCardSpacing = 4f;
+    // Keep one tile available outside each WorldBounds2D edge so automatic
+    // tile textures can render their connected border without being clipped.
+    private const int EditableBorderCellCount = 1;
     private static readonly Color _stageBoundsColor =
         new(0.15f, 0.7f, 1f, 1f);
     private static readonly Vector3Int[] _cardinalDirections =
@@ -1277,6 +1280,13 @@ public sealed class StageMapEditorWindow : EditorWindow
             tilemap.transform.position.z));
         minCell.z = 0;
         maxCell.z = 0;
+
+        Vector3Int border = new(
+            EditableBorderCellCount,
+            EditableBorderCellCount,
+            0);
+        minCell -= border;
+        maxCell += border;
 
         return new BoundsInt(
             minCell.x,
