@@ -15,5 +15,4 @@ MonoBehaviour:
   _id: floatage.stone
   _key: stone
   _sortOrder: 0
-  _hp: 500
   _dropResource: {fileID: 11400000, guid: 1059946eedbea974699f29d697f124de, type: 2}

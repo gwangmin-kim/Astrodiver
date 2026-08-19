@@ -15,5 +15,4 @@ MonoBehaviour:
   _id: floatage.methane
   _key: methane
   _sortOrder: 6
-  _hp: 100
   _dropResource: {fileID: 11400000, guid: c012c557997630f47942d50d70be964f, type: 2}

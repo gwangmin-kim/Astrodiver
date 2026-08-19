@@ -20,19 +20,25 @@ MonoBehaviour:
     _maxCount: 20
     _respawnProbability: 0
     _entries:
-    - _entryId: stone_creature
+    - _entryId: creature_stone
       _prefab: {fileID: 508475945939948788, guid: f5efb60079e5dcf47844a132d8f43fd4, type: 3}
       _spawnWeight: 1
-    - _entryId: iron_creature
+    - _entryId: creature_iron
       _prefab: {fileID: 5419619508651959619, guid: 9563da9c3dc297545830e288e3b4b4d6, type: 3}
       _spawnWeight: 0.5
   _resourceFloatages:
     _maxCount: 15
     _respawnProbability: 0
     _entries:
-    - _entryId: stone_floatage
+    - _entryId: floatage_stone_1
       _prefab: {fileID: 5706660221163112332, guid: 031d5af0176d3c7469ea5f9a2cdd2d67, type: 3}
       _spawnWeight: 1
-    - _entryId: iron_floatage
-      _prefab: {fileID: 8584834154848141216, guid: 3a5159485fc32cd4f9bbd0bada734836, type: 3}
+    - _entryId: floatage_stone_2
+      _prefab: {fileID: 5706660221163112332, guid: a49b9cb8237caac4cb576b35066b5edd, type: 3}
+      _spawnWeight: 1
+    - _entryId: floatage_iron_1
+      _prefab: {fileID: 5706660221163112332, guid: 46d8ce96a3f14bb488022e995fdad657, type: 3}
+      _spawnWeight: 1
+    - _entryId: floatage_iron_2
+      _prefab: {fileID: 5706660221163112332, guid: 50125729244c445408fd552971519e9a, type: 3}
       _spawnWeight: 1

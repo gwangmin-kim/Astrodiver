@@ -32,4 +32,4 @@ MonoBehaviour:
       _spawnWeight: 1
     - _entryId: floatage_stone_2
       _prefab: {fileID: 5706660221163112332, guid: a49b9cb8237caac4cb576b35066b5edd, type: 3}
-      _spawnWeight: 1
+      _spawnWeight: 0.5

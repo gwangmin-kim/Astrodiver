@@ -16,4 +16,4 @@ MonoBehaviour:
   _key: fire
   _sortOrder: 4
   _displayName: Fire
-  _icon: {fileID: 21300000, guid: 9086c87095de2488fb9b47794e9f6ee7, type: 3}
+  _icon: {fileID: 21300000, guid: 9505470eded8d604b96002a752f4c628, type: 3}

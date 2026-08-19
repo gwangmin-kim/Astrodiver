@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 1361295532372148023}
   - component: {fileID: 6352789263131019587}
   m_Layer: 6
-  m_Name: Creature_2_Iron
+  m_Name: creature_2_iron
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

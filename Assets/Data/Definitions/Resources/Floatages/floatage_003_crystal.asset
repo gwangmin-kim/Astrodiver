@@ -15,5 +15,4 @@ MonoBehaviour:
   _id: floatage.crystal
   _key: crystal
   _sortOrder: 3
-  _hp: 4000
   _dropResource: {fileID: 11400000, guid: 6cae5ba7d51ba5d4b838ba85ce2ded9e, type: 2}
