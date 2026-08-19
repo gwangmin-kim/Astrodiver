@@ -2356,7 +2356,6 @@ MonoBehaviour:
   _playerPrefab: {fileID: 8562921575549458465, guid: b718b1fa85d7a0a4aa0fd4403b943c13, type: 3}
   _playerSpawnPoint: {fileID: 475039348711322185}
   _runtimeRoot: {fileID: 212685586}
-  _timeoutInventoryLossRatio: 0.8
   _sessionEndPanel: {fileID: 1930779838}
   _returnButton: {fileID: 1743776474}
   _retryButton: {fileID: 1783029263}
