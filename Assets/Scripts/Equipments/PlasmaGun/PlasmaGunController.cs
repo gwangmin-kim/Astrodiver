@@ -8,6 +8,8 @@ public class PlasmaGunController : MonoBehaviour
     [Header("Detect Settings")]
     [Tooltip("플라즈마 광선 시작점")]
     [SerializeField] private Transform _shootOrigin;
+    [SerializeField] private PlasmaGunLaserVisual _laserVisual;
+    [SerializeField] private PlasmaGunChargeParticles _chargeParticles;
     [SerializeField] private LayerMask _targetLayer;
     [Tooltip("첫 목표 탐색 시 수행하는 CircleCast의 반지름")]
     [SerializeField, Min(0.01f)] private float _initialCastRadius = 0.05f;
@@ -19,6 +21,7 @@ public class PlasmaGunController : MonoBehaviour
     // 공격 대상의 순서가 필요한 로직이 존재
     // 크기가 작은 컨테이너이므로 List 사용
     private readonly List<Transform> _currentTargetList = new();
+    private readonly List<PlasmaGunLaserVisual> _chainLaserVisuals = new();
 
     private float _attackTickTimer;
     private float _chargeTimer;
@@ -50,10 +53,16 @@ public class PlasmaGunController : MonoBehaviour
     {
         _data = GameDataManager.Instance.GetPlasmaGun();
         _remainingAmmo = Mathf.Max(0, _data.ammoCapacity);
+        CreateChainLaserVisuals();
     }
 
     private void Update()
     {
+        if (_chargeState != ChargeState.Charged || !isAttacking || !HasAmmo)
+        {
+            HideAttackEffects();
+        }
+
         switch (_chargeState)
         {
             case ChargeState.Uncharged:
@@ -81,6 +90,7 @@ public class PlasmaGunController : MonoBehaviour
             case ChargeState.Charged:
                 if (isAttacking && HasAmmo)
                 {
+                    DrawAttackEffect();
                     _chargedRetentionTimer = _data.chargedRetentionTime;
                     _attackTickTimer -= Time.deltaTime * _data.TickSpeedMultiplier;
 
@@ -107,6 +117,19 @@ public class PlasmaGunController : MonoBehaviour
                 }
                 break;
         }
+
+        UpdateChargeParticles();
+    }
+
+    private void UpdateChargeParticles()
+    {
+        if (_chargeParticles == null) return;
+
+        bool isCharging = _chargeState == ChargeState.Charging && isAttacking && HasAmmo;
+        float progress = _data.ChargeTime <= Mathf.Epsilon
+            ? 1f
+            : 1f - Mathf.Clamp01(_chargeTimer / _data.ChargeTime);
+        _chargeParticles.SetCharging(isCharging, progress);
     }
 
     private void ResolveAttack()
@@ -178,13 +201,65 @@ public class PlasmaGunController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 레이저 효과
-    /// TODO: 로직과는 별개의 시각적 효과이므로 별도의 컴포넌트로 분리하는 것 고려해보기
-    /// </summary>
     private void DrawAttackEffect()
     {
+        if (_laserVisual == null || _shootOrigin == null) return;
 
+        Vector2 origin = _shootOrigin.position;
+        Vector2 fallbackEnd = origin + (Vector2)_shootOrigin.up * _data.AttackRange;
+        Vector2 firstEnd = _currentTargetList.Count > 0 && _currentTargetList[0] != null
+            ? _currentTargetList[0].position
+            : fallbackEnd;
+        _laserVisual.Show(origin, firstEnd);
+
+        int chainSegmentCount = Mathf.Min(
+            _chainLaserVisuals.Count,
+            Mathf.Max(0, _currentTargetList.Count - 1));
+        for (int i = 0; i < chainSegmentCount; i++)
+        {
+            Transform segmentStart = _currentTargetList[i];
+            Transform segmentEnd = _currentTargetList[i + 1];
+            if (segmentStart != null && segmentEnd != null)
+            {
+                _chainLaserVisuals[i].Show(segmentStart.position, segmentEnd.position);
+            }
+            else
+            {
+                _chainLaserVisuals[i].Hide();
+            }
+        }
+
+        for (int i = chainSegmentCount; i < _chainLaserVisuals.Count; i++)
+        {
+            _chainLaserVisuals[i].Hide();
+        }
+    }
+
+    private void CreateChainLaserVisuals()
+    {
+        if (_laserVisual == null)
+        {
+            Debug.LogWarning("Plasma gun needs its preconfigured direct-fire laser visual.", this);
+            return;
+        }
+
+        int chainCount = Mathf.Max(0, _data.chainCount);
+        for (int i = 0; i < chainCount; i++)
+        {
+            PlasmaGunLaserVisual chainLaser = Instantiate(_laserVisual, transform);
+            chainLaser.name = $"Chain Laser {i + 1}";
+            chainLaser.Hide();
+            _chainLaserVisuals.Add(chainLaser);
+        }
+    }
+
+    private void HideAttackEffects()
+    {
+        _laserVisual?.Hide();
+        for (int i = 0; i < _chainLaserVisuals.Count; i++)
+        {
+            _chainLaserVisuals[i].Hide();
+        }
     }
 
     private Transform GetNearestTarget(Vector2 point, float radius)
@@ -216,42 +291,6 @@ public class PlasmaGunController : MonoBehaviour
         return nearestTarget;
     }
 
-#if UNITY_EDITOR
-    private void OnDrawGizmos()
-    {
-        if (isAttacking && _chargeState == ChargeState.Charged)
-        {
-            // 점 구성
-            List<Vector2> points = new(Mathf.Max(_currentTargetList.Count + 1, 2))
-            {
-                _shootOrigin.position,
-            };
-
-            if (_currentTargetList.Count == 0)
-                points.Add(_shootOrigin.position + _data.AttackRange * _shootOrigin.up);
-            else if (_currentTargetList[0] != null)
-            {
-                points.Add(_currentTargetList[0].position);
-
-                for (int i = 1; i < _currentTargetList.Count; i++)
-                {
-                    if (_currentTargetList[i] == null) break;
-                    points.Add(_currentTargetList[i].position);
-                }
-            }
-
-            // 선 그리기
-            Gizmos.color = Color.softRed;
-            Gizmos.DrawSphere(points[0], _initialCastRadius);
-            for (int i = 0; i < points.Count - 1; i++)
-            {
-                // Debug.DrawLine(points[i], points[i + 1], Color.red, 0.1f);
-                Gizmos.DrawLine(points[i], points[i + 1]);
-                Gizmos.DrawSphere(points[i + 1], _initialCastRadius);
-            }
-        }
-    }
-#endif
 }
 
 [System.Serializable]
