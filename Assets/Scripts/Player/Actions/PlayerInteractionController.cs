@@ -7,6 +7,7 @@ public class PlayerInteractionController : MonoBehaviour
 {
     [SerializeField] private PlayerInputHandler _inputHandler;
     [SerializeField] private LayerMask _interactableLayer;
+    [SerializeField] private InteractionPromptSprite _interactionPrompt;
 
     private readonly List<IInteractable> _overlappingInteractables = new();
 
@@ -24,6 +25,13 @@ public class PlayerInteractionController : MonoBehaviour
         {
             _interactableLayer = LayerMask.GetMask("Interactable");
         }
+
+        if (_interactionPrompt == null)
+        {
+            _interactionPrompt = GetComponentInChildren<InteractionPromptSprite>(true);
+        }
+
+        if (_interactionPrompt != null) _interactionPrompt.Hide();
     }
 
     private void Update()
@@ -72,6 +80,19 @@ public class PlayerInteractionController : MonoBehaviour
         Debug.Log($"InteractionController: interact target changed by {nextTarget}");
 
         CurrentTarget = nextTarget;
+
+        if (_interactionPrompt != null)
+        {
+            if (CurrentTarget == null)
+            {
+                _interactionPrompt.Hide();
+            }
+            else
+            {
+                _interactionPrompt.Show();
+            }
+        }
+
         CurrentTargetChanged?.Invoke(CurrentTarget);
     }
 

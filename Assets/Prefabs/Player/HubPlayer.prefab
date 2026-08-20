@@ -36,6 +36,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6356417324507540861}
+  - {fileID: 8799660921382298160}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!70 &7496338818176314963
@@ -162,6 +163,7 @@ MonoBehaviour:
   _interactableLayer:
     serializedVersion: 2
     m_Bits: 256
+  _interactionPrompt: {fileID: 585421277565796800}
 --- !u!114 &873271503563214708
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -254,7 +256,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: -1487310541
-  m_SortingLayer: 1
+  m_SortingLayer: 3
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: 54c74f49568fa455fb29e2843eee66d6, type: 3}
@@ -346,7 +348,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: -1487310541
-  m_SortingLayer: 1
+  m_SortingLayer: 3
   m_SortingOrder: 1
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: bcb43ed3b40b249f5b4ab57f6687dd90, type: 3}
@@ -438,7 +440,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: -1487310541
-  m_SortingLayer: 1
+  m_SortingLayer: 3
   m_SortingOrder: 3
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: 8c035ce5afb574184867a9c4d3bfbebf, type: 3}
@@ -530,7 +532,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: -1487310541
-  m_SortingLayer: 1
+  m_SortingLayer: 3
   m_SortingOrder: 1
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: 4d1878b632a0b48bfb4a4ce586ef043e, type: 3}
@@ -622,7 +624,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: -1487310541
-  m_SortingLayer: 1
+  m_SortingLayer: 3
   m_SortingOrder: 3
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: 263e5902dbbf340928dd33dba086648d, type: 3}
@@ -714,7 +716,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: -1487310541
-  m_SortingLayer: 1
+  m_SortingLayer: 3
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: b3ea1c30ad3684fd2ab98c1ea966272d, type: 3}
@@ -812,7 +814,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: -1487310541
-  m_SortingLayer: 1
+  m_SortingLayer: 3
   m_SortingOrder: 2
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: 077197749ed29481aba41dd1d247c668, type: 3}
@@ -826,3 +828,64 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
   m_BlendShapeWeights: []
+--- !u!1001 &2386114357881181618
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 3380768423876122246}
+    m_Modifications:
+    - target: {fileID: 4593738314931550493, guid: 12141f150c5a48343a408a62d4b385f5, type: 3}
+      propertyPath: m_Name
+      value: InteractionPrompt
+      objectReference: {fileID: 0}
+    - target: {fileID: 6558229112599050114, guid: 12141f150c5a48343a408a62d4b385f5, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6558229112599050114, guid: 12141f150c5a48343a408a62d4b385f5, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6558229112599050114, guid: 12141f150c5a48343a408a62d4b385f5, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6558229112599050114, guid: 12141f150c5a48343a408a62d4b385f5, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6558229112599050114, guid: 12141f150c5a48343a408a62d4b385f5, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6558229112599050114, guid: 12141f150c5a48343a408a62d4b385f5, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6558229112599050114, guid: 12141f150c5a48343a408a62d4b385f5, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 12141f150c5a48343a408a62d4b385f5, type: 3}
+--- !u!114 &585421277565796800 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2955201181040006258, guid: 12141f150c5a48343a408a62d4b385f5, type: 3}
+  m_PrefabInstance: {fileID: 2386114357881181618}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d2d152d04fba9d54084f92154a5be9b6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InteractionPromptSprite
+--- !u!4 &8799660921382298160 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6558229112599050114, guid: 12141f150c5a48343a408a62d4b385f5, type: 3}
+  m_PrefabInstance: {fileID: 2386114357881181618}
+  m_PrefabAsset: {fileID: 0}
