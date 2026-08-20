@@ -10,19 +10,21 @@ public sealed class PlasmaGunChargeParticles : MonoBehaviour
     [SerializeField] private ParticleSystem _particleSystem;
 
     [Header("Charge Particle Settings")]
-    [SerializeField, Min(0.01f)] private float _spawnRadius = 0.45f;
-    [SerializeField, Min(0f)] private float _emissionRate = 24f;
-    [SerializeField, Min(0.01f)] private float _particleLifetime = 0.65f;
-    [SerializeField, Min(0.001f)] private float _particleSize = 0.05f;
+    [SerializeField]
+    private AnimationCurve _chargeProgressCurve =
+        AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
     [SerializeField, Min(0f)] private float _initialConvergeSpeed = 0.4f;
     [SerializeField, Min(0f)] private float _finalConvergeSpeed = 3.5f;
-    [SerializeField] private Vector2 _particleRotationSpeedRange = new(-180f, 180f);
-    [SerializeField] private AnimationCurve _convergeSpeedOverCharge =
-        AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
+    [SerializeField, Min(0f)] private float _initialSizeMultiplier = 0.5f;
+    [SerializeField, Min(0f)] private float _finalSizeMultiplier = 1.5f;
+    [SerializeField, Min(0f)] private float _initialSpawnRadiusMultiplier = 1f;
+    [SerializeField, Min(0f)] private float _finalSpawnRadiusMultiplier = 1.5f;
 
     private ParticleSystem.Particle[] _particles = new ParticleSystem.Particle[64];
     private bool _isCharging;
     private float _convergeSpeed;
+    private float _baseStartSizeMultiplier;
+    private float _baseSpawnRadius;
 
     private void Awake()
     {
@@ -33,7 +35,8 @@ public sealed class PlasmaGunChargeParticles : MonoBehaviour
             return;
         }
 
-        ConfigureParticleSystem();
+        _baseStartSizeMultiplier = _particleSystem.main.startSizeMultiplier;
+        _baseSpawnRadius = _particleSystem.shape.radius;
         _particleSystem.gameObject.SetActive(false);
     }
 
@@ -75,10 +78,17 @@ public sealed class PlasmaGunChargeParticles : MonoBehaviour
             return;
         }
 
+        float chargeProgress = _chargeProgressCurve.Evaluate(Mathf.Clamp01(normalizedProgress));
         _convergeSpeed = Mathf.Lerp(
             _initialConvergeSpeed,
             _finalConvergeSpeed,
-            _convergeSpeedOverCharge.Evaluate(Mathf.Clamp01(normalizedProgress)));
+            chargeProgress);
+        ParticleSystem.MainModule main = _particleSystem.main;
+        main.startSizeMultiplier = _baseStartSizeMultiplier * Mathf.Lerp(
+            _initialSizeMultiplier, _finalSizeMultiplier, chargeProgress);
+        ParticleSystem.ShapeModule shape = _particleSystem.shape;
+        shape.radius = _baseSpawnRadius * Mathf.Lerp(
+            _initialSpawnRadiusMultiplier, _finalSpawnRadiusMultiplier, chargeProgress);
 
         if (!_isCharging)
         {
@@ -86,33 +96,6 @@ public sealed class PlasmaGunChargeParticles : MonoBehaviour
             _particleSystem.Play(true);
             _isCharging = true;
         }
-    }
-
-    private void ConfigureParticleSystem()
-    {
-        ParticleSystem.MainModule main = _particleSystem.main;
-        main.loop = true;
-        main.playOnAwake = false;
-        main.simulationSpace = ParticleSystemSimulationSpace.Local;
-        main.startLifetime = _particleLifetime;
-        main.startSize = _particleSize;
-        main.startSpeed = 0f;
-        main.startRotation = new ParticleSystem.MinMaxCurve(0f, Mathf.PI * 2f);
-
-        ParticleSystem.RotationOverLifetimeModule rotation = _particleSystem.rotationOverLifetime;
-        rotation.enabled = true;
-        rotation.z = new ParticleSystem.MinMaxCurve(
-            _particleRotationSpeedRange.x * Mathf.Deg2Rad,
-            _particleRotationSpeedRange.y * Mathf.Deg2Rad);
-
-        ParticleSystem.EmissionModule emission = _particleSystem.emission;
-        emission.enabled = true;
-        emission.rateOverTime = _emissionRate;
-
-        ParticleSystem.ShapeModule shape = _particleSystem.shape;
-        shape.enabled = true;
-        shape.shapeType = ParticleSystemShapeType.Circle;
-        shape.radius = _spawnRadius;
     }
 
     public void ApplyPalette(PlasmaGunVisualPalette palette)
