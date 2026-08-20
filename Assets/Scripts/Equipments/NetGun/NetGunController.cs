@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using PrimeTween;
@@ -50,16 +51,19 @@ public class NetGunController : MonoBehaviour
 
     public bool IsSwitchable => _netGunState == NetGunState.Idle;
     public int RemainingAmmo => _remainingAmmo;
+    public int TotalAmmo => Mathf.Max(0, _data.ammoCapacity);
     public bool HasAmmo => _remainingAmmo > 0;
+    public event Action<int, int> AmmoChanged;
 
     private void Start()
     {
         _data = GameDataManager.Instance.GetNetGun();
         BuildNetPool();
-        _remainingAmmo = Mathf.Max(0, _data.ammoCapacity);
+        _remainingAmmo = TotalAmmo;
 
         _playerInventory = PlayerInventoryController.Instance;
         ResetAllNetsToIdle();
+        PublishAmmoChanged();
     }
 
     private void OnDisable()
@@ -192,7 +196,8 @@ public class NetGunController : MonoBehaviour
         NetRuntime net = _chargingNet;
         _chargingNet = null;
         _netGunState = NetGunState.Idle;
-        _remainingAmmo--;
+        _remainingAmmo = Mathf.Max(0, _remainingAmmo - 1);
+        PublishAmmoChanged();
 
         net.shootTween.Stop();
 
@@ -226,6 +231,11 @@ public class NetGunController : MonoBehaviour
     private void StartSpreading(NetRuntime net)
     {
         net.net.BeginSpread();
+    }
+
+    private void PublishAmmoChanged()
+    {
+        AmmoChanged?.Invoke(RemainingAmmo, TotalAmmo);
     }
 
     private bool TryStartRetracting(NetRuntime net)
@@ -489,7 +499,7 @@ public class NetGunController : MonoBehaviour
 
     private static bool IsMissing(ICapturable target)
     {
-        return target == null || target is Object unityObject && unityObject == null;
+        return target == null || target is UnityEngine.Object unityObject && unityObject == null;
     }
 
     private sealed class NetRuntime

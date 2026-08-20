@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -41,7 +42,9 @@ public class PlasmaGunController : MonoBehaviour
     [SerializeField] private ChargeState _chargeState = ChargeState.Uncharged; // 내부 제어 상태
     public bool IsSwitchable => !isAttacking;
     public int RemainingAmmo => _remainingAmmo;
+    public int TotalAmmo => Mathf.Max(0, _data.ammoCapacity);
     public bool HasAmmo => _remainingAmmo > 0;
+    public event Action<int, int> AmmoChanged;
 
     private void Awake()
     {
@@ -54,11 +57,12 @@ public class PlasmaGunController : MonoBehaviour
     private void Start()
     {
         _data = GameDataManager.Instance.GetPlasmaGun();
-        _remainingAmmo = Mathf.Max(0, _data.ammoCapacity);
+        _remainingAmmo = TotalAmmo;
         CreateChainLaserVisuals();
         _visualPalette?.ApplyTo(_laserVisual);
         _chargeParticles?.ApplyPalette(_visualPalette);
         _particleEffects?.Initialize(_visualPalette, _data.chainCount + 1);
+        PublishAmmoChanged();
     }
 
     private void Update()
@@ -105,7 +109,8 @@ public class PlasmaGunController : MonoBehaviour
                     if (_attackTickTimer < 0f)
                     {
                         _attackTickTimer = _data.tickInterval;
-                        _remainingAmmo--;
+                        _remainingAmmo = Mathf.Max(0, _remainingAmmo - 1);
+                        PublishAmmoChanged();
                         ResolveAttack();
 
                         if (!HasAmmo)
@@ -138,6 +143,11 @@ public class PlasmaGunController : MonoBehaviour
             ? 1f
             : 1f - Mathf.Clamp01(_chargeTimer / _data.ChargeTime);
         _chargeParticles.SetCharging(isCharging, progress);
+    }
+
+    private void PublishAmmoChanged()
+    {
+        AmmoChanged?.Invoke(RemainingAmmo, TotalAmmo);
     }
 
     private void ResolveAttack()

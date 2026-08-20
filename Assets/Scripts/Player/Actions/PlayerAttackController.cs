@@ -1,5 +1,11 @@
 using UnityEngine;
 
+public enum PlayerEquipmentType
+{
+    NetGun,
+    PlasmaGun
+}
+
 [RequireComponent(typeof(PlayerInputHandler))]
 public class PlayerAttackController : MonoBehaviour
 {
@@ -8,12 +14,12 @@ public class PlayerAttackController : MonoBehaviour
     [SerializeField] private NetGunController _netGun;
     [SerializeField] private PlasmaGunController _plasmaGun;
 
-    private enum HandEquipment
-    {
-        NetGun,
-        PlasmaGun
-    }
-    private HandEquipment _currentEquipment = HandEquipment.PlasmaGun;
+    private PlayerEquipmentType _currentEquipment = PlayerEquipmentType.PlasmaGun;
+
+    public PlayerEquipmentType CurrentEquipment => _currentEquipment;
+    public NetGunController NetGun => _netGun;
+    public PlasmaGunController PlasmaGun => _plasmaGun;
+    public event System.Action<PlayerEquipmentType> EquipmentSelected;
 
     private void Awake()
     {
@@ -24,9 +30,10 @@ public class PlayerAttackController : MonoBehaviour
 
     private void Start()
     {
-        _currentEquipment = HandEquipment.PlasmaGun;
+        _currentEquipment = PlayerEquipmentType.PlasmaGun;
         SetEquipmentEquipped(_netGun, false);
         SetEquipmentEquipped(_plasmaGun, true);
+        EquipmentSelected?.Invoke(_currentEquipment);
     }
 
     private void OnEnable()
@@ -47,20 +54,20 @@ public class PlayerAttackController : MonoBehaviour
         _inputHandler.releaseAttackEvent -= OnReleaseAttack;
     }
 
-    private bool SwitchEquipment(HandEquipment equipment)
+    private bool SwitchEquipment(PlayerEquipmentType equipment)
     {
         if (_currentEquipment == equipment) return true;
 
         switch (equipment)
         {
-            case HandEquipment.NetGun:
+            case PlayerEquipmentType.NetGun:
                 if (!_netGun.IsUnlocked || !_plasmaGun.IsSwitchable) return false;
 
                 SetEquipmentEquipped(_netGun, true);
                 SetEquipmentEquipped(_plasmaGun, false);
                 break;
 
-            case HandEquipment.PlasmaGun:
+            case PlayerEquipmentType.PlasmaGun:
                 if (!_netGun.IsSwitchable) return false;
 
                 SetEquipmentEquipped(_netGun, false);
@@ -69,32 +76,33 @@ public class PlayerAttackController : MonoBehaviour
         }
 
         _currentEquipment = equipment;
+        EquipmentSelected?.Invoke(_currentEquipment);
         return true;
     }
 
     private void OnPressCapture()
     {
         if (!_netGun.IsUnlocked) return;
-        if (!SwitchEquipment(HandEquipment.NetGun)) return;
+        if (!SwitchEquipment(PlayerEquipmentType.NetGun)) return;
         _netGun.OnPressCapture();
     }
 
     private void OnReleaseCapture()
     {
-        if (_currentEquipment != HandEquipment.NetGun) return;
+        if (_currentEquipment != PlayerEquipmentType.NetGun) return;
         _netGun.OnReleaseCapture();
     }
 
     private void OnPressAttack()
     {
         if (!_plasmaGun.HasAmmo) return;
-        if (!SwitchEquipment(HandEquipment.PlasmaGun)) return;
+        if (!SwitchEquipment(PlayerEquipmentType.PlasmaGun)) return;
         _plasmaGun.isAttacking = true;
     }
 
     private void OnReleaseAttack()
     {
-        if (_currentEquipment != HandEquipment.PlasmaGun) return;
+        if (_currentEquipment != PlayerEquipmentType.PlasmaGun) return;
         _plasmaGun.isAttacking = false;
     }
 
