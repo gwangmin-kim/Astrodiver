@@ -1,5 +1,6 @@
 using PrimeTween;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// Owns presentation-only motion for an <see cref="UpgradeNodeUI"/>.
@@ -12,6 +13,7 @@ public sealed class UpgradeNodeAnimationController : MonoBehaviour
     [Header("References")]
     [SerializeField] private UpgradeNodeUI _node;
     [SerializeField] private Transform _animatedTransform;
+    [SerializeField] private Image _successFlashOverlay;
 
     [Header("Appearance")]
     [SerializeField, Range(0.01f, 1f)] private float _appearStartScale = 0.5f;
@@ -24,8 +26,12 @@ public sealed class UpgradeNodeAnimationController : MonoBehaviour
     [SerializeField] private Ease _focusEase = Ease.OutBack;
 
     [Header("Purchase Success")]
-    [SerializeField, Min(0.01f)] private float _successRotationDuration = 0.34f;
-    [SerializeField] private Ease _successRotationEase = Ease.OutBack;
+    [SerializeField, Min(1f)] private float _successScaleMultiplier = 1.5f;
+    [SerializeField, Min(0.01f)] private float _successExpandDuration = 0.08f;
+    [SerializeField] private Ease _successExpandEase = Ease.OutQuad;
+    [SerializeField, Min(0.01f)] private float _successShrinkDuration = 0.28f;
+    [SerializeField] private Ease _successShrinkEase = Ease.InOutQuad;
+    [SerializeField, Range(0f, 1f)] private float _successFlashAlpha = 0.65f;
 
     [Header("Purchase Failure")]
     [SerializeField, Range(1f, 45f)] private float _failureAngle = 5f;
@@ -35,7 +41,7 @@ public sealed class UpgradeNodeAnimationController : MonoBehaviour
     [SerializeField] private Ease _failureEase = Ease.OutBack;
 
     private Tween _scaleTween;
-    private Tween _rotationTween;
+    private Sequence _successScaleSequence;
     private Sequence _failureSequence;
     private Vector3 _baseScale;
     private Quaternion _baseLocalRotation;
@@ -83,6 +89,8 @@ public sealed class UpgradeNodeAnimationController : MonoBehaviour
         }
 
         _scaleTween.Stop();
+        _successScaleSequence.Stop();
+        SetSuccessFlashAlpha(0f);
         _animatedTransform.localScale = _baseScale * _appearStartScale;
         _scaleTween = Tween.Scale(
             _animatedTransform,
@@ -91,7 +99,7 @@ public sealed class UpgradeNodeAnimationController : MonoBehaviour
             _appearEase);
     }
 
-    /// <summary>Plays one fast clockwise rotation after a successful purchase.</summary>
+    /// <summary>Plays a fast scale bounce after a successful purchase.</summary>
     public void PlayPurchaseSucceeded()
     {
         if (!CanPlayInteractionAnimation())
@@ -100,16 +108,49 @@ public sealed class UpgradeNodeAnimationController : MonoBehaviour
             return;
         }
 
-        _rotationTween.Stop();
+        _scaleTween.Stop();
+        _successScaleSequence.Stop();
         _failureSequence.Stop();
         _animatedTransform.localRotation = _baseLocalRotation;
-        Vector3 baseEuler = _baseLocalRotation.eulerAngles;
-        _rotationTween = Tween.LocalEulerAngles(
-            _animatedTransform,
-            baseEuler,
-            baseEuler + new Vector3(0f, 0f, -360f),
-            _successRotationDuration,
-            _successRotationEase);
+        _animatedTransform.localScale = _baseScale;
+        SetSuccessFlashAlpha(0f);
+
+        Vector3 bounceScale = _baseScale * _successScaleMultiplier;
+        Vector3 endScale = _node.IsFocused
+            ? _baseScale * _focusScaleMultiplier
+            : _baseScale;
+        Sequence sequence = Sequence.Create();
+        sequence.Group(Tween.Scale(
+                _animatedTransform,
+                _baseScale,
+                bounceScale,
+                _successExpandDuration,
+                _successExpandEase));
+        if (_successFlashOverlay != null)
+        {
+            sequence.Group(Tween.Alpha(
+                _successFlashOverlay,
+                _successFlashAlpha,
+                _successExpandDuration,
+                _successExpandEase));
+        }
+
+        sequence.Chain(Tween.Scale(
+                _animatedTransform,
+                bounceScale,
+                endScale,
+                _successShrinkDuration,
+                _successShrinkEase));
+        if (_successFlashOverlay != null)
+        {
+            sequence.Group(Tween.Alpha(
+                _successFlashOverlay,
+                0f,
+                _successShrinkDuration,
+                _successShrinkEase));
+        }
+
+        _successScaleSequence = sequence;
     }
 
     /// <summary>Shakes between +/- the configured angle, then restores its original rotation.</summary>
@@ -121,8 +162,9 @@ public sealed class UpgradeNodeAnimationController : MonoBehaviour
             return;
         }
 
-        _rotationTween.Stop();
         _failureSequence.Stop();
+        _successScaleSequence.Stop();
+        SetSuccessFlashAlpha(0f);
         _animatedTransform.localRotation = _baseLocalRotation;
 
         Vector3 baseEuler = _baseLocalRotation.eulerAngles;
@@ -219,6 +261,8 @@ public sealed class UpgradeNodeAnimationController : MonoBehaviour
         }
 
         _scaleTween.Stop();
+        _successScaleSequence.Stop();
+        SetSuccessFlashAlpha(0f);
         _scaleTween = Tween.Scale(
             _animatedTransform,
             focused ? _baseScale * _focusScaleMultiplier : _baseScale,
@@ -236,8 +280,9 @@ public sealed class UpgradeNodeAnimationController : MonoBehaviour
     private void RestoreInteractionBaseline()
     {
         _scaleTween.Stop();
-        _rotationTween.Stop();
+        _successScaleSequence.Stop();
         _failureSequence.Stop();
+        SetSuccessFlashAlpha(0f);
 
         if (_animatedTransform == null)
         {
@@ -246,6 +291,18 @@ public sealed class UpgradeNodeAnimationController : MonoBehaviour
 
         _animatedTransform.localScale = _baseScale;
         _animatedTransform.localRotation = _baseLocalRotation;
+    }
+
+    private void SetSuccessFlashAlpha(float alpha)
+    {
+        if (_successFlashOverlay == null)
+        {
+            return;
+        }
+
+        Color color = _successFlashOverlay.color;
+        color.a = alpha;
+        _successFlashOverlay.color = color;
     }
 
     private void StopTweensAndRestore()
