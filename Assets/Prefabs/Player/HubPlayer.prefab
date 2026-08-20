@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 5061502554070924193}
   - component: {fileID: 7264986152765376962}
   - component: {fileID: 873271503563214708}
+  - component: {fileID: 8229362296533432273}
   m_Layer: 3
   m_Name: HubPlayer
   m_TagString: Untagged
@@ -178,6 +179,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PauseMenuController
   _titleSceneName: MainMenu
   _pauseMenuPrefab: {fileID: 3858735769217438660, guid: d45ca5b1dbf176049a872cb53d6baae9, type: 3}
+--- !u!114 &8229362296533432273
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 142067144415907874}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ed4cafc78d0c1142b03d1c3a4780259, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerInteractionOutlineHighlighter
+  _interactionController: {fileID: 7264986152765376962}
+  _outlineColor: {r: 1, g: 1, b: 1, a: 1}
+  _outlineWidth: 2
 --- !u!1 &797509580310207496
 GameObject:
   m_ObjectHideFlags: 0
@@ -839,10 +855,6 @@ PrefabInstance:
     - target: {fileID: 4593738314931550493, guid: 12141f150c5a48343a408a62d4b385f5, type: 3}
       propertyPath: m_Name
       value: InteractionPrompt
-      objectReference: {fileID: 0}
-    - target: {fileID: 4593738314931550493, guid: 12141f150c5a48343a408a62d4b385f5, type: 3}
-      propertyPath: m_IsActive
-      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6558229112599050114, guid: 12141f150c5a48343a408a62d4b385f5, type: 3}
       propertyPath: m_LocalRotation.w

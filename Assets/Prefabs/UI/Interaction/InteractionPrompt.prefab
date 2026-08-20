@@ -105,7 +105,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d2d152d04fba9d54084f92154a5be9b6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InteractionPromptSprite
-  _spriteRenderer: {fileID: 0}
+  _spriteRenderer: {fileID: 7101646389300464360}
   _showDuration: 0.2
   _hideDuration: 0.15
   _verticalOffset: 0.2

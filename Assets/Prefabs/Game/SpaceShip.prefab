@@ -9,8 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2999851483686464841}
+  - component: {fileID: 2675466566885746639}
   m_Layer: 0
-  m_Name: Spaceship
+  m_Name: SpaceShip
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -33,6 +34,20 @@ Transform:
   - {fileID: 4180147746843900946}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2675466566885746639
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 279381936385024795}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a82606d0441aeb04d8b6b7506485fce7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InteractableOutline
+  _spriteRenderers:
+  - {fileID: 6843878713418077589}
 --- !u!1 &2083897070419158705
 GameObject:
   m_ObjectHideFlags: 0
@@ -114,6 +129,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9a38cb0640174a39804a1668ca733eb7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SceneGate
+  _stageSelectionUI: {fileID: 0}
+  _requiredHubUpgrade: {fileID: 0}
   _destinationSceneName: Hub
   _transitionSequence: {fileID: 0}
   _finishExploreSession: 1
@@ -175,7 +192,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  - {fileID: 2100000, guid: a9c6d2e81f24499fb928c3ec61e36501, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
