@@ -161,6 +161,7 @@ GameObject:
   - component: {fileID: 7267782362762064855}
   - component: {fileID: 5224703020021840979}
   - component: {fileID: 853955800777592929}
+  - component: {fileID: 1743872496408912536}
   m_Layer: 0
   m_Name: UpgradeNode
   m_TagString: Untagged
@@ -235,6 +236,33 @@ MonoBehaviour:
     _outlineColor: {r: 1, g: 0.25, b: 0.25, a: 1}
   _completedStyle:
     _outlineColor: {r: 0.14901961, g: 0.96862745, b: 0.99215686, a: 1}
+--- !u!114 &1743872496408912536
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3063273339414972757}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93c2a0d7c6f64a3aa2f1d9b7e8c0f452, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::UpgradeNodeAnimationController
+  _node: {fileID: 853955800777592929}
+  _animatedTransform: {fileID: 7267782362762064855}
+  _appearStartScale: 0.5
+  _appearDuration: 0.28
+  _appearEase: 28
+  _focusScaleMultiplier: 1.1
+  _focusDuration: 0.16
+  _focusEase: 28
+  _successRotationDuration: 0.34
+  _successRotationEase: 28
+  _failureAngle: 15
+  _failureOscillationCount: 3
+  _failureHalfSwingDuration: 0.07
+  _failureReturnDuration: 0.12
+  _failureEase: 28
 --- !u!1 &6858031812012470886
 GameObject:
   m_ObjectHideFlags: 0

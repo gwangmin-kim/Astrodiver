@@ -6,11 +6,14 @@ public sealed class UpgradeInteractor : MonoBehaviour, IInteractable
     [SerializeField] private UpgradeTreeUI _upgradeTreeUI;
     [SerializeField] private PlayerInputHandler _playerInput;
     [SerializeField] private UIInputHandler _uiInput;
+    [SerializeField] private GameObject _inventoryHud;
 
     private bool _panelWasOpen;
     private bool _inputStateCaptured;
     private bool _playerInputWasEnabled;
     private bool _uiInputWasEnabled;
+    private bool _inventoryHudStateCaptured;
+    private bool _inventoryHudWasActive;
 
     private void Awake()
     {
@@ -22,6 +25,12 @@ public sealed class UpgradeInteractor : MonoBehaviour, IInteractable
         if (_uiInput == null)
         {
             _uiInput = FindAnyObjectByType<UIInputHandler>();
+        }
+
+        if (_inventoryHud == null)
+        {
+            InventoryHudUI inventoryHud = FindAnyObjectByType<InventoryHudUI>();
+            _inventoryHud = inventoryHud != null ? inventoryHud.gameObject : null;
         }
     }
 
@@ -48,6 +57,7 @@ public sealed class UpgradeInteractor : MonoBehaviour, IInteractable
         }
 
         RestoreInputState();
+        RestoreInventoryHudState();
     }
 
     public void Interact()
@@ -103,6 +113,12 @@ public sealed class UpgradeInteractor : MonoBehaviour, IInteractable
             {
                 _uiInput.SetInputEnabled(true);
             }
+
+            HideInventoryHud();
+        }
+        else
+        {
+            RestoreInventoryHudState();
         }
     }
 
@@ -129,5 +145,39 @@ public sealed class UpgradeInteractor : MonoBehaviour, IInteractable
         _uiInput?.SetInputEnabled(_uiInputWasEnabled);
         _playerInput?.SetInputEnabled(_playerInputWasEnabled);
         _inputStateCaptured = false;
+    }
+
+    private void HideInventoryHud()
+    {
+        if (_inventoryHud == null)
+        {
+            return;
+        }
+
+        if (!_inventoryHudStateCaptured)
+        {
+            _inventoryHudWasActive = _inventoryHud.activeSelf;
+            _inventoryHudStateCaptured = true;
+        }
+
+        if (_inventoryHud.activeSelf)
+        {
+            _inventoryHud.SetActive(false);
+        }
+    }
+
+    private void RestoreInventoryHudState()
+    {
+        if (!_inventoryHudStateCaptured)
+        {
+            return;
+        }
+
+        if (_inventoryHud != null && _inventoryHud.activeSelf != _inventoryHudWasActive)
+        {
+            _inventoryHud.SetActive(_inventoryHudWasActive);
+        }
+
+        _inventoryHudStateCaptured = false;
     }
 }

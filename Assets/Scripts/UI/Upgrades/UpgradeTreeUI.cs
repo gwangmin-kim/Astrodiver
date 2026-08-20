@@ -370,6 +370,7 @@ public sealed class UpgradeTreeUI : MonoBehaviour
             UpgradePurchaseResult result =
                 _upgradeService.TryPurchase(node.Definition);
             PurchaseAttempted?.Invoke(node, result);
+            node.NotifyPurchaseResult(result);
 
             if (!result.Succeeded)
             {

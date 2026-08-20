@@ -840,6 +840,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: InteractionPrompt
       objectReference: {fileID: 0}
+    - target: {fileID: 4593738314931550493, guid: 12141f150c5a48343a408a62d4b385f5, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6558229112599050114, guid: 12141f150c5a48343a408a62d4b385f5, type: 3}
       propertyPath: m_LocalRotation.w
       value: 1

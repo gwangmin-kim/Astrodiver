@@ -67,6 +67,7 @@ public sealed class UpgradeNodeUI : MonoBehaviour,
     public event Action<UpgradeNodeUI> PointerExited;
     public event Action<UpgradeNodeUI> Focused;
     public event Action<UpgradeNodeUI> Unfocused;
+    public event Action<UpgradeNodeUI, UpgradePurchaseResult> PurchaseResolved;
 
     private void OnValidate()
     {
@@ -116,6 +117,15 @@ public sealed class UpgradeNodeUI : MonoBehaviour,
         _visualState = state;
         gameObject.SetActive(state != UpgradeNodeVisualState.Locked);
         ApplyVisualState(state);
+    }
+
+    /// <summary>
+    /// Publishes the result of a purchase attempt to presentation components.
+    /// Purchase logic remains owned by <see cref="UpgradeTreeUI"/>.
+    /// </summary>
+    public void NotifyPurchaseResult(UpgradePurchaseResult result)
+    {
+        PurchaseResolved?.Invoke(this, result);
     }
 
     private void ApplyVisualState(UpgradeNodeVisualState state)

@@ -33,8 +33,8 @@ public sealed class InteractionPromptSprite : MonoBehaviour
         transform.localPosition = HiddenLocalPosition;
         SetAlpha(0f);
 
-        _alphaTween = Tween.Alpha(_spriteRenderer, 1f, _showDuration, _showEase);
-        _positionTween = Tween.LocalPosition(transform, _shownLocalPosition, _showDuration, _showEase);
+        PlayAlphaIfChanged(1f, _showDuration, _showEase);
+        PlayPositionIfChanged(_shownLocalPosition, _showDuration, _showEase);
     }
 
     public void Hide()
@@ -42,8 +42,8 @@ public sealed class InteractionPromptSprite : MonoBehaviour
         Initialize();
         StopTweens();
 
-        _alphaTween = Tween.Alpha(_spriteRenderer, 0f, _hideDuration, _hideEase);
-        _positionTween = Tween.LocalPosition(transform, HiddenLocalPosition, _hideDuration, _hideEase);
+        PlayAlphaIfChanged(0f, _hideDuration, _hideEase);
+        PlayPositionIfChanged(HiddenLocalPosition, _hideDuration, _hideEase);
     }
 
     private void Initialize()
@@ -70,6 +70,26 @@ public sealed class InteractionPromptSprite : MonoBehaviour
     {
         _alphaTween.Stop();
         _positionTween.Stop();
+    }
+
+    private void PlayAlphaIfChanged(float targetAlpha, float duration, Ease ease)
+    {
+        if (Mathf.Approximately(_spriteRenderer.color.a, targetAlpha))
+        {
+            return;
+        }
+
+        _alphaTween = Tween.Alpha(_spriteRenderer, targetAlpha, duration, ease);
+    }
+
+    private void PlayPositionIfChanged(Vector3 targetPosition, float duration, Ease ease)
+    {
+        if ((transform.localPosition - targetPosition).sqrMagnitude <= 0.000001f)
+        {
+            return;
+        }
+
+        _positionTween = Tween.LocalPosition(transform, targetPosition, duration, ease);
     }
 
     private void SetAlpha(float alpha)
