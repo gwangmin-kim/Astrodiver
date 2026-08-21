@@ -24,7 +24,7 @@ MonoBehaviour:
       _prefab: {fileID: 508475945939948788, guid: f5efb60079e5dcf47844a132d8f43fd4, type: 3}
       _spawnWeight: 1
     - _entryId: creature_iron
-      _prefab: {fileID: 5419619508651959619, guid: 9563da9c3dc297545830e288e3b4b4d6, type: 3}
+      _prefab: {fileID: 508475945939948788, guid: 9563da9c3dc297545830e288e3b4b4d6, type: 3}
       _spawnWeight: 0.2
   _resourceFloatages:
     _maxCount: 15
