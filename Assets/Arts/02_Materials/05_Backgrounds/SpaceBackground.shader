@@ -13,13 +13,32 @@ Shader "Astrodiver/Background/Space Background"
         [Toggle] _UseDithering ("Use Dithering", Float) = 1
         _DitherStrength ("Dither Strength", Range(0, 1)) = 0.3
         _DitherPixelSize ("Dither Pixel Size", Range(1, 4)) = 1
+        [Header(Star Layers)]
         [Toggle] _UseStars ("Use Stars", Float) = 1
         _StarColor ("Star Color", Color) = (0.75, 0.85, 1, 1)
-        _StarDensity ("Star Density", Range(0, 0.5)) = 0.08
-        _StarCellSize ("Star Cell Size", Range(4, 64)) = 16
-        _StarSize ("Star Size", Range(1, 4)) = 1.5
-        _StarBrightness ("Star Brightness", Range(0, 4)) = 1
-        _StarSeed ("Star Seed", Float) = 0
+        [Toggle] _UseStarParallax ("Use Star Parallax", Float) = 1
+        _StarParallaxStrength ("Parallax Strength", Range(0, 2)) = 1
+        [Header(Far Stars)]
+        _FarStarDensity ("Far Density", Range(0, 0.5)) = 0.055
+        _FarStarCellSize ("Far Cell Size", Range(4, 64)) = 14
+        _FarStarSize ("Far Size", Range(1, 4)) = 1
+        _FarStarBrightness ("Far Brightness", Range(0, 4)) = 0.35
+        _FarStarSeed ("Far Seed", Float) = 11
+        _FarStarParallax ("Far Parallax", Range(0, 1)) = 0.03
+        [Header(Middle Stars)]
+        _StarDensity ("Middle Density", Range(0, 0.5)) = 0.06
+        _StarCellSize ("Middle Cell Size", Range(4, 64)) = 18
+        _StarSize ("Middle Size", Range(1, 4)) = 1.5
+        _StarBrightness ("Middle Brightness", Range(0, 4)) = 0.65
+        _StarSeed ("Middle Seed", Float) = 29
+        _MidStarParallax ("Middle Parallax", Range(0, 1)) = 0.1
+        [Header(Near Stars)]
+        _NearStarDensity ("Near Density", Range(0, 0.5)) = 0.025
+        _NearStarCellSize ("Near Cell Size", Range(4, 64)) = 24
+        _NearStarSize ("Near Size", Range(1, 4)) = 2
+        _NearStarBrightness ("Near Brightness", Range(0, 4)) = 1
+        _NearStarSeed ("Near Seed", Float) = 47
+        _NearStarParallax ("Near Parallax", Range(0, 1)) = 0.25
     }
 
     SubShader
@@ -71,11 +90,26 @@ Shader "Astrodiver/Background/Space Background"
                 half _DitherPixelSize;
                 half _UseStars;
                 half4 _StarColor;
+                half _UseStarParallax;
+                half _StarParallaxStrength;
+                half _FarStarDensity;
+                half _FarStarCellSize;
+                half _FarStarSize;
+                half _FarStarBrightness;
+                half _FarStarSeed;
+                half _FarStarParallax;
                 half _StarDensity;
                 half _StarCellSize;
                 half _StarSize;
                 half _StarBrightness;
                 half _StarSeed;
+                half _MidStarParallax;
+                half _NearStarDensity;
+                half _NearStarCellSize;
+                half _NearStarSize;
+                half _NearStarBrightness;
+                half _NearStarSeed;
+                half _NearStarParallax;
             CBUFFER_END
 
             float Hash11(float value)
@@ -99,6 +133,33 @@ Shader "Astrodiver/Background/Space Background"
                 float3 hash = frac(float3(position.xyx) * 0.1031);
                 hash += dot(hash, hash.yzx + 33.33);
                 return frac((hash.x + hash.y) * hash.z);
+            }
+
+            float SampleStarLayer(
+                float2 pixelPosition,
+                float cellSize,
+                float density,
+                float starSize,
+                float brightness,
+                float seed)
+            {
+                cellSize = max(cellSize, 1.0);
+                float2 starGrid = pixelPosition / cellSize;
+                float2 starCell = floor(starGrid);
+                float2 starCellUV = frac(starGrid);
+                float2 seededCell = starCell + seed * float2(19.19, 73.73);
+
+                float starRandom = Hash12(seededCell);
+                float2 starPosition = 0.15 + 0.7 * float2(
+                    Hash12(seededCell + float2(17.17, 3.31)),
+                    Hash12(seededCell + float2(5.13, 41.71)));
+                float2 starOffsetPixels = (starCellUV - starPosition) * cellSize;
+                float starHalfSize = max(starSize, 1.0) * 0.5;
+                float starShape = 1.0 - step(starHalfSize, max(abs(starOffsetPixels.x), abs(starOffsetPixels.y)));
+                float starExists = step(1.0 - density, starRandom);
+                float starVariation = lerp(0.55, 1.0, Hash12(seededCell + float2(29.43, 11.97)));
+
+                return starShape * starExists * starVariation * brightness;
             }
 
             Varyings Vert(Attributes input)
@@ -137,24 +198,38 @@ Shader "Astrodiver/Background/Space Background"
 
                 if (_UseStars >= 0.5h)
                 {
-                    float starCellSize = max((float)_StarCellSize, 1.0);
-                    float2 starGrid = input.positionCS.xy / starCellSize;
-                    float2 starCell = floor(starGrid);
-                    float2 starCellUV = frac(starGrid);
-                    float2 seededCell = starCell + (float)_StarSeed * float2(19.19, 73.73);
+                    float2 pixelsPerWorldUnit = 0.5 * float2(
+                        _ScreenParams.x * abs(UNITY_MATRIX_P._m00),
+                        _ScreenParams.y * abs(UNITY_MATRIX_P._m11));
+                    float parallaxEnabled = step(0.5, (float)_UseStarParallax);
+                    float2 cameraPixelOffset = _WorldSpaceCameraPos.xy
+                        * pixelsPerWorldUnit
+                        * (float)_StarParallaxStrength
+                        * parallaxEnabled;
 
-                    float starRandom = Hash12(seededCell);
-                    float2 starPosition = 0.15 + 0.7 * float2(
-                        Hash12(seededCell + float2(17.17, 3.31)),
-                        Hash12(seededCell + float2(5.13, 41.71)));
-                    float2 starOffsetPixels = (starCellUV - starPosition) * starCellSize;
-                    float starHalfSize = max((float)_StarSize, 1.0) * 0.5;
-                    float starShape = 1.0 - step(starHalfSize, max(abs(starOffsetPixels.x), abs(starOffsetPixels.y)));
-                    float starExists = step(1.0 - (float)_StarDensity, starRandom);
-                    float starVariation = lerp(0.55, 1.0, Hash12(seededCell + float2(29.43, 11.97)));
-                    float starIntensity = starShape * starExists * starVariation * (float)_StarBrightness;
+                    float farStars = SampleStarLayer(
+                        input.positionCS.xy + cameraPixelOffset * (float)_FarStarParallax,
+                        (float)_FarStarCellSize,
+                        (float)_FarStarDensity,
+                        (float)_FarStarSize,
+                        (float)_FarStarBrightness,
+                        (float)_FarStarSeed);
+                    float middleStars = SampleStarLayer(
+                        input.positionCS.xy + cameraPixelOffset * (float)_MidStarParallax,
+                        (float)_StarCellSize,
+                        (float)_StarDensity,
+                        (float)_StarSize,
+                        (float)_StarBrightness,
+                        (float)_StarSeed);
+                    float nearStars = SampleStarLayer(
+                        input.positionCS.xy + cameraPixelOffset * (float)_NearStarParallax,
+                        (float)_NearStarCellSize,
+                        (float)_NearStarDensity,
+                        (float)_NearStarSize,
+                        (float)_NearStarBrightness,
+                        (float)_NearStarSeed);
 
-                    backgroundColor += _StarColor.rgb * starIntensity;
+                    backgroundColor += _StarColor.rgb * (farStars + middleStars + nearStars);
                 }
 
                 return half4(max(backgroundColor, 0.0h), 1.0h);

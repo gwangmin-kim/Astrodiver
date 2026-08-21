@@ -28,16 +28,31 @@ Material:
     - _CurveStrength: 0.2
     - _DitherPixelSize: 1
     - _DitherStrength: 0.3
+    - _FarStarBrightness: 0.35
+    - _FarStarCellSize: 14
+    - _FarStarDensity: 0.055
+    - _FarStarParallax: 0.03
+    - _FarStarSeed: 11
+    - _FarStarSize: 1
+    - _MidStarParallax: 0.1
+    - _NearStarBrightness: 1
+    - _NearStarCellSize: 24
+    - _NearStarDensity: 0.025
+    - _NearStarParallax: 0.25
+    - _NearStarSeed: 47
+    - _NearStarSize: 2
     - _NoiseScale: 3
     - _NoiseSeed: 0
     - _NoiseStrength: 0.18
-    - _StarBrightness: 1
-    - _StarCellSize: 16
-    - _StarDensity: 0.08
-    - _StarSeed: 0
+    - _StarBrightness: 0.65
+    - _StarCellSize: 18
+    - _StarDensity: 0.06
+    - _StarParallaxStrength: 1
+    - _StarSeed: 29
     - _StarSize: 1.5
     - _UseGradient: 1
     - _UseDithering: 1
+    - _UseStarParallax: 1
     - _UseStars: 1
     m_Colors:
     - _BottomColor: {r: 0.018, g: 0.026, b: 0.07, a: 1}
