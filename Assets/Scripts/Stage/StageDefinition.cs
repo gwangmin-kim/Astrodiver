@@ -36,11 +36,17 @@ public sealed class StagePopulationDefinition
     menuName = "Astrodiver/Stage/Stage Definition")]
 public sealed class StageDefinition : GameDefinition
 {
+    [Header("Presentation")]
+    [SerializeField] private SpaceBackgroundProfile _spaceBackgroundProfile;
+
+    [Header("Population")]
     [SerializeField, Min(0.1f)] private float _respawnIntervalSeconds = 5f;
     [SerializeField] private StagePopulationDefinition _creatures = new();
     [SerializeField] private StagePopulationDefinition _resourceFloatages = new();
 
     public string StageId => Id;
+    public SpaceBackgroundProfile SpaceBackgroundProfile =>
+        _spaceBackgroundProfile;
     public float RespawnIntervalSeconds =>
         Mathf.Max(0.1f, _respawnIntervalSeconds);
     public StagePopulationDefinition Creatures => _creatures;

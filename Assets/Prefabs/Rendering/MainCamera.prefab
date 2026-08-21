@@ -72,6 +72,7 @@ GameObject:
   - component: {fileID: 7044675095357684350}
   - component: {fileID: 8894370302938960992}
   - component: {fileID: 8934971185341294591}
+  - component: {fileID: 6970615886787957431}
   m_Layer: 0
   m_Name: Space Background
   m_TagString: Untagged
@@ -151,6 +152,19 @@ MeshRenderer:
   m_SortingOrder: -32768
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &6970615886787957431
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6443908357454555948}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d066d352ebf48ef4590be06c4f2e34df, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SpaceBackgroundController
+  _defaultProfile: {fileID: 11400000, guid: 91041c11a0c8cc54fb2842c780e0e1d7, type: 2}
 --- !u!1 &6585196522118879673
 GameObject:
   m_ObjectHideFlags: 0

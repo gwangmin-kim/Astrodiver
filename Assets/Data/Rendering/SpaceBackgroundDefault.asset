@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3b6b58fe23da9de40bbf645a9729558e, type: 3}
+  m_Name: SpaceBackgroundDefault
+  m_EditorClassIdentifier: Assembly-CSharp::SpaceBackgroundProfile
+  _useGradient: 1
+  _solidColor: {r: 0.018, g: 0.026, b: 0.07, a: 1}
+  _bottomColor: {r: 0.018, g: 0.026, b: 0.07, a: 1}
+  _topColor: {r: 0.06, g: 0.08, b: 0.18, a: 1}
+  _curveStrength: 0.2
+  _noiseScale: 3
+  _noiseStrength: 0.18
+  _useDithering: 1
+  _ditherStrength: 0.3
+  _ditherPixelSize: 1
+  _useNebula: 1
+  _nebulaColor: {r: 0.12, g: 0.16, b: 0.38, a: 1}
+  _nebulaScale: 1.6
+  _nebulaStrength: 0.08
+  _nebulaCoverage: 0.52
+  _nebulaParallax: 0.015
+  _useStars: 1
+  _starColor: {r: 0.75, g: 0.85, b: 1, a: 1}
+  _useStarParallax: 1
+  _starParallaxStrength: 1
+  _farStarDensity: 0.055
+  _farStarCellSize: 14
+  _farStarSize: 1
+  _farStarBrightness: 0.35
+  _farStarParallax: 0.03
+  _middleStarDensity: 0.06
+  _middleStarCellSize: 18
+  _middleStarSize: 1.5
+  _middleStarBrightness: 0.65
+  _middleStarParallax: 0.1
+  _nearStarDensity: 0.025
+  _nearStarCellSize: 24
+  _nearStarSize: 2
+  _nearStarBrightness: 1
+  _nearStarParallax: 0.25
+  _randomizeSeedsOnSceneEntry: 1
+  _fixedSeed: 12345

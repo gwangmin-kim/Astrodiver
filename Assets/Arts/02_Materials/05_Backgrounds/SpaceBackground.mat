@@ -12,7 +12,12 @@ Material:
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
-  m_InvalidKeywords: []
+  m_InvalidKeywords:
+  - _USEDITHERING_ON
+  - _USEGRADIENT_ON
+  - _USENEBULA_ON
+  - _USESTARPARALLAX_ON
+  - _USESTARS_ON
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -35,17 +40,17 @@ Material:
     - _FarStarSeed: 11
     - _FarStarSize: 1
     - _MidStarParallax: 0.1
-    - _NebulaCoverage: 0.52
-    - _NebulaParallax: 0.015
-    - _NebulaScale: 1.6
-    - _NebulaSeed: 7
-    - _NebulaStrength: 0.08
     - _NearStarBrightness: 1
     - _NearStarCellSize: 24
     - _NearStarDensity: 0.025
     - _NearStarParallax: 0.25
     - _NearStarSeed: 47
     - _NearStarSize: 2
+    - _NebulaCoverage: 0.52
+    - _NebulaParallax: 0.015
+    - _NebulaScale: 2
+    - _NebulaSeed: 7
+    - _NebulaStrength: 0.05
     - _NoiseScale: 3
     - _NoiseSeed: 0
     - _NoiseStrength: 0.18
@@ -55,9 +60,9 @@ Material:
     - _StarParallaxStrength: 1
     - _StarSeed: 29
     - _StarSize: 1.5
+    - _UseDithering: 1
     - _UseGradient: 1
     - _UseNebula: 1
-    - _UseDithering: 1
     - _UseStarParallax: 1
     - _UseStars: 1
     m_Colors:
