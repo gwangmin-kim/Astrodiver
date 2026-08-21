@@ -33,4 +33,10 @@ public enum NumericUpgradeTarget
     CreatureSlotCapacity = 4000,
     CreatureMaxStackCount = 4001,
     TimeoutInventoryLossRatio = 4002,
+
+    // Facilities: 5000-5099
+    WorktableSlotCapacity = 5000,
+    WorktableTransferSpeedMultiplier = 5001,
+    WorktableProcessSpeedMultiplier = 5002,
+    WorktableYieldMultiplier = 5003,
 }

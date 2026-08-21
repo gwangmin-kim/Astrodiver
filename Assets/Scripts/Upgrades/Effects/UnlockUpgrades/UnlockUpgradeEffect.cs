@@ -62,6 +62,10 @@ public sealed class UnlockUpgradeEffect : UpgradeEffect
                 context.RuntimeData.Facilities.ResourceChestUnlocked = true;
                 break;
 
+            case UnlockUpgradeTarget.Worktable:
+                context.RuntimeData.Facilities.WorktableUnlocked = true;
+                break;
+
             default:
                 error = $"Unsupported unlock upgrade target '{_target}'.";
                 return false;

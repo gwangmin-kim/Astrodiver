@@ -17,3 +17,4 @@ MonoBehaviour:
   _sortOrder: 7
   _displayName: Radioactive
   _icon: {fileID: 21300000, guid: 798d1dcc183e1cf41bed50e68afc95fc, type: 3}
+  _worktableProcessSeconds: 5

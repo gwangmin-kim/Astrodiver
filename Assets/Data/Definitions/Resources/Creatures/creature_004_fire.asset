@@ -17,3 +17,4 @@ MonoBehaviour:
   _sortOrder: 4
   _displayName: Fire
   _icon: {fileID: 21300000, guid: 9505470eded8d604b96002a752f4c628, type: 3}
+  _worktableProcessSeconds: 3

@@ -103,6 +103,7 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
         PlayerStatsRuntimeData player = data.PlayerStats;
         EquipmentRuntimeData equipment = data.Equipment;
         InventoryRuntimeData inventory = data.Inventory;
+        FacilityRuntimeData facilities = data.Facilities;
 
         switch (_target)
         {
@@ -160,6 +161,14 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
             case NumericUpgradeTarget.TimeoutInventoryLossRatio:
                 {
                     ApplyInventory(inventory);
+                    break;
+                }
+            case NumericUpgradeTarget.WorktableSlotCapacity:
+            case NumericUpgradeTarget.WorktableTransferSpeedMultiplier:
+            case NumericUpgradeTarget.WorktableProcessSpeedMultiplier:
+            case NumericUpgradeTarget.WorktableYieldMultiplier:
+                {
+                    ApplyFacilities(facilities);
                     break;
                 }
             default:
@@ -256,6 +265,29 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
         }
     }
 
+    private void ApplyFacilities(FacilityRuntimeData data)
+    {
+        switch (_target)
+        {
+            case NumericUpgradeTarget.WorktableSlotCapacity:
+                data.WorktableSlotCapacity =
+                    ApplyInt(data.WorktableSlotCapacity, 1);
+                break;
+            case NumericUpgradeTarget.WorktableTransferSpeedMultiplier:
+                data.WorktableTransferSpeedMultiplier =
+                    ApplyFloat(data.WorktableTransferSpeedMultiplier, 0.01f);
+                break;
+            case NumericUpgradeTarget.WorktableProcessSpeedMultiplier:
+                data.WorktableProcessSpeedMultiplier =
+                    ApplyFloat(data.WorktableProcessSpeedMultiplier, 0.01f);
+                break;
+            case NumericUpgradeTarget.WorktableYieldMultiplier:
+                data.WorktableYieldMultiplier =
+                    ApplyFloat(data.WorktableYieldMultiplier, 0f);
+                break;
+        }
+    }
+
     private bool TryGetCurrentValue(
         GameRuntimeData data,
         out float value,
@@ -338,6 +370,19 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
             case NumericUpgradeTarget.TimeoutInventoryLossRatio:
                 value = data.Inventory.TimeoutInventoryLossRatio;
                 return true;
+            case NumericUpgradeTarget.WorktableSlotCapacity:
+                value = data.Facilities.WorktableSlotCapacity;
+                isInteger = true;
+                return true;
+            case NumericUpgradeTarget.WorktableTransferSpeedMultiplier:
+                value = data.Facilities.WorktableTransferSpeedMultiplier;
+                return true;
+            case NumericUpgradeTarget.WorktableProcessSpeedMultiplier:
+                value = data.Facilities.WorktableProcessSpeedMultiplier;
+                return true;
+            case NumericUpgradeTarget.WorktableYieldMultiplier:
+                value = data.Facilities.WorktableYieldMultiplier;
+                return true;
             default:
                 value = 0f;
                 return false;
@@ -352,13 +397,19 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
             NumericUpgradeTarget.NetCount => 1,
             NumericUpgradeTarget.CreatureSlotCapacity => 1,
             NumericUpgradeTarget.CreatureMaxStackCount => 1,
+            NumericUpgradeTarget.WorktableSlotCapacity => 1,
             _ => 0
         };
     }
 
     private float GetMinimumFloat()
     {
-        return 0f;
+        return _target switch
+        {
+            NumericUpgradeTarget.WorktableTransferSpeedMultiplier => 0.01f,
+            NumericUpgradeTarget.WorktableProcessSpeedMultiplier => 0.01f,
+            _ => 0f
+        };
     }
 
     private float ApplyFloat(float current, float minimum)

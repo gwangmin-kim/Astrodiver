@@ -10,6 +10,8 @@ public class PlayerInteractionController : MonoBehaviour
     [SerializeField] private InteractionPromptSprite _interactionPrompt;
 
     private readonly List<InteractableObject> _overlappingInteractables = new();
+    private InteractableObject _repeatTarget;
+    private float _repeatTimer;
 
     public InteractableObject CurrentTarget { get; private set; }
     public event Action<InteractableObject> CurrentTargetChanged;
@@ -38,10 +40,27 @@ public class PlayerInteractionController : MonoBehaviour
     {
         UpdateCurrentTarget();
 
-        if (_inputHandler.ConsumeInteractInput())
+        bool pressed = _inputHandler.ConsumeInteractInput();
+        if (pressed)
         {
-            CurrentTarget?.Interact();
+            if (CurrentTarget != null)
+            {
+                CurrentTarget.Interact();
+                BeginRepeat(CurrentTarget);
+            }
         }
+
+        if (!_inputHandler.InteractHeld)
+        {
+            if (!pressed)
+            {
+                StopRepeat();
+            }
+
+            return;
+        }
+
+        UpdateRepeat();
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -80,6 +99,7 @@ public class PlayerInteractionController : MonoBehaviour
         Debug.Log($"InteractionController: interact target changed by {nextTarget}");
 
         CurrentTarget = nextTarget;
+        StopRepeat();
 
         if (_interactionPrompt != null)
         {
@@ -94,6 +114,43 @@ public class PlayerInteractionController : MonoBehaviour
         }
 
         CurrentTargetChanged?.Invoke(CurrentTarget);
+    }
+
+    private void BeginRepeat(InteractableObject target)
+    {
+        _repeatTarget = target != null && target.IsRepeatable
+            ? target
+            : null;
+        _repeatTimer = _repeatTarget != null
+            ? _repeatTarget.RepeatInterval
+            : 0f;
+    }
+
+    private void UpdateRepeat()
+    {
+        if (_repeatTarget == null ||
+            !ReferenceEquals(_repeatTarget, CurrentTarget) ||
+            !_repeatTarget.CanRepeatInteract)
+        {
+            return;
+        }
+
+        _repeatTimer -= Time.deltaTime;
+        int repeatCount = 0;
+        while (_repeatTimer <= 0f &&
+               _repeatTarget.CanRepeatInteract &&
+               repeatCount < 10)
+        {
+            _repeatTarget.Interact();
+            _repeatTimer += Mathf.Max(0.01f, _repeatTarget.RepeatInterval);
+            repeatCount++;
+        }
+    }
+
+    private void StopRepeat()
+    {
+        _repeatTarget = null;
+        _repeatTimer = 0f;
     }
 
     private InteractableObject FindClosestInteractable()

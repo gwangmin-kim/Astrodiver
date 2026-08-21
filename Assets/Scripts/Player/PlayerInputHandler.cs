@@ -44,6 +44,8 @@ public class PlayerInputHandler : MonoBehaviour
 
     // 버튼 타입
     public bool InteractInput { get; private set; }
+    public bool InteractHeld =>
+        InputEnabled && (_interactAction?.IsPressed() ?? false);
     public bool ConsumeInteractInput() // 인풋 버퍼링으로 인한 오작동 방지를 위한 소비 함수
     {
         if (InteractInput)

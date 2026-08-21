@@ -25,6 +25,7 @@ public sealed class GameDefinitionCatalog : ScriptableObject
         ValidateDefinitions(_resources, definition => definition.Id, errors);
         ValidateResources(errors);
         ValidateDefinitions(_creatures, definition => definition.Id, errors);
+        ValidateCreatures(errors);
         _floatages ??= Array.Empty<FloatageDefinition>();
         ValidateDefinitions(_floatages, definition => definition.Id, errors);
         ValidateFloatages(errors);
@@ -156,6 +157,18 @@ public sealed class GameDefinitionCatalog : ScriptableObject
             if (resource != null && !resource.TryValidate(out string resourceError))
             {
                 errors.Add(resourceError);
+            }
+        }
+    }
+
+    private void ValidateCreatures(ICollection<string> errors)
+    {
+        for (int i = 0; i < _creatures.Length; i++)
+        {
+            CreatureDefinition creature = _creatures[i];
+            if (creature != null && !creature.TryValidate(out string creatureError))
+            {
+                errors.Add(creatureError);
             }
         }
     }

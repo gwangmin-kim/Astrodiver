@@ -16,6 +16,7 @@ public static class PersistentServicesBootstrap
         Ensure<GameDataManager>("GameDataManager");
         Ensure<SceneTransitionManager>("SceneTransitionManager");
         Ensure<PlayerInventoryController>("PlayerInventory");
+        Ensure<WorktableService>("WorktableService");
     }
 
     private static void Ensure<T>(string prefabName)

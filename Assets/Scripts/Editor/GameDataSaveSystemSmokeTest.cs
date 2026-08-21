@@ -9,6 +9,10 @@ public static class GameDataSaveSystemSmokeTest
     private const string MenuPath = "Astrodiver/Tests/Run Save System Smoke Test";
     private const string DefaultsPath = "Assets/Data/GameDataDefaults.asset";
     private const string DefinitionCatalogPath = "Assets/Data/GameDefinitionCatalog.asset";
+    private const string WorktableRecipePath =
+        "Assets/Data/Facilities/WorktableRecipeTable.asset";
+    private const string WorktableServicePrefabPath =
+        "Assets/Resources/Prefabs/DontDestroyOnLoad/WorktableService.prefab";
 
     [MenuItem(MenuPath)]
     public static void Run()
@@ -31,6 +35,42 @@ public static class GameDataSaveSystemSmokeTest
                 AssetDatabase.LoadAssetAtPath<GameDefinitionCatalog>(DefinitionCatalogPath);
             Require(catalog != null, "GameDefinitionCatalog asset could not be loaded.");
             Require(catalog.TryValidate(out string catalogError), catalogError);
+            WorktableRecipeTable worktableRecipes =
+                AssetDatabase.LoadAssetAtPath<WorktableRecipeTable>(WorktableRecipePath);
+            Require(worktableRecipes != null, "Worktable recipe table could not be loaded.");
+            Require(
+                worktableRecipes.TryValidate(out string recipeError),
+                recipeError);
+            Require(
+                worktableRecipes.Recipes.Count == catalog.Creatures.Count,
+                "Every creature must have exactly one worktable recipe.");
+            for (int i = 0; i < catalog.Creatures.Count; i++)
+            {
+                Require(
+                    worktableRecipes.TryGetRecipe(
+                        catalog.Creatures[i].Id,
+                        out WorktableRecipe recipe) &&
+                    recipe.Resource != null,
+                    $"Creature '{catalog.Creatures[i].Id}' has no worktable recipe.");
+            }
+
+            GameObject worktableServicePrefab =
+                AssetDatabase.LoadAssetAtPath<GameObject>(
+                    WorktableServicePrefabPath);
+            WorktableService worktableService =
+                worktableServicePrefab != null
+                    ? worktableServicePrefab.GetComponent<WorktableService>()
+                    : null;
+            Require(
+                worktableServicePrefab != null &&
+                worktableService != null,
+                "Worktable service prefab is missing its service component.");
+            SerializedObject serializedWorktableService =
+                new(worktableService);
+            Require(
+                serializedWorktableService.FindProperty("_recipeTable")
+                    .objectReferenceValue == worktableRecipes,
+                "Worktable service prefab is not connected to its recipe table.");
             GameDefinitionRegistry definitions = new(catalog);
             Require(catalog.Resources.Count > 0, "The catalog has no resource definitions.");
             Require(catalog.Creatures.Count > 0, "The catalog has no creature definitions.");
@@ -78,7 +118,11 @@ public static class GameDataSaveSystemSmokeTest
             Require(
                 !ReferenceEquals(source, independentDefaultsCopy) &&
                 !ReferenceEquals(source.inventory, independentDefaultsCopy.inventory) &&
-                !ReferenceEquals(source.resourceChest, independentDefaultsCopy.resourceChest),
+                !ReferenceEquals(source.resourceChest, independentDefaultsCopy.resourceChest) &&
+                !ReferenceEquals(source.worktable, independentDefaultsCopy.worktable) &&
+                !ReferenceEquals(
+                    source.worktable.Inventory,
+                    independentDefaultsCopy.worktable.Inventory),
                 "GameDataDefaults returned a shared mutable data object.");
             Require(
                 !ReferenceEquals(runtimeData, independentRuntimeData) &&
@@ -99,6 +143,9 @@ public static class GameDataSaveSystemSmokeTest
             source.resourceChest = new InventoryData(
                 null,
                 new[] { new ResourceInventoryEntry(resourceDefinition.Id, 9) });
+            source.worktable.Inventory.CopyFrom(new InventoryData(
+                new[] { new CreatureInventoryEntry(creatureDefinition.Id, 1) },
+                null));
             source.unlockedUpgradeIds.Add("movement.speed");
             source.upgradeNodes.Add(new UpgradeNodeSaveData
             {
@@ -258,6 +305,29 @@ public static class GameDataSaveSystemSmokeTest
                 runtimeData.Facilities.ResourceChestUnlocked &&
                 !independentRuntimeData.Facilities.ResourceChestUnlocked,
                 "The unlock upgrade effect did not isolate the resource chest state.");
+            UpgradeEffect worktableUnlockEffect = new UnlockUpgradeEffect(
+                UnlockUpgradeTarget.Worktable);
+            Require(
+                worktableUnlockEffect.TryApply(
+                    effectContext,
+                    out string worktableUnlockError),
+                worktableUnlockError);
+            Require(
+                runtimeData.Facilities.WorktableUnlocked &&
+                !independentRuntimeData.Facilities.WorktableUnlocked,
+                "The unlock upgrade effect did not isolate the worktable state.");
+            UpgradeEffect worktableCapacityEffect = new NumericUpgradeEffect(
+                NumericUpgradeTarget.WorktableSlotCapacity,
+                NumericUpgradeOperation.Add,
+                2f);
+            Require(
+                worktableCapacityEffect.TryApply(
+                    effectContext,
+                    out string worktableCapacityError),
+                worktableCapacityError);
+            Require(
+                runtimeData.Facilities.WorktableSlotCapacity == 3,
+                "The worktable slot capacity upgrade was not applied.");
             Require(
                 !Mathf.Approximately(
                     runtimeData.PlayerStats.movement.moveSpeedRatio,
@@ -298,6 +368,12 @@ public static class GameDataSaveSystemSmokeTest
             Require(
                 loaded.resourceChest.GetResourceAmount(resourceDefinition.Id) == 9,
                 "Resource chest amount was not preserved.");
+            Require(
+                loaded.worktable.Inventory.Creatures.Count == 1 &&
+                loaded.worktable.Inventory.Creatures[0].DefinitionId ==
+                    creatureDefinition.Id &&
+                loaded.worktable.Inventory.Creatures[0].Count == 1,
+                "Worktable inventory was not preserved.");
             Require(
                 loaded.upgradeNodes.Exists(entry =>
                     entry.nodeId == "movement.speed" && entry.level == 1),

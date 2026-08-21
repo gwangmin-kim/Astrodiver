@@ -29,6 +29,7 @@ public class GameDataManager : MonoBehaviour
     public UpgradeService Upgrades { get; private set; }
     public bool IsInitialized => SaveData != null && RuntimeData != null;
     public bool HasUnsavedChanges => _isDirty;
+    public bool IsSaveSuspended => _isSaveSuspended;
     public string SaveFilePath => System.IO.Path.Combine(
         Application.persistentDataPath,
         SaveFileName);
@@ -39,6 +40,7 @@ public class GameDataManager : MonoBehaviour
     public event Action<GameSaveData> DataSaved;
     public event Action<GameSaveData> DataChanged;
     public event Action<GameRuntimeData> RuntimeDataChanged;
+    public event Action SaveSuspensionEnded;
 
     private void Awake()
     {
@@ -199,7 +201,13 @@ public class GameDataManager : MonoBehaviour
 
     internal void EndSaveSuspension()
     {
+        if (!_isSaveSuspended)
+        {
+            return;
+        }
+
         _isSaveSuspended = false;
+        SaveSuspensionEnded?.Invoke();
     }
 
     private bool SaveNowCore()

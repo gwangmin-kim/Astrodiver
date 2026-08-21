@@ -13,13 +13,19 @@ MonoBehaviour:
   m_Name: GameDataDefaults
   m_EditorClassIdentifier: Assembly-CSharp::GameDataDefaults
   _data:
-    schemaVersion: 10
+    schemaVersion: 11
     inventory:
       _creatures: []
       _resourceAmounts: []
     resourceChest:
       _creatures: []
       _resourceAmounts: []
+    worktable:
+      _inventory:
+        _creatures: []
+        _resourceAmounts: []
+      _processingCreatureId:
+      _remainingBaseProcessSeconds: 0
     upgradeNodes: []
     unlockedUpgradeIds: []
     completedEvents: 
@@ -76,3 +82,8 @@ MonoBehaviour:
     _timeoutInventoryLossRatio: 1
   _facilities:
     _resourceChestUnlocked: 0
+    _worktableUnlocked: 0
+    _worktableSlotCapacity: 1
+    _worktableTransferSpeedMultiplier: 1
+    _worktableProcessSpeedMultiplier: 1
+    _worktableYieldMultiplier: 1

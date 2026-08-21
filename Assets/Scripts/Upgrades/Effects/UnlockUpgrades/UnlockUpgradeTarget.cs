@@ -4,5 +4,6 @@ public enum UnlockUpgradeTarget
     NetGun = 2000,
 
     // Facilities: 3000-3999
-    ResourceChest = 3000
+    ResourceChest = 3000,
+    Worktable = 3001
 }

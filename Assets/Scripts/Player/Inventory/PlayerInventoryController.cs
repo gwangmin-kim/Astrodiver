@@ -183,6 +183,80 @@ public sealed class PlayerInventoryController : MonoBehaviour
             : 0;
     }
 
+    internal bool TryPeekLeftmostCreatureForWorktable(out string creatureId)
+    {
+        creatureId = null;
+        if (_inventory == null || _isExploreSessionActive)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < _creatureSlots.Length; i++)
+        {
+            CreatureInventorySlot slot = _creatureSlots[i];
+            if (slot == null || slot.IsEmpty)
+            {
+                continue;
+            }
+
+            creatureId = slot.DefinitionId;
+            return true;
+        }
+
+        return false;
+    }
+
+    internal InventoryData CreateWorktableTransferSnapshot()
+    {
+        return _inventory?.Clone();
+    }
+
+    internal bool TryRemoveLeftmostCreatureForWorktable(string expectedCreatureId)
+    {
+        if (!TryPeekLeftmostCreatureForWorktable(out string creatureId) ||
+            !string.Equals(
+                creatureId,
+                expectedCreatureId,
+                StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        for (int i = 0; i < _creatureSlots.Length; i++)
+        {
+            CreatureInventorySlot slot = _creatureSlots[i];
+            if (slot == null || slot.IsEmpty)
+            {
+                continue;
+            }
+
+            slot.Set(slot.DefinitionId, slot.Count - 1);
+            CompactCreatureSlots(i);
+            SyncCreatureSaveData();
+            return true;
+        }
+
+        return false;
+    }
+
+    internal void RestoreWorktableTransferSnapshot(InventoryData snapshot)
+    {
+        if (_inventory == null || snapshot == null)
+        {
+            return;
+        }
+
+        _inventory.CopyFrom(snapshot);
+        InitializeCreatureSlots(
+            _gameDataManager?.RuntimeData?.Inventory?.CreatureSlotCapacity ?? 1,
+            _inventory.Creatures);
+    }
+
+    internal void NotifyWorktableTransferCommitted()
+    {
+        Changed?.Invoke();
+    }
+
     public bool TryAddResource(ResourceDefinition resource, int amount = 1)
     {
         if (_inventory == null || resource == null ||
@@ -465,6 +539,32 @@ public sealed class PlayerInventoryController : MonoBehaviour
         }
 
         return takenAmount;
+    }
+
+    private void CompactCreatureSlots(int startIndex)
+    {
+        int writeIndex = Mathf.Clamp(startIndex, 0, _creatureSlots.Length);
+        for (int readIndex = writeIndex; readIndex < _creatureSlots.Length; readIndex++)
+        {
+            CreatureInventorySlot source = _creatureSlots[readIndex];
+            if (source == null || source.IsEmpty)
+            {
+                continue;
+            }
+
+            if (writeIndex != readIndex)
+            {
+                _creatureSlots[writeIndex].Set(source.DefinitionId, source.Count);
+                source.Clear();
+            }
+
+            writeIndex++;
+        }
+
+        for (int i = writeIndex; i < _creatureSlots.Length; i++)
+        {
+            _creatureSlots[i]?.Clear();
+        }
     }
 
     private bool TryAggregateCosts(IReadOnlyList<UpgradeResourceCost> costs)
