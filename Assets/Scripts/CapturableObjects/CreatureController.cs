@@ -1,69 +1,70 @@
 using UnityEngine;
 
-public class CreatureController : MonoBehaviour, ICapturable
+[RequireComponent(typeof(CreatureMotionController))]
+public class CreatureController : CapturableObject
 {
     [SerializeField] private CaptureData _data;
+    [SerializeField] private CreatureBrain _brain;
+    [SerializeField] private CreatureMotionController _motionController;
 
-    private Vector2 _captureSmoothVelocity;
     private bool _isCaptured;
+    private NetCaptureController _capturingNet;
 
-    public CaptureData CaptureData => _data;
-    public Vector2 Position => transform.position;
-    public float Radius => _data.radius;
+    public override CaptureData CaptureData => _data;
+    public override Vector2 Position => transform.position;
+    public override float Radius => _data.radius;
 
-    public Vector2 BehaviorVector => Vector2.zero;
+    private void Awake()
+    {
+        if (_brain == null) _brain = GetComponent<CreatureBrain>();
+        if (_motionController == null) _motionController = GetComponent<CreatureMotionController>();
+        _brain.CaptureReleaseRequested += RequestCaptureRelease;
+    }
 
+    private void OnDestroy()
+    {
+        if (_brain != null) _brain.CaptureReleaseRequested -= RequestCaptureRelease;
+    }
 
     private void OnDisable()
     {
-        _isCaptured = false;
-        _captureSmoothVelocity = Vector2.zero;
+        if (_isCaptured) _capturingNet?.RequestRelease(this, CaptureReleaseReason.Interrupted);
+        ResetCapture();
     }
 
-    public bool CanBeCaptured(NetCaptureContext context)
-    {
-        return isActiveAndEnabled && !_isCaptured;
-    }
+    public override bool CanBeCaptured(NetCaptureContext context) => isActiveAndEnabled && !_isCaptured;
 
-    public void OnCaptureStarted(NetCaptureContext context)
+    public override void OnCaptureStarted(NetCaptureContext context)
     {
         _isCaptured = true;
-        _captureSmoothVelocity = Vector2.zero;
+        _capturingNet = context.net;
+        _brain.NotifyCaptureStarted(context);
     }
 
-    public void OnCapturedMove(Vector2 targetPosition, Vector2 netVelocity, float deltaTime)
+    public override void OnCapturedMove(CaptureMotionContext context, float deltaTime)
     {
-        if (!_isCaptured) return;
-
-        float dampingTime = _data.followDampingTime;
-
-        Vector2 nextPosition = (dampingTime <= 0f)
-            ? targetPosition
-            : Vector2.SmoothDamp(
-                transform.position,
-                targetPosition,
-                ref _captureSmoothVelocity,
-                dampingTime,
-                Mathf.Infinity,
-                deltaTime);
-
-        transform.position = nextPosition;
+        if (_isCaptured) _motionController.UpdateCapturedMotion(context, deltaTime);
     }
 
-    public void OnCaptureReleased(CaptureReleaseReason reason)
+    public override void OnCaptureClamped(Vector2 position)
+    {
+        if (_isCaptured) _motionController.ClampCapturedPosition(position);
+    }
+
+    public override void OnCaptureReleased(CaptureReleaseReason reason)
+    {
+        ResetCapture();
+        _brain.NotifyCaptureReleased(reason);
+    }
+
+    private void RequestCaptureRelease(CaptureReleaseReason reason)
+    {
+        if (_isCaptured) _capturingNet?.RequestRelease(this, reason);
+    }
+
+    private void ResetCapture()
     {
         _isCaptured = false;
-        _captureSmoothVelocity = Vector2.zero;
+        _capturingNet = null;
     }
-
-#if UNITY_EDITOR
-    private void OnDrawGizmosSelected()
-    {
-        if (isActiveAndEnabled)
-        {
-            Gizmos.color = Color.green;
-            Gizmos.DrawWireSphere(transform.position, _data.radius);
-        }
-    }
-#endif
 }
