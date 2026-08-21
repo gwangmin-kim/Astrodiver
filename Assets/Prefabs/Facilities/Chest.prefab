@@ -10,6 +10,8 @@ GameObject:
   m_Component:
   - component: {fileID: 4382184173845071084}
   - component: {fileID: 3192705848800514071}
+  - component: {fileID: 3192705848800514072}
+  - component: {fileID: 3192705848800514073}
   m_Layer: 0
   m_Name: ChestResourcePopupCanvas
   m_TagString: Untagged
@@ -61,6 +63,37 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 20
   m_TargetDisplay: 0
+--- !u!225 &3192705848800514072
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1003708711050073590}
+  m_Enabled: 1
+  m_Alpha: 0
+  m_Interactable: 0
+  m_BlocksRaycasts: 0
+  m_IgnoreParentGroups: 0
+--- !u!114 &3192705848800514073
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1003708711050073590}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 706b77737bf94fbc93d6920196769c8c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ChestResourcePopupAnimation
+  _popupTransform: {fileID: 4382184173845071084}
+  _canvasGroup: {fileID: 3192705848800514072}
+  _showDuration: 0.2
+  _hideDuration: 0.15
+  _verticalOffset: 0.2
+  _showEase: 6
+  _hideEase: 5
 --- !u!1 &1764041472161916215
 GameObject:
   m_ObjectHideFlags: 0
@@ -153,7 +186,7 @@ SpriteRenderer:
   m_Size: {x: 1, y: 1}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_SpriteSortPoint: 0
   m_BlendShapeWeights: []
 --- !u!61 &3584290555033106923
@@ -217,7 +250,7 @@ MonoBehaviour:
   _playerLayer:
     serializedVersion: 2
     m_Bits: 8
-  _popupRoot: {fileID: 1003708711050073590}
+  _popupAnimation: {fileID: 3192705848800514073}
   _entryContainer: {fileID: 1523921537092629899}
   _entryPrefab: {fileID: 5662638313103722865, guid: 12a66e1562356fd49a680f4d85bb02f4, type: 3}
 --- !u!1 &9174429962426043603
@@ -229,8 +262,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1523921537092629899}
-  - component: {fileID: 3800756688594288130}
-  - component: {fileID: 589381902019518036}
   - component: {fileID: 6204239049017752676}
   - component: {fileID: 5564257561532455240}
   - component: {fileID: 1799467622518300003}
@@ -258,46 +289,8 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 240, y: 56}
+  m_SizeDelta: {x: 240, y: 0}
   m_Pivot: {x: 0.5, y: 0}
---- !u!222 &3800756688594288130
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9174429962426043603}
-  m_CullTransparentMesh: 1
---- !u!114 &589381902019518036
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9174429962426043603}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 0}
-  m_Color: {r: 0.015, g: 0.025, b: 0.055, a: 0.92}
-  m_RaycastTarget: 0
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Sprite: {fileID: 0}
-  m_Type: 0
-  m_PreserveAspect: 0
-  m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
-  m_FillClockwise: 1
-  m_FillOrigin: 0
-  m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
 --- !u!114 &6204239049017752676
 MonoBehaviour:
   m_ObjectHideFlags: 0

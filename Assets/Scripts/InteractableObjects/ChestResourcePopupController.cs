@@ -6,7 +6,7 @@ using UnityEngine;
 public sealed class ChestResourcePopupController : MonoBehaviour
 {
     [SerializeField] private LayerMask _playerLayer;
-    [SerializeField] private GameObject _popupRoot;
+    [SerializeField] private ChestResourcePopupAnimation _popupAnimation;
     [SerializeField] private Transform _entryContainer;
     [SerializeField] private ResourceFragmentEntryUI _entryPrefab;
 
@@ -22,12 +22,13 @@ public sealed class ChestResourcePopupController : MonoBehaviour
         Collider2D trigger = GetComponent<Collider2D>();
         trigger.isTrigger = true;
 
-        SetPopupVisible(false);
+        _popupAnimation?.HideImmediate();
     }
 
     private void OnDisable()
     {
-        HidePopup();
+        Unsubscribe();
+        _popupAnimation?.HideImmediate();
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -77,7 +78,7 @@ public sealed class ChestResourcePopupController : MonoBehaviour
     private void HidePopup()
     {
         Unsubscribe();
-        SetPopupVisible(false);
+        _popupAnimation?.Hide();
     }
 
     private void Unsubscribe()
@@ -95,25 +96,23 @@ public sealed class ChestResourcePopupController : MonoBehaviour
 
         if (_playerInventory == null || _entryContainer == null || _entryPrefab == null)
         {
-            SetPopupVisible(false);
+            _popupAnimation?.Hide();
             return;
         }
 
-        IReadOnlyList<ResourceInventoryEntry> resources =
-            _playerInventory.ChestResourceAmounts;
-        if (resources == null)
+        IReadOnlyList<ResourceDefinition> definitions =
+            GameDataManager.Instance?.Definitions?.OrderedResources;
+        if (definitions == null)
         {
-            SetPopupVisible(false);
+            _popupAnimation?.Hide();
             return;
         }
 
-        bool hasEntries = false;
-        foreach (ResourceInventoryEntry resource in resources)
+        int entryCount = 0;
+        foreach (ResourceDefinition definition in definitions)
         {
-            if (resource == null || resource.Amount <= 0 ||
-                !_playerInventory.TryResolveResourceDefinition(
-                    resource,
-                    out ResourceDefinition definition))
+            int amount = _playerInventory.GetChestResourceAmount(definition);
+            if (amount <= 0)
             {
                 continue;
             }
@@ -123,11 +122,18 @@ public sealed class ChestResourcePopupController : MonoBehaviour
                 _entryContainer,
                 false);
             entry.name = $"Chest Resource {definition.Id}";
-            entry.SetResource(definition, resource.Amount);
-            hasEntries = true;
+            entry.SetResource(definition, amount);
+            entryCount++;
         }
 
-        SetPopupVisible(hasEntries);
+        if (entryCount > 0)
+        {
+            _popupAnimation?.Show();
+        }
+        else
+        {
+            _popupAnimation?.Hide();
+        }
     }
 
     private void ClearEntries()
@@ -143,11 +149,4 @@ public sealed class ChestResourcePopupController : MonoBehaviour
         }
     }
 
-    private void SetPopupVisible(bool visible)
-    {
-        if (_popupRoot != null && _popupRoot.activeSelf != visible)
-        {
-            _popupRoot.SetActive(visible);
-        }
-    }
 }
