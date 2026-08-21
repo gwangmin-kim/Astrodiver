@@ -11,8 +11,8 @@ public static class CursorSpriteManager
     private const string SessionCursorPath = "Cursors/pointer_session";
 
     // These align the mouse position with the arrow tip and crosshair center.
-    private static readonly Vector2 HubHotspot = new(2f, 3f);
-    private static readonly Vector2 SessionHotspot = new(16f, 16f);
+    private static readonly Vector2 _hubHotspot = new(2f, 3f);
+    private static readonly Vector2 _sessionHotspot = new(16f, 16f);
 
     private static Texture2D _hubCursor;
     private static Texture2D _sessionCursor;
@@ -35,14 +35,14 @@ public static class CursorSpriteManager
 
     private static void ApplyCursorForScene(Scene scene, LoadSceneMode mode)
     {
-        ApplyCursor(Object.FindFirstObjectByType<SessionManager>() != null);
+        ApplyCursor(Object.FindAnyObjectByType<SessionManager>() != null);
     }
 
     private static void ApplyCursor(bool isExploreSession)
     {
         Cursor.SetCursor(
             isExploreSession ? _sessionCursor : _hubCursor,
-            isExploreSession ? SessionHotspot : HubHotspot,
+            isExploreSession ? _sessionHotspot : _hubHotspot,
             CursorMode.Auto);
     }
 }
