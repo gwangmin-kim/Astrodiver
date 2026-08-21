@@ -9,10 +9,10 @@ public class PlayerInteractionController : MonoBehaviour
     [SerializeField] private LayerMask _interactableLayer;
     [SerializeField] private InteractionPromptSprite _interactionPrompt;
 
-    private readonly List<IInteractable> _overlappingInteractables = new();
+    private readonly List<InteractableObject> _overlappingInteractables = new();
 
-    public IInteractable CurrentTarget { get; private set; }
-    public event Action<IInteractable> CurrentTargetChanged;
+    public InteractableObject CurrentTarget { get; private set; }
+    public event Action<InteractableObject> CurrentTargetChanged;
 
     private void Awake()
     {
@@ -51,7 +51,7 @@ public class PlayerInteractionController : MonoBehaviour
             return;
         }
 
-        if (!other.TryGetComponent<IInteractable>(out var interactable))
+        if (!other.TryGetComponent<InteractableObject>(out var interactable))
         {
             return;
         }
@@ -61,7 +61,7 @@ public class PlayerInteractionController : MonoBehaviour
 
     private void OnTriggerExit2D(Collider2D other)
     {
-        if (!other.TryGetComponent<IInteractable>(out var interactable))
+        if (!other.TryGetComponent<InteractableObject>(out var interactable))
         {
             return;
         }
@@ -71,8 +71,8 @@ public class PlayerInteractionController : MonoBehaviour
 
     private void UpdateCurrentTarget()
     {
-        IInteractable nextTarget = FindClosestInteractable();
-        if (ReferenceEquals(CurrentTarget, nextTarget))
+        InteractableObject nextTarget = FindClosestInteractable();
+        if (CurrentTarget == nextTarget)
         {
             return;
         }
@@ -96,7 +96,7 @@ public class PlayerInteractionController : MonoBehaviour
         CurrentTargetChanged?.Invoke(CurrentTarget);
     }
 
-    private IInteractable FindClosestInteractable()
+    private InteractableObject FindClosestInteractable()
     {
         if (_overlappingInteractables.Count == 0)
         {
@@ -105,7 +105,7 @@ public class PlayerInteractionController : MonoBehaviour
 
         if (_overlappingInteractables.Count == 1)
         {
-            IInteractable onlyTarget = _overlappingInteractables[0];
+            InteractableObject onlyTarget = _overlappingInteractables[0];
             if (IsAvailable(onlyTarget))
             {
                 return onlyTarget;
@@ -115,20 +115,19 @@ public class PlayerInteractionController : MonoBehaviour
             return null;
         }
 
-        IInteractable closest = null;
+        InteractableObject closest = null;
         float closestSqrDistance = float.PositiveInfinity;
 
         for (int i = _overlappingInteractables.Count - 1; i >= 0; i--)
         {
-            IInteractable interactable = _overlappingInteractables[i];
+            InteractableObject interactable = _overlappingInteractables[i];
             if (!IsAvailable(interactable))
             {
                 _overlappingInteractables.RemoveAt(i);
                 continue;
             }
 
-            Component component = (Component)interactable;
-            float sqrDistance = ((Vector2)component.transform.position - (Vector2)transform.position).sqrMagnitude;
+            float sqrDistance = ((Vector2)interactable.transform.position - (Vector2)transform.position).sqrMagnitude;
             if (sqrDistance < closestSqrDistance)
             {
                 closest = interactable;
@@ -139,10 +138,10 @@ public class PlayerInteractionController : MonoBehaviour
         return closest;
     }
 
-    private static bool IsAvailable(IInteractable interactable)
+    private static bool IsAvailable(InteractableObject interactable)
     {
-        return interactable is Component component
-               && component != null
-               && component.gameObject.activeInHierarchy;
+        return interactable != null
+               && interactable.isActiveAndEnabled
+               && interactable.gameObject.activeInHierarchy;
     }
 }

@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [RequireComponent(typeof(Collider2D))]
-public class SceneGate : MonoBehaviour, IInteractable
+public class SceneGate : InteractableObject
 {
     [Header("Hub Stage Selection")]
     [SerializeField] private StageSelectionUI _stageSelectionUI;
@@ -16,7 +16,7 @@ public class SceneGate : MonoBehaviour, IInteractable
 
     private bool _isTransitioning;
 
-    public void Interact()
+    public override void Interact()
     {
         if (_isTransitioning)
         {

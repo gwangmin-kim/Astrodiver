@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public sealed class UpgradeInteractor : MonoBehaviour, IInteractable
+public sealed class UpgradeInteractor : InteractableObject
 {
     [Header("References")]
     [SerializeField] private UpgradeTreeUI _upgradeTreeUI;
@@ -60,7 +60,7 @@ public sealed class UpgradeInteractor : MonoBehaviour, IInteractable
         RestoreInventoryHudState();
     }
 
-    public void Interact()
+    public override void Interact()
     {
         if (_upgradeTreeUI == null)
         {

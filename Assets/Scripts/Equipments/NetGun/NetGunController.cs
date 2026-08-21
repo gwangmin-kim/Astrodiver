@@ -22,7 +22,7 @@ public class NetGunController : MonoBehaviour
     [SerializeField][Range(0f, 1f)] private float _dampingTime;
 
     private readonly List<NetRuntime> _netRuntimeList = new();
-    private readonly List<ICapturable> _collectedTargetsBuffer = new();
+    private readonly List<CapturableObject> _collectedTargetsBuffer = new();
     private readonly NetMovementManager _movementManager = new();
     private float _chargingTime;
     private NetRuntime _chargingNet;
@@ -468,7 +468,7 @@ public class NetGunController : MonoBehaviour
         _collectedTargetsBuffer.Clear();
     }
 
-    private void CollectCapturedTarget(ICapturable target)
+    private void CollectCapturedTarget(CapturableObject target)
     {
         if (IsMissing(target)) return;
 
@@ -480,26 +480,20 @@ public class NetGunController : MonoBehaviour
         }
 
         target.OnCaptureReleased(CaptureReleaseReason.Collected);
-        Component targetComponent = target as Component;
-        if (targetComponent == null)
-        {
-            return;
-        }
-
-        targetComponent.GetComponent<StageSpawnedObject>()
+        target.GetComponent<StageSpawnedObject>()
             ?.NotifyRemovedFromStage();
 
         CaptureAnimationController animationController =
-            targetComponent.GetComponent<CaptureAnimationController>()
-            ?? targetComponent.gameObject.AddComponent<CaptureAnimationController>();
+            target.GetComponent<CaptureAnimationController>()
+            ?? target.gameObject.AddComponent<CaptureAnimationController>();
 
         Transform collectTarget = _shootOrigin != null ? _shootOrigin : transform;
         animationController.PlayCollectTo(collectTarget, null);
     }
 
-    private static bool IsMissing(ICapturable target)
+    private static bool IsMissing(CapturableObject target)
     {
-        return target == null || target is UnityEngine.Object unityObject && unityObject == null;
+        return target == null;
     }
 
     private sealed class NetRuntime

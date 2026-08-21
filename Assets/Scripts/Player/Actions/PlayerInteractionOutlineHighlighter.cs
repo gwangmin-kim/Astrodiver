@@ -44,15 +44,15 @@ public sealed class PlayerInteractionOutlineHighlighter : MonoBehaviour
         SetHighlightedOutline(null);
     }
 
-    private void HandleCurrentTargetChanged(IInteractable target)
+    private void HandleCurrentTargetChanged(InteractableObject target)
     {
         InteractableOutline nextOutline = null;
-        if (target is Component component)
+        if (target != null)
         {
-            nextOutline = component.GetComponent<InteractableOutline>();
+            nextOutline = target.GetComponent<InteractableOutline>();
             if (nextOutline == null)
             {
-                nextOutline = component.GetComponentInParent<InteractableOutline>();
+                nextOutline = target.GetComponentInParent<InteractableOutline>();
             }
         }
 
