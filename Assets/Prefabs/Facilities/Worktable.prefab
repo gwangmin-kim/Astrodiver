@@ -437,7 +437,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 66c07292122917d44ba6bd4ae00d59c9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WorktableInventoryUI
-  _slotPrefab: {fileID: 3614621462921878589, guid: 596188f0d6cbc9e4e8924ddbc9d9cd9c, type: 3}
+  _slotPrefab: {fileID: 3614621462921878589, guid: bb142b2177723cb40bc66adb74d7432c, type: 3}
   _popupAnimation: {fileID: 7818889084776329107}
   _rowContainer: {fileID: 8891032583380125936}
   _rowPrefab: {fileID: 8400969447055587548}
