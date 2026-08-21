@@ -50,6 +50,7 @@ public sealed class UpgradeTooltipDataBuilder
         if (!isMaxLevel)
         {
             definition.GetCostForNextLevel(clampedLevel, _costs);
+            _costs.Sort(ResourceDisplayOrder.Compare);
         }
 
         string displayName = string.IsNullOrWhiteSpace(definition.DisplayName)

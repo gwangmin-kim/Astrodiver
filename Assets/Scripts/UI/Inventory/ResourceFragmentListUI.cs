@@ -45,13 +45,25 @@ public sealed class ResourceFragmentListUI : MonoBehaviour
             return;
         }
 
-        foreach (ResourceInventoryEntry entry in _playerInventory.ResourceAmounts)
+        IReadOnlyList<ResourceDefinition> definitions =
+            GameDataManager.Instance?.Definitions?.OrderedResources;
+        if (definitions == null)
         {
-            if (_playerInventory.TryResolveResourceDefinition(
-                    entry,
-                    out ResourceDefinition definition))
+            return;
+        }
+
+        int siblingIndex = 0;
+        foreach (ResourceDefinition definition in definitions)
+        {
+            int amount = _playerInventory.GetResourceAmount(definition);
+            if (amount > 0)
             {
-                SetResourceAmount(definition, entry.Amount);
+                ResourceFragmentEntryUI entry =
+                    SetResourceAmount(definition, amount);
+                if (entry != null)
+                {
+                    entry.transform.SetSiblingIndex(siblingIndex++);
+                }
             }
         }
     }
@@ -88,20 +100,23 @@ public sealed class ResourceFragmentListUI : MonoBehaviour
         }
     }
 
-    private void SetResourceAmount(ResourceDefinition definition, int amount)
+    private ResourceFragmentEntryUI SetResourceAmount(
+        ResourceDefinition definition,
+        int amount)
     {
-        if (definition == null) return;
+        if (definition == null) return null;
 
         if (amount <= 0)
         {
             RemoveEntry(definition);
-            return;
+            return null;
         }
 
         ResourceFragmentEntryUI entry = GetOrCreateEntry(definition);
-        if (entry == null) return;
+        if (entry == null) return null;
 
         entry.SetResource(definition, amount);
+        return entry;
     }
 
     private ResourceFragmentEntryUI GetOrCreateEntry(ResourceDefinition definition)

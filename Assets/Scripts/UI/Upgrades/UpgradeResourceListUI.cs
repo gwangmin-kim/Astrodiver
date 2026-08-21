@@ -56,23 +56,21 @@ public sealed class UpgradeResourceListUI : MonoBehaviour
             return;
         }
 
-        IReadOnlyList<ResourceInventoryEntry> resources =
-            _playerInventory.IsResourceChestUnlocked
-                ? _playerInventory.ChestResourceAmounts
-                : _playerInventory.ResourceAmounts;
-        if (resources == null)
+        IReadOnlyList<ResourceDefinition> definitions =
+            GameDataManager.Instance?.Definitions?.OrderedResources;
+        if (definitions == null)
         {
             SetListVisible(false);
             return;
         }
 
         bool hasEntries = false;
-        foreach (ResourceInventoryEntry resource in resources)
+        foreach (ResourceDefinition definition in definitions)
         {
-            if (resource == null || resource.Amount <= 0 ||
-                !_playerInventory.TryResolveResourceDefinition(
-                    resource,
-                    out ResourceDefinition definition))
+            int amount = _playerInventory.IsResourceChestUnlocked
+                ? _playerInventory.GetChestResourceAmount(definition)
+                : _playerInventory.GetResourceAmount(definition);
+            if (amount <= 0)
             {
                 continue;
             }
@@ -82,7 +80,7 @@ public sealed class UpgradeResourceListUI : MonoBehaviour
                 _entryContainer,
                 false);
             entry.name = $"Upgrade Resource {definition.Id}";
-            entry.SetResource(definition, resource.Amount);
+            entry.SetResource(definition, amount);
             hasEntries = true;
         }
 

@@ -7,6 +7,10 @@ public sealed class GameDefinitionRegistry
     private readonly Dictionary<string, ResourceDefinition> _resources;
     private readonly Dictionary<string, CreatureDefinition> _creatures;
     private readonly Dictionary<string, UpgradeNodeDefinition> _upgrades;
+    private readonly ResourceDefinition[] _orderedResources;
+
+    public IReadOnlyList<ResourceDefinition> OrderedResources =>
+        _orderedResources;
 
     public GameDefinitionRegistry(GameDefinitionCatalog catalog)
     {
@@ -25,6 +29,7 @@ public sealed class GameDefinitionRegistry
         _resources = BuildLookup(catalog.Resources, definition => definition.Id);
         _creatures = BuildLookup(catalog.Creatures, definition => definition.Id);
         _upgrades = BuildLookup(catalog.Upgrades, definition => definition.Id);
+        _orderedResources = BuildOrderedResources(_resources.Values);
     }
 
     public bool TryGetResource(string id, out ResourceDefinition definition)
@@ -69,5 +74,15 @@ public sealed class GameDefinitionRegistry
         }
 
         return lookup;
+    }
+
+    private static ResourceDefinition[] BuildOrderedResources(
+        ICollection<ResourceDefinition> definitions)
+    {
+        ResourceDefinition[] ordered =
+            new ResourceDefinition[definitions.Count];
+        definitions.CopyTo(ordered, 0);
+        Array.Sort(ordered, ResourceDisplayOrder.Compare);
+        return ordered;
     }
 }
