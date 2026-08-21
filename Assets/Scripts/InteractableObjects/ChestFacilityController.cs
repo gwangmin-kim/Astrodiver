@@ -7,6 +7,14 @@ public sealed class ChestFacilityController : MonoBehaviour
 
     private GameDataManager _gameDataManager;
     private UpgradeService _upgradeService;
+    private Collider2D _interactionCollider;
+    private ChestResourcePopupController _resourcePopup;
+
+    private void Awake()
+    {
+        _interactionCollider = GetComponent<Collider2D>();
+        _resourcePopup = GetComponent<ChestResourcePopupController>();
+    }
 
     private void OnEnable()
     {
@@ -83,13 +91,21 @@ public sealed class ChestFacilityController : MonoBehaviour
 
     private void RefreshVisibility()
     {
-        if (_visualRoot == null)
-        {
-            return;
-        }
-
         bool isUnlocked = GameDataManager.Instance?.RuntimeData?.Facilities
             ?.ResourceChestUnlocked ?? false;
-        _visualRoot.SetActive(isUnlocked);
+        if (_visualRoot != null)
+        {
+            _visualRoot.SetActive(isUnlocked);
+        }
+
+        if (_interactionCollider != null)
+        {
+            _interactionCollider.enabled = isUnlocked;
+        }
+
+        if (_resourcePopup != null)
+        {
+            _resourcePopup.enabled = isUnlocked;
+        }
     }
 }
