@@ -35,6 +35,11 @@ Material:
     - _FarStarSeed: 11
     - _FarStarSize: 1
     - _MidStarParallax: 0.1
+    - _NebulaCoverage: 0.52
+    - _NebulaParallax: 0.015
+    - _NebulaScale: 1.6
+    - _NebulaSeed: 7
+    - _NebulaStrength: 0.08
     - _NearStarBrightness: 1
     - _NearStarCellSize: 24
     - _NearStarDensity: 0.025
@@ -51,12 +56,14 @@ Material:
     - _StarSeed: 29
     - _StarSize: 1.5
     - _UseGradient: 1
+    - _UseNebula: 1
     - _UseDithering: 1
     - _UseStarParallax: 1
     - _UseStars: 1
     m_Colors:
     - _BottomColor: {r: 0.018, g: 0.026, b: 0.07, a: 1}
     - _Color: {r: 0.018, g: 0.026, b: 0.07, a: 1}
+    - _NebulaColor: {r: 0.12, g: 0.16, b: 0.38, a: 1}
     - _StarColor: {r: 0.75, g: 0.85, b: 1, a: 1}
     - _TopColor: {r: 0.06, g: 0.08, b: 0.18, a: 1}
   m_BuildTextureStacks: []

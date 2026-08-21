@@ -13,6 +13,14 @@ Shader "Astrodiver/Background/Space Background"
         [Toggle] _UseDithering ("Use Dithering", Float) = 1
         _DitherStrength ("Dither Strength", Range(0, 1)) = 0.3
         _DitherPixelSize ("Dither Pixel Size", Range(1, 4)) = 1
+        [Header(Nebula)]
+        [Toggle] _UseNebula ("Use Nebula", Float) = 1
+        _NebulaColor ("Nebula Color", Color) = (0.12, 0.16, 0.38, 1)
+        _NebulaScale ("Nebula Scale", Range(0.5, 6)) = 1.6
+        _NebulaStrength ("Nebula Strength", Range(0, 0.5)) = 0.08
+        _NebulaCoverage ("Nebula Coverage", Range(0.2, 0.8)) = 0.52
+        _NebulaSeed ("Nebula Seed", Float) = 7
+        _NebulaParallax ("Nebula Parallax", Range(0, 0.25)) = 0.015
         [Header(Star Layers)]
         [Toggle] _UseStars ("Use Stars", Float) = 1
         _StarColor ("Star Color", Color) = (0.75, 0.85, 1, 1)
@@ -88,6 +96,13 @@ Shader "Astrodiver/Background/Space Background"
                 half _UseDithering;
                 half _DitherStrength;
                 half _DitherPixelSize;
+                half _UseNebula;
+                half4 _NebulaColor;
+                half _NebulaScale;
+                half _NebulaStrength;
+                half _NebulaCoverage;
+                half _NebulaSeed;
+                half _NebulaParallax;
                 half _UseStars;
                 half4 _StarColor;
                 half _UseStarParallax;
@@ -135,6 +150,17 @@ Shader "Astrodiver/Background/Space Background"
                 return frac((hash.x + hash.y) * hash.z);
             }
 
+            float SmoothNoise2D(float2 value)
+            {
+                float2 cell = floor(value);
+                float2 fraction = frac(value);
+                float2 smoothFraction = fraction * fraction * (3.0 - 2.0 * fraction);
+
+                float bottom = lerp(Hash12(cell), Hash12(cell + float2(1.0, 0.0)), smoothFraction.x);
+                float top = lerp(Hash12(cell + float2(0.0, 1.0)), Hash12(cell + 1.0), smoothFraction.x);
+                return lerp(bottom, top, smoothFraction.y);
+            }
+
             float SampleStarLayer(
                 float2 pixelPosition,
                 float cellSize,
@@ -172,6 +198,10 @@ Shader "Astrodiver/Background/Space Background"
             half4 Frag(Varyings input) : SV_Target
             {
                 float2 screenUV = input.positionCS.xy / _ScreenParams.xy;
+                float2 pixelsPerWorldUnit = 0.5 * float2(
+                    _ScreenParams.x * abs(UNITY_MATRIX_P._m00),
+                    _ScreenParams.y * abs(UNITY_MATRIX_P._m11));
+                float2 cameraPixelOffsetBase = _WorldSpaceCameraPos.xy * pixelsPerWorldUnit;
                 half3 backgroundColor = _Color.rgb;
 
                 if (_UseGradient >= 0.5h)
@@ -196,14 +226,31 @@ Shader "Astrodiver/Background/Space Background"
                     }
                 }
 
+                if (_UseNebula >= 0.5h)
+                {
+                    float2 nebulaPixels = input.positionCS.xy
+                        + cameraPixelOffsetBase * (float)_NebulaParallax;
+                    float2 nebulaCoordinates = nebulaPixels / _ScreenParams.y * (float)_NebulaScale;
+                    nebulaCoordinates += (float)_NebulaSeed * float2(7.13, 19.71);
+                    nebulaCoordinates.x += nebulaCoordinates.y * 0.35;
+                    nebulaCoordinates.y *= 0.7;
+
+                    float broadNebula = SmoothNoise2D(nebulaCoordinates);
+                    float detailNebula = SmoothNoise2D(nebulaCoordinates * 2.03 + float2(11.7, 5.3));
+                    float nebulaNoise = broadNebula * 0.72 + detailNebula * 0.28;
+                    float nebulaMask = smoothstep(
+                        (float)_NebulaCoverage - 0.22,
+                        (float)_NebulaCoverage + 0.22,
+                        nebulaNoise);
+                    nebulaMask *= nebulaMask;
+
+                    backgroundColor += _NebulaColor.rgb * nebulaMask * (float)_NebulaStrength;
+                }
+
                 if (_UseStars >= 0.5h)
                 {
-                    float2 pixelsPerWorldUnit = 0.5 * float2(
-                        _ScreenParams.x * abs(UNITY_MATRIX_P._m00),
-                        _ScreenParams.y * abs(UNITY_MATRIX_P._m11));
                     float parallaxEnabled = step(0.5, (float)_UseStarParallax);
-                    float2 cameraPixelOffset = _WorldSpaceCameraPos.xy
-                        * pixelsPerWorldUnit
+                    float2 cameraPixelOffset = cameraPixelOffsetBase
                         * (float)_StarParallaxStrength
                         * parallaxEnabled;
 
