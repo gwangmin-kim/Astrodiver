@@ -22,13 +22,15 @@ public sealed class StageSelectionUI : MonoBehaviour
     private bool _playerInputWasEnabled;
     private bool _uiInputWasEnabled;
     private bool _isTransitioning;
+    private UpgradeService _upgradeService;
 
     public bool IsOpen => gameObject.activeSelf;
 
     private void OnEnable()
     {
         ResolveReferences();
-        BindDestinations();
+        SubscribeToUpgradeService();
+        RefreshDestinations();
 
         if (_uiInput != null)
         {
@@ -66,8 +68,14 @@ public sealed class StageSelectionUI : MonoBehaviour
         }
 
         UnbindDestinations();
+        UnsubscribeFromUpgradeService();
         RestoreInputState();
         _isTransitioning = false;
+    }
+
+    private void OnDestroy()
+    {
+        UnsubscribeFromUpgradeService();
     }
 
     public void Open()
@@ -88,9 +96,15 @@ public sealed class StageSelectionUI : MonoBehaviour
         gameObject.SetActive(false);
     }
 
-    private void SelectStage(BuildSceneReference scene)
+    private void SelectStage(StageDestination destination)
     {
-        if (_isTransitioning || scene == null)
+        if (_isTransitioning || destination == null || !destination.IsUnlocked())
+        {
+            return;
+        }
+
+        BuildSceneReference scene = destination.Scene;
+        if (scene == null)
         {
             return;
         }
@@ -140,8 +154,10 @@ public sealed class StageSelectionUI : MonoBehaviour
         }
     }
 
-    private void BindDestinations()
+    private void RefreshDestinations()
     {
+        UnbindDestinations();
+
         for (int i = 0; i < _destinations.Length; i++)
         {
             StageDestination destination = _destinations[i];
@@ -150,9 +166,49 @@ public sealed class StageSelectionUI : MonoBehaviour
                 continue;
             }
 
+            bool isUnlocked = destination.IsUnlocked();
+            destination.SetVisible(isUnlocked);
+            if (!isUnlocked)
+            {
+                continue;
+            }
+
             destination.Bind(SelectStage);
             destination.SetInteractable(destination.Scene?.CanLoad() == true);
         }
+
+        GetComponent<StageMapNavigationUI>()?.RefreshButtonTargets();
+    }
+
+    private void SubscribeToUpgradeService()
+    {
+        UpgradeService upgradeService = GameDataManager.Instance?.Upgrades;
+        if (_upgradeService == upgradeService)
+        {
+            return;
+        }
+
+        UnsubscribeFromUpgradeService();
+        _upgradeService = upgradeService;
+        if (_upgradeService != null)
+        {
+            _upgradeService.UpgradePurchased += HandleUpgradePurchased;
+        }
+    }
+
+    private void UnsubscribeFromUpgradeService()
+    {
+        if (_upgradeService != null)
+        {
+            _upgradeService.UpgradePurchased -= HandleUpgradePurchased;
+            _upgradeService = null;
+        }
+    }
+
+    private void HandleUpgradePurchased(UpgradeNodeDefinition definition, int level)
+    {
+        RefreshDestinations();
+        FocusFirstAvailableDestination();
     }
 
 #if UNITY_EDITOR
@@ -227,13 +283,21 @@ public sealed class StageDestination
 {
     [SerializeField] private Button _button;
     [SerializeField] private BuildSceneReference _scene = new();
+    [SerializeField] private UpgradeNodeDefinition _requiredUpgrade;
 
     [NonSerialized] private UnityAction _clickListener;
 
     public Button Button => _button;
     public BuildSceneReference Scene => _scene;
+    public UpgradeNodeDefinition RequiredUpgrade => _requiredUpgrade;
 
-    public void Bind(Action<BuildSceneReference> selectStage)
+    public bool IsUnlocked()
+    {
+        return _requiredUpgrade == null ||
+               GameDataManager.Instance?.IsUpgradeUnlocked(_requiredUpgrade.Id) == true;
+    }
+
+    public void Bind(Action<StageDestination> selectStage)
     {
         Unbind();
         if (_button == null || selectStage == null)
@@ -241,7 +305,7 @@ public sealed class StageDestination
             return;
         }
 
-        _clickListener = () => selectStage(_scene);
+        _clickListener = () => selectStage(this);
         _button.onClick.AddListener(_clickListener);
     }
 
@@ -260,6 +324,14 @@ public sealed class StageDestination
         if (_button != null)
         {
             _button.interactable = interactable;
+        }
+    }
+
+    public void SetVisible(bool visible)
+    {
+        if (_button != null)
+        {
+            _button.gameObject.SetActive(visible);
         }
     }
 }

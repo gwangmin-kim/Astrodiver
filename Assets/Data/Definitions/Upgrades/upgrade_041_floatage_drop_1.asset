@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3de66ce8d56b7747b6ac728bd78f710, type: 3}
+  m_Name: upgrade_041_floatage_drop_1
+  m_EditorClassIdentifier: Assembly-CSharp::UpgradeNodeDefinition
+  _id: upgrade.floatage_drop_1
+  _key: floatage_drop_1
+  _sortOrder: 41
+  _displayName: "\uAD11\uBB3C \uB4DC\uB86D\uB7C9 \uC99D\uAC00 I"
+  _description: "\uB3CC, \uCCA0, \uD751\uC694\uC11D, \uC218\uC815\uC758 \uB4DC\uB86D\uB7C9\uC774
+    \uC99D\uAC00\uD569\uB2C8\uB2E4."
+  _icon: {fileID: 0}
+  _parent: {fileID: 11400000, guid: 113959368ffda2f48bc3ded1f6a8c16e, type: 2}
+  _maxLevel: 10
+  _baseCosts: []
+  _costIncreases: []
+  _effects:
+  - rid: 8656187279957819540
+  - rid: 8656187279957819541
+  - rid: 8656187279957819542
+  - rid: 8656187279957819543
+  references:
+    version: 2
+    RefIds:
+    - rid: 8656187279957819540
+      type: {class: FloatageDropBonusUpgradeEffect, ns: , asm: Assembly-CSharp}
+      data:
+        _floatage: {fileID: 11400000, guid: 91c96fb7709d44ac8559ef086ef06e74, type: 2}
+        _bonus: 0.35
+    - rid: 8656187279957819541
+      type: {class: FloatageDropBonusUpgradeEffect, ns: , asm: Assembly-CSharp}
+      data:
+        _floatage: {fileID: 11400000, guid: 0e3e1d9b650248e59cd4f0354b003ec8, type: 2}
+        _bonus: 0.35
+    - rid: 8656187279957819542
+      type: {class: FloatageDropBonusUpgradeEffect, ns: , asm: Assembly-CSharp}
+      data:
+        _floatage: {fileID: 11400000, guid: f9331b428cca63a45a78f7fca5ee87e9, type: 2}
+        _bonus: 0.35
+    - rid: 8656187279957819543
+      type: {class: FloatageDropBonusUpgradeEffect, ns: , asm: Assembly-CSharp}
+      data:
+        _floatage: {fileID: 11400000, guid: 80ddb02205ab98b4bb94c807c28fdfb9, type: 2}
+        _bonus: 0.35

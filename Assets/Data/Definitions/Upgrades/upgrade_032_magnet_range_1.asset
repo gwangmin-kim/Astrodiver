@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3de66ce8d56b7747b6ac728bd78f710, type: 3}
+  m_Name: upgrade_032_magnet_range_1
+  m_EditorClassIdentifier: Assembly-CSharp::UpgradeNodeDefinition
+  _id: upgrade.magnet_range_1
+  _key: magnet_range_1
+  _sortOrder: 32
+  _displayName: "\uC790\uC11D \uC218\uC9D1 \uBC94\uC704 I"
+  _description: "\uC790\uC6D0 \uD30C\uD3B8\uC744 \uB04C\uC5B4\uB2F9\uAE30\uB294 \uBC94\uC704\uAC00
+    \uC99D\uAC00\uD569\uB2C8\uB2E4."
+  _icon: {fileID: 0}
+  _parent: {fileID: 11400000, guid: 189f9a29daa3c0d439eaa01f53f34d39, type: 2}
+  _maxLevel: 1
+  _baseCosts: []
+  _costIncreases: []
+  _effects:
+  - rid: 8656187279957819530
+  references:
+    version: 2
+    RefIds:
+    - rid: 8656187279957819530
+      type: {class: NumericUpgradeEffect, ns: , asm: Assembly-CSharp}
+      data:
+        _target: 1200
+        _operation: 0
+        _value: 0.25

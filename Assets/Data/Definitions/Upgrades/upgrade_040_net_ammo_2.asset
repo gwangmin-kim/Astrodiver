@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3de66ce8d56b7747b6ac728bd78f710, type: 3}
+  m_Name: upgrade_040_net_ammo_2
+  m_EditorClassIdentifier: Assembly-CSharp::UpgradeNodeDefinition
+  _id: upgrade.net_ammo_2
+  _key: net_ammo_2
+  _sortOrder: 40
+  _displayName: "\uADF8\uBB3C\uCD1D \uD0C4\uC57D \uC99D\uAC00 II"
+  _description: "\uD55C \uBC88\uC758 \uD0D0\uC0AC\uC5D0\uC11C \uC0AC\uC6A9\uD560
+    \uADF8\uBB3C\uCD1D \uD0C4\uC57D\uC774 \uC99D\uAC00\uD569\uB2C8\uB2E4."
+  _icon: {fileID: 0}
+  _parent: {fileID: 11400000, guid: 2420e3c39ff12f449bfba1a007244556, type: 2}
+  _maxLevel: 1
+  _baseCosts: []
+  _costIncreases: []
+  _effects:
+  - rid: 8656187279957819539
+  references:
+    version: 2
+    RefIds:
+    - rid: 8656187279957819539
+      type: {class: NumericUpgradeEffect, ns: , asm: Assembly-CSharp}
+      data:
+        _target: 2006
+        _operation: 0
+        _value: 10

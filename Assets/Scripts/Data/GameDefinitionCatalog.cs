@@ -140,16 +140,24 @@ public sealed class GameDefinitionCatalog : ScriptableObject
     {
         for (int i = 0; i < node.Effects.Count; i++)
         {
-            if (node.Effects[i] is not FloatageDropMultiplierUpgradeEffect effect)
+            if (node.Effects[i] is not FloatageDropMultiplierUpgradeEffect &&
+                node.Effects[i] is not FloatageDropBonusUpgradeEffect)
             {
                 continue;
             }
 
-            if (effect.Floatage != null && !catalogFloatages.Contains(effect.Floatage))
+            FloatageDefinition floatage = node.Effects[i] switch
+            {
+                FloatageDropMultiplierUpgradeEffect multiplier => multiplier.Floatage,
+                FloatageDropBonusUpgradeEffect bonus => bonus.Floatage,
+                _ => null
+            };
+
+            if (floatage != null && !catalogFloatages.Contains(floatage))
             {
                 errors.Add(
                     $"Upgrade node '{node.Id}' references floatage " +
-                    $"'{effect.Floatage.Id}', but it is not in this catalog.");
+                    $"'{floatage.Id}', but it is not in this catalog.");
             }
         }
     }

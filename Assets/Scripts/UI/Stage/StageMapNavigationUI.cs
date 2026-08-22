@@ -267,7 +267,8 @@ public sealed class StageMapNavigationUI : MonoBehaviour
         Vector2 max = default;
         foreach (Button button in _buttons)
         {
-            if (button == null || button.transform is not RectTransform buttonRect)
+            if (button == null || !button.gameObject.activeInHierarchy ||
+                button.transform is not RectTransform buttonRect)
             {
                 continue;
             }

@@ -32,4 +32,17 @@ public sealed class FloatageDropMultiplierRuntimeData
             ? float.MaxValue
             : current * multiplier;
     }
+
+    public void AddBonus(FloatageDefinition definition, float bonus)
+    {
+        if (definition == null || bonus <= 0f)
+        {
+            return;
+        }
+
+        float current = GetMultiplier(definition);
+        _multipliers[definition] = current > float.MaxValue - bonus
+            ? float.MaxValue
+            : current + bonus;
+    }
 }

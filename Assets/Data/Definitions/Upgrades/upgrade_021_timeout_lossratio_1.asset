@@ -10,27 +10,27 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a3de66ce8d56b7747b6ac728bd78f710, type: 3}
-  m_Name: upgrade_022_worktable_unlock
+  m_Name: upgrade_021_timeout_lossratio_1
   m_EditorClassIdentifier: Assembly-CSharp::UpgradeNodeDefinition
-  _id: upgrade.worktable_unlock
-  _key: worktable_unlock
-  _sortOrder: 22
-  _displayName: "\uC138\uACF5\uC18C"
-  _description: "\uC0DD\uBB3C\uC744 \uC790\uC6D0\uC73C\uB85C \uBCC0\uD658\uD558\uB294
-    \uC138\uACF5\uC18C\uB97C \uD65C\uC131\uD654\uD569\uB2C8\uB2E4."
+  _id: upgrade.timeout_lossratio_1
+  _key: timeout_lossratio_1
+  _sortOrder: 21
+  _displayName: "\uBCF4\uD5D8 I"
+  _description: "\uBC30\uD130\uB9AC \uACE0\uAC08 \uC2DC \uC783\uC5B4\uBC84\uB9AC\uB294
+    \uC790\uC6D0\uC758 \uBE44\uC728\uC774 \uAC10\uC18C\uD569\uB2C8\uB2E4."
   _icon: {fileID: 0}
   _parent: {fileID: 11400000, guid: 74b87a1bcf067254984fa57b33a5ab21, type: 2}
   _maxLevel: 1
-  _baseCosts:
-  - _resource: {fileID: 11400000, guid: 1059946eedbea974699f29d697f124de, type: 2}
-    _amount: 10
+  _baseCosts: []
   _costIncreases: []
   _effects:
-  - rid: 8656187132053815422
+  - rid: 8656187279957819514
   references:
     version: 2
     RefIds:
-    - rid: 8656187132053815422
-      type: {class: UnlockUpgradeEffect, ns: , asm: Assembly-CSharp}
+    - rid: 8656187279957819514
+      type: {class: NumericUpgradeEffect, ns: , asm: Assembly-CSharp}
       data:
-        _target: 3001
+        _target: 4002
+        _operation: 0
+        _value: -0.2

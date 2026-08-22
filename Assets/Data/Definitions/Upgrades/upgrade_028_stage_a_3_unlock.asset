@@ -10,17 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a3de66ce8d56b7747b6ac728bd78f710, type: 3}
-  m_Name: upgrade_021_inventory_slotcount_1
+  m_Name: upgrade_028_stage_a_3_unlock
   m_EditorClassIdentifier: Assembly-CSharp::UpgradeNodeDefinition
-  _id: upgrade.inventory_slotcount_1
-  _key: inventory_slotcount_1
-  _sortOrder: 21
-  _displayName: 
-  _description: 
+  _id: upgrade.stage_a_3_unlock
+  _key: stage_a_3_unlock
+  _sortOrder: 28
+  _displayName: "\uD56D\uB85C \uD574\uAE08 I"
+  _description: "\uC138 \uBC88\uC9F8 \uC6B0\uC8FC \uAD6C\uC5ED\uC744 \uD0D0\uD5D8\uD560
+    \uC218 \uC788\uAC8C \uB429\uB2C8\uB2E4."
   _icon: {fileID: 0}
-  _parent: {fileID: 0}
+  _parent: {fileID: 11400000, guid: b0c4314d34884c2da89acb79b4e23451, type: 2}
   _maxLevel: 1
-  _baseCosts: []
+  _baseCosts:
+  - _resource: {fileID: 11400000, guid: f7bf18dc02ff9454ca10d23514f6374d, type: 2}
+    _amount: 10
   _costIncreases: []
   _effects: []
   references:

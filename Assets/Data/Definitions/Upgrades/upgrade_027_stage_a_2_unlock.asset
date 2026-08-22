@@ -10,27 +10,22 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a3de66ce8d56b7747b6ac728bd78f710, type: 3}
-  m_Name: upgrade_022_worktable_unlock
+  m_Name: upgrade_027_stage_a_2_unlock
   m_EditorClassIdentifier: Assembly-CSharp::UpgradeNodeDefinition
-  _id: upgrade.worktable_unlock
-  _key: worktable_unlock
-  _sortOrder: 22
-  _displayName: "\uC138\uACF5\uC18C"
-  _description: "\uC0DD\uBB3C\uC744 \uC790\uC6D0\uC73C\uB85C \uBCC0\uD658\uD558\uB294
-    \uC138\uACF5\uC18C\uB97C \uD65C\uC131\uD654\uD569\uB2C8\uB2E4."
+  _id: upgrade.stage_a_2_unlock
+  _key: stage_a_2_unlock
+  _sortOrder: 27
+  _displayName: "\uD56D\uB85C \uD574\uAE08 I"
+  _description: "\uB450 \uBC88\uC9F8 \uC6B0\uC8FC \uAD6C\uC5ED\uC744 \uD0D0\uD5D8\uD560
+    \uC218 \uC788\uAC8C \uB429\uB2C8\uB2E4."
   _icon: {fileID: 0}
-  _parent: {fileID: 11400000, guid: 74b87a1bcf067254984fa57b33a5ab21, type: 2}
+  _parent: {fileID: 11400000, guid: 113959368ffda2f48bc3ded1f6a8c16e, type: 2}
   _maxLevel: 1
   _baseCosts:
   - _resource: {fileID: 11400000, guid: 1059946eedbea974699f29d697f124de, type: 2}
     _amount: 10
   _costIncreases: []
-  _effects:
-  - rid: 8656187132053815422
+  _effects: []
   references:
     version: 2
-    RefIds:
-    - rid: 8656187132053815422
-      type: {class: UnlockUpgradeEffect, ns: , asm: Assembly-CSharp}
-      data:
-        _target: 3001
+    RefIds: []
