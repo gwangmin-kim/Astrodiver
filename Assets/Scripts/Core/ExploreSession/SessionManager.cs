@@ -35,6 +35,11 @@ public class SessionManager : MonoBehaviour
         Instance = this;
 
         SpawnPlayer();
+        if (SpawnedPlayer != null)
+        {
+            GameDataManager.Instance?.CompleteEventAndSave(
+                GameProgressEventId.ExploreFirstTime);
+        }
 
         _sessionEndPanel.SetActive(false);
 
@@ -144,6 +149,12 @@ public class SessionManager : MonoBehaviour
             Debug.LogError("SessionManager: Failed to save the completed exploration session.", this);
             IsSessionFinished = false;
             return;
+        }
+
+        if (!isTimeout)
+        {
+            GameDataManager.Instance?.CompleteEventAndSave(
+                GameProgressEventId.ReturnSafely);
         }
 
         Time.timeScale = 0f;

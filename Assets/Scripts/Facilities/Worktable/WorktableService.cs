@@ -354,6 +354,8 @@ public sealed class WorktableService : MonoBehaviour
 
         if (_completedBuffer.Count > 0)
         {
+            _gameDataManager.CompleteEventAndSave(
+                GameProgressEventId.UseWorktable);
             PlayerInventoryController.Instance
                 ?.NotifyWorktableProcessingCommitted();
         }

@@ -387,7 +387,6 @@ public static class GameDataSaveSystemSmokeTest
                 "Invalid progress event ids were not removed during normalization.");
 
             source.completedEvents.Clear();
-            source.completedEvents.Add((GameProgressEventId)1000);
             source.completedEvents.Add((GameProgressEventId)1100);
             // Retired initialized fields remain here only to verify that legacy saves ignore them.
             string legacyJson = JsonUtility.ToJson(source, true)
@@ -423,6 +422,24 @@ public static class GameDataSaveSystemSmokeTest
             Require(
                 migrated.completedEvents.Count == 0,
                 "Legacy upgrade unlock events were not removed from progress events.");
+
+            source.completedEvents.Clear();
+            source.completedEvents.Add((GameProgressEventId)1);
+            string legacyReadLetterJson = JsonUtility.ToJson(source, true)
+                .Replace(
+                    $"\"schemaVersion\": {GameSaveData.CurrentSchemaVersion}",
+                    "\"schemaVersion\": 11");
+            File.WriteAllText(legacyTestPath, legacyReadLetterJson);
+            Require(
+                GameDataFileStore.TryLoad(
+                    legacyTestPath,
+                    out GameSaveData migratedReadLetter,
+                    out string readLetterMigrationError),
+                $"Read-letter event migration failed: {readLetterMigrationError}");
+            Require(
+                migratedReadLetter.completedEvents.Count == 1 &&
+                migratedReadLetter.completedEvents[0] == GameProgressEventId.ReadLetter,
+                "Legacy read-letter completion was not migrated to event id 1000.");
 
             GameSaveData previousRun = defaults.CreateSaveData();
             previousRun.inventory = new InventoryData(

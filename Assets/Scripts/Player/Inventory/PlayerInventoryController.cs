@@ -127,7 +127,14 @@ public sealed class PlayerInventoryController : MonoBehaviour
         slot.Set(creature.Id, nextCount);
         SyncCreatureSaveData();
 
-        return CompleteInventoryMutation(_inventory, snapshot, wasDirty);
+        if (!CompleteInventoryMutation(_inventory, snapshot, wasDirty))
+        {
+            return false;
+        }
+
+        GameDataManager.Instance?.CompleteEventAndSave(
+            GameProgressEventId.CaptureFirstCreature);
+        return true;
     }
 
     /// <summary>
@@ -292,6 +299,12 @@ public sealed class PlayerInventoryController : MonoBehaviour
         if (ReferenceEquals(destination, _resourceChest))
         {
             NotifyChestResourcesChanged();
+        }
+
+        if (GameDataManager.Instance != null)
+        {
+            GameDataManager.Instance.CompleteEventAndSave(
+                GameProgressEventId.GetFirstResource);
         }
 
         return true;

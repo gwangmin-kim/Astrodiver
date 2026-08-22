@@ -9,7 +9,10 @@ using UnityEngine;
 [Serializable]
 public sealed class GameSaveData
 {
-    public const int CurrentSchemaVersion = 11;
+    public const int CurrentSchemaVersion = 12;
+
+    private const int LegacyReadLetterEventValue = 1;
+    private const int ReadLetterEventMigrationSchemaVersion = 12;
 
     public int schemaVersion = CurrentSchemaVersion;
     public InventoryData inventory = new();
@@ -21,6 +24,7 @@ public sealed class GameSaveData
 
     public void RepairAfterLoad()
     {
+        int loadedSchemaVersion = schemaVersion;
         schemaVersion = Mathf.Max(CurrentSchemaVersion, schemaVersion);
         inventory ??= new InventoryData();
         resourceChest ??= new InventoryData();
@@ -34,6 +38,7 @@ public sealed class GameSaveData
         worktable.RepairAfterLoad();
         NormalizeUpgradeNodes();
         MigrateLegacyUpgradeIds();
+        MigrateProgressEventIds(loadedSchemaVersion);
         NormalizeCompletedEvents();
     }
 
@@ -160,6 +165,22 @@ public sealed class GameSaveData
             }
         }
 
+    }
+
+    private void MigrateProgressEventIds(int loadedSchemaVersion)
+    {
+        if (loadedSchemaVersion >= ReadLetterEventMigrationSchemaVersion)
+        {
+            return;
+        }
+
+        for (int i = 0; i < completedEvents.Count; i++)
+        {
+            if ((int)completedEvents[i] == LegacyReadLetterEventValue)
+            {
+                completedEvents[i] = GameProgressEventId.ReadLetter;
+            }
+        }
     }
 
     private static void NormalizeUniqueIds(List<string> ids)

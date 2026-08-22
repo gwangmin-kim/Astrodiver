@@ -357,6 +357,20 @@ public class GameDataManager : MonoBehaviour
         return true;
     }
 
+    /// <summary>
+    /// Completes an event and persists it immediately when saving is available.
+    /// During exploration the pending event is included in the session-result save.
+    /// </summary>
+    public bool CompleteEventAndSave(GameProgressEventId eventId)
+    {
+        if (!CompleteEvent(eventId))
+        {
+            return false;
+        }
+
+        return _isSaveSuspended || SaveNow();
+    }
+
     private static bool TryCompleteEvent(GameSaveData data, GameProgressEventId eventId)
     {
         if (data == null ||

@@ -68,6 +68,7 @@ public sealed class UpgradeInteractor : InteractableObject
         }
 
         _upgradeTreeUI.Open();
+        GameDataManager.Instance?.CompleteEventAndSave(GameProgressEventId.OpenUpgrader);
         SyncWithPanelState();
     }
 

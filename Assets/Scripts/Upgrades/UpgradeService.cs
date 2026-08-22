@@ -191,12 +191,34 @@ public sealed class UpgradeService
         }
 
         inventory.NotifyTransactionCommitted();
+        CompleteTutorialEventForFirstUnlock(node.Id, nextLevel);
         UpgradePurchased?.Invoke(node, nextLevel);
         return new UpgradePurchaseResult(
             UpgradePurchaseStatus.Success,
             node.Id,
             currentLevel,
             nextLevel);
+    }
+
+    private void CompleteTutorialEventForFirstUnlock(string upgradeId, int level)
+    {
+        if (level != 1)
+        {
+            return;
+        }
+
+        GameProgressEventId eventId = upgradeId switch
+        {
+            "upgrade.root" => GameProgressEventId.UnlockBattery,
+            "upgrade.net_unlock" => GameProgressEventId.UnlockNetgun,
+            "upgrade.worktable_unlock" => GameProgressEventId.UnlockWorktable,
+            _ => GameProgressEventId.None
+        };
+
+        if (eventId != GameProgressEventId.None)
+        {
+            _gameData.CompleteEventAndSave(eventId);
+        }
     }
 
     private static UpgradePurchaseResult Result(
