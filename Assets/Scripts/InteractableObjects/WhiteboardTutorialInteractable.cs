@@ -9,6 +9,8 @@ public sealed class WhiteboardTutorialInteractable : InteractableObject
 {
     [SerializeField] private TutorialDocumentView _tutorialDocument;
 
+    public override bool IsAvaiableBeforeFirstEvent => true;
+
     private void Awake()
     {
         _isRepeatable = false;

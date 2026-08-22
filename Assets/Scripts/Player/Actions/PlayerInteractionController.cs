@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(PlayerInputHandler))]
 public class PlayerInteractionController : MonoBehaviour
 {
+    private const string HubSceneName = "Hub";
     [SerializeField] private PlayerInputHandler _inputHandler;
     [SerializeField] private LayerMask _interactableLayer;
     [SerializeField] private InteractionPromptSprite _interactionPrompt;
@@ -197,8 +199,27 @@ public class PlayerInteractionController : MonoBehaviour
 
     private static bool IsAvailable(InteractableObject interactable)
     {
-        return interactable != null
-               && interactable.isActiveAndEnabled
-               && interactable.gameObject.activeInHierarchy;
+        if (interactable == null ||
+            !interactable.isActiveAndEnabled ||
+            !interactable.gameObject.activeInHierarchy)
+        {
+            return false;
+        }
+
+        return !IsHubLockedBeforeFirstEvent() ||
+               interactable.IsAvaiableBeforeFirstEvent;
+    }
+
+    private static bool IsHubLockedBeforeFirstEvent()
+    {
+        if (SceneManager.GetActiveScene().name != HubSceneName)
+        {
+            return false;
+        }
+
+        GameDataManager gameData = GameDataManager.Instance;
+        return gameData != null &&
+               gameData.IsInitialized &&
+               gameData.SaveData.completedEvents.Count == 0;
     }
 }
