@@ -178,11 +178,18 @@ public sealed class StageRuntimeConfig
     public float RespawnIntervalSeconds { get; }
     public StageRuntimePopulationConfig Creatures { get; }
     public StageRuntimePopulationConfig ResourceFloatages { get; }
+
+    public void SetRespawnProbabilityBonus(float bonus)
+    {
+        Creatures.SetRespawnProbabilityBonus(bonus);
+        ResourceFloatages.SetRespawnProbabilityBonus(bonus);
+    }
 }
 
 public sealed class StageRuntimePopulationConfig
 {
     private int _maxCount;
+    private readonly float _baseRespawnProbability;
     private float _respawnProbability;
 
     public StageRuntimePopulationConfig(
@@ -191,7 +198,8 @@ public sealed class StageRuntimePopulationConfig
         StageRuntimeSpawnEntry[] entries)
     {
         MaxCount = maxCount;
-        RespawnProbability = respawnProbability;
+        _baseRespawnProbability = Mathf.Clamp01(respawnProbability);
+        RespawnProbability = _baseRespawnProbability;
         Entries = entries ?? Array.Empty<StageRuntimeSpawnEntry>();
     }
 
@@ -207,7 +215,14 @@ public sealed class StageRuntimePopulationConfig
         set => _respawnProbability = Mathf.Clamp01(value);
     }
 
+    public float BaseRespawnProbability => _baseRespawnProbability;
+
     public StageRuntimeSpawnEntry[] Entries { get; }
+
+    public void SetRespawnProbabilityBonus(float bonus)
+    {
+        RespawnProbability = _baseRespawnProbability + Mathf.Max(0f, bonus);
+    }
 
     public static StageRuntimePopulationConfig Empty()
     {

@@ -25,6 +25,7 @@ public static class GameDataSaveSystemSmokeTest
         string legacyTestPath = Path.Combine(testDirectory, "legacy-test-save.json");
         string newGameTestPath = Path.Combine(testDirectory, "new-game-save.json");
         UpgradeNodeDefinition temporaryNode = null;
+        StageDefinition temporaryStage = null;
 
         try
         {
@@ -109,6 +110,7 @@ public static class GameDataSaveSystemSmokeTest
             GameSaveData independentDefaultsCopy = defaults.CreateSaveData();
             GameRuntimeData runtimeData = defaults.CreateRuntimeData();
             GameRuntimeData independentRuntimeData = defaults.CreateRuntimeData();
+            temporaryStage = ScriptableObject.CreateInstance<StageDefinition>();
             PlayerStatsRuntimeData playerStats = runtimeData.PlayerStats;
             PlayerStatsRuntimeData independentPlayerStats = independentRuntimeData.PlayerStats;
             EquipmentRuntimeData equipment = runtimeData.Equipment;
@@ -194,6 +196,45 @@ public static class GameDataSaveSystemSmokeTest
             Require(
                 runtimeData.Equipment.plasmaGun.tickDamage == plasmaDamageBeforeEffect + 25,
                 "Plasma damage was not applied as an absolute value.");
+
+            UpgradeEffect stageRespawnEffect =
+                new StageRespawnProbabilityBonusUpgradeEffect(
+                    temporaryStage,
+                    0.1f);
+            Require(
+                stageRespawnEffect.TryApply(
+                    effectContext,
+                    out string stageRespawnEffectError) &&
+                stageRespawnEffect.TryApply(
+                    effectContext,
+                    out stageRespawnEffectError),
+                stageRespawnEffectError);
+            Require(
+                Mathf.Approximately(
+                    runtimeData.StageRespawnProbabilityBonuses
+                        .GetBonus(temporaryStage),
+                    0.2f) &&
+                Mathf.Approximately(
+                    independentRuntimeData.StageRespawnProbabilityBonuses
+                        .GetBonus(temporaryStage),
+                    0f),
+                "Stage respawn probability bonuses did not stack independently.");
+            StageRuntimeConfig stageRuntimeConfig = new(
+                "test.stage",
+                1f,
+                new StageRuntimePopulationConfig(10, 0.5f, null),
+                new StageRuntimePopulationConfig(10, 0.25f, null));
+            stageRuntimeConfig.SetRespawnProbabilityBonus(
+                runtimeData.StageRespawnProbabilityBonuses
+                    .GetBonus(temporaryStage));
+            Require(
+                Mathf.Approximately(
+                    stageRuntimeConfig.Creatures.RespawnProbability,
+                    0.7f) &&
+                Mathf.Approximately(
+                    stageRuntimeConfig.ResourceFloatages.RespawnProbability,
+                    0.45f),
+                "Stage respawn probability bonuses were not added to both populations.");
 
             float plasmaChargeTimeBeforeEffect =
                 runtimeData.Equipment.plasmaGun.baseChargeTime;
@@ -515,6 +556,11 @@ public static class GameDataSaveSystemSmokeTest
             if (temporaryNode != null)
             {
                 UnityEngine.Object.DestroyImmediate(temporaryNode);
+            }
+
+            if (temporaryStage != null)
+            {
+                UnityEngine.Object.DestroyImmediate(temporaryStage);
             }
         }
     }

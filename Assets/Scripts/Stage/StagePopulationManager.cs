@@ -27,6 +27,7 @@ public sealed class StagePopulationManager : MonoBehaviour
     private readonly HashSet<StageSpawnedObject> _resourceFloatages = new();
 
     private StageRuntimeConfig _runtimeConfig;
+    private GameDataManager _gameDataManager;
     private System.Random _random;
     private Coroutine _respawnRoutine;
     private int _creatureSequence;
@@ -45,6 +46,7 @@ public sealed class StagePopulationManager : MonoBehaviour
 
     private void Start()
     {
+        BindGameDataManager();
         if (_spawnOnStart)
         {
             SpawnInitialPopulation();
@@ -53,6 +55,7 @@ public sealed class StagePopulationManager : MonoBehaviour
 
     private void OnEnable()
     {
+        BindGameDataManager();
         if (_hasSpawned)
         {
             StartRespawnLoop();
@@ -61,6 +64,7 @@ public sealed class StagePopulationManager : MonoBehaviour
 
     private void OnDisable()
     {
+        UnbindGameDataManager();
         if (_respawnRoutine == null)
         {
             return;
@@ -201,7 +205,48 @@ public sealed class StagePopulationManager : MonoBehaviour
         }
 
         runtimeConfig = _definition.CreateRuntimeConfig();
+        runtimeConfig.SetRespawnProbabilityBonus(
+            _gameDataManager?.RuntimeData?.StageRespawnProbabilityBonuses
+                .GetBonus(_definition) ?? 0f);
         return true;
+    }
+
+    private void BindGameDataManager()
+    {
+        GameDataManager manager = GameDataManager.Instance;
+        if (_gameDataManager == manager)
+        {
+            return;
+        }
+
+        UnbindGameDataManager();
+        _gameDataManager = manager;
+        if (_gameDataManager != null)
+        {
+            _gameDataManager.RuntimeDataChanged += HandleRuntimeDataChanged;
+            HandleRuntimeDataChanged(_gameDataManager.RuntimeData);
+        }
+    }
+
+    private void UnbindGameDataManager()
+    {
+        if (_gameDataManager != null)
+        {
+            _gameDataManager.RuntimeDataChanged -= HandleRuntimeDataChanged;
+            _gameDataManager = null;
+        }
+    }
+
+    private void HandleRuntimeDataChanged(GameRuntimeData runtimeData)
+    {
+        if (_runtimeConfig == null || _definition == null)
+        {
+            return;
+        }
+
+        _runtimeConfig.SetRespawnProbabilityBonus(
+            runtimeData?.StageRespawnProbabilityBonuses.GetBonus(_definition) ??
+            0f);
     }
 
     private void ProcessPopulationRespawn(

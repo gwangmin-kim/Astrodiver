@@ -17,6 +17,8 @@ public sealed class GameRuntimeData
         Inventory = inventory ?? throw new ArgumentNullException(nameof(inventory));
         Facilities = facilities ?? throw new ArgumentNullException(nameof(facilities));
         FloatageDropMultipliers = new FloatageDropMultiplierRuntimeData();
+        StageRespawnProbabilityBonuses =
+            new StageRespawnProbabilityBonusRuntimeData();
     }
 
     public PlayerStatsRuntimeData PlayerStats { get; }
@@ -24,4 +26,6 @@ public sealed class GameRuntimeData
     public InventoryRuntimeData Inventory { get; }
     public FacilityRuntimeData Facilities { get; }
     public FloatageDropMultiplierRuntimeData FloatageDropMultipliers { get; }
+    public StageRespawnProbabilityBonusRuntimeData
+        StageRespawnProbabilityBonuses { get; }
 }

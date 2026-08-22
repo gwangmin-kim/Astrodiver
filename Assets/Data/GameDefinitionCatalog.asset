@@ -84,6 +84,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 8b045faeacc77eb41a716bcec7bddd41, type: 2}
   - {fileID: 11400000, guid: a48d121adf34f464c9987a7f92e54bac, type: 2}
   - {fileID: 11400000, guid: cb613b0f026cf8d42bc7baa631488771, type: 2}
+  - {fileID: 11400000, guid: a12594a2beaf44c690f4fad9c25f974f, type: 2}
   _tutorialGuides:
   - {fileID: 11400000, guid: 4e097c9aa71d4482ac00c2e3ea000007, type: 2}
   - {fileID: 11400000, guid: 6fd3bf5dae80494e8d7f0772f31fd801, type: 2}

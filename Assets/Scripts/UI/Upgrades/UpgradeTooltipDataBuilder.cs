@@ -28,6 +28,8 @@ public sealed class UpgradeTooltipDataBuilder
             0,
             definition.MaxLevel);
         bool isMaxLevel = clampedLevel >= definition.MaxLevel;
+        bool hasFloatageDropBonusPreview = false;
+        bool hasStageRespawnProbabilityBonusPreview = false;
 
         IReadOnlyList<UpgradeEffect> effects = definition.Effects;
         for (int i = 0; i < effects.Count; i++)
@@ -37,6 +39,26 @@ public sealed class UpgradeTooltipDataBuilder
                 !effect.TryCreatePreview(runtimeData, out UpgradeEffectPreview preview))
             {
                 continue;
+            }
+
+            if (effect is FloatageDropBonusUpgradeEffect)
+            {
+                if (hasFloatageDropBonusPreview)
+                {
+                    continue;
+                }
+
+                hasFloatageDropBonusPreview = true;
+            }
+
+            if (effect is StageRespawnProbabilityBonusUpgradeEffect)
+            {
+                if (hasStageRespawnProbabilityBonusPreview)
+                {
+                    continue;
+                }
+
+                hasStageRespawnProbabilityBonusPreview = true;
             }
 
             _effectLines.Add(FormatPreview(preview, isMaxLevel));
