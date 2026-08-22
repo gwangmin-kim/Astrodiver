@@ -52,6 +52,14 @@ public sealed class UpgradeNodeDefinitionEditor : Editor
                 new FloatageDropBonusUpgradeEffect();
         }
 
+        if (GUILayout.Button("Add Stage Respawn Probability Bonus Effect"))
+        {
+            int index = _effects.arraySize;
+            _effects.arraySize++;
+            _effects.GetArrayElementAtIndex(index).managedReferenceValue =
+                new StageRespawnProbabilityBonusUpgradeEffect();
+        }
+
         serializedObject.ApplyModifiedProperties();
 
         UpgradeNodeDefinition node = (UpgradeNodeDefinition)target;

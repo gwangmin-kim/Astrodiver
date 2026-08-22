@@ -73,8 +73,7 @@ public sealed class FloatageDropBonusUpgradeEffect : UpgradeEffect
         preview = UpgradeEffectPreview.Numeric(
             current,
             next,
-            false,
-            $"{_floatage.name} 드롭 배율");
+            false);
         return true;
     }
 }
