@@ -7,11 +7,11 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public sealed class PlayerOutline : MonoBehaviour
 {
-    private static readonly int OutlineColorId = Shader.PropertyToID("_OutlineColor");
-    private static readonly int OutlineWidthId = Shader.PropertyToID("_OutlineWidth");
-    private static readonly int OutlineEnabledId = Shader.PropertyToID("_OutlineEnabled");
-    private static readonly int SpriteUvMinMaxId = Shader.PropertyToID("_SpriteUVMinMax");
-    private static readonly int SpriteLocalSizeId = Shader.PropertyToID("_SpriteLocalSize");
+    private static readonly int _outlineColorId = Shader.PropertyToID("_OutlineColor");
+    private static readonly int _outlineWidthId = Shader.PropertyToID("_OutlineWidth");
+    private static readonly int _outlineEnabledId = Shader.PropertyToID("_OutlineEnabled");
+    private static readonly int _spriteUvMinMaxId = Shader.PropertyToID("_SpriteUVMinMax");
+    private static readonly int _spriteLocalSizeId = Shader.PropertyToID("_SpriteLocalSize");
 
     [Header("Outline Appearance")]
     [SerializeField] private Color _outlineColor = Color.white;
@@ -24,9 +24,17 @@ public sealed class PlayerOutline : MonoBehaviour
 
     private MaterialPropertyBlock _propertyBlock;
 
-    private void Reset()
+    // private void Reset()
+    // {
+    //     CollectSpriteRenderers();
+    // }
+
+    private void OnValidate()
     {
-        CollectSpriteRenderers();
+        if (_spriteRenderers == null || _spriteRenderers.Length == 0)
+        {
+            CollectSpriteRenderers();
+        }
     }
 
     private void Awake()
@@ -71,9 +79,9 @@ public sealed class PlayerOutline : MonoBehaviour
             }
 
             spriteRenderer.GetPropertyBlock(_propertyBlock);
-            _propertyBlock.SetColor(OutlineColorId, _outlineColor);
-            _propertyBlock.SetFloat(OutlineWidthId, _outlineWidth);
-            _propertyBlock.SetFloat(OutlineEnabledId, 1f);
+            _propertyBlock.SetColor(_outlineColorId, _outlineColor);
+            _propertyBlock.SetFloat(_outlineWidthId, _outlineWidth);
+            _propertyBlock.SetFloat(_outlineEnabledId, 1f);
             ApplySpriteBounds(spriteRenderer);
             spriteRenderer.SetPropertyBlock(_propertyBlock);
         }
@@ -89,8 +97,8 @@ public sealed class PlayerOutline : MonoBehaviour
         Sprite sprite = spriteRenderer.sprite;
         if (sprite == null)
         {
-            _propertyBlock.SetVector(SpriteUvMinMaxId, new Vector4(0f, 0f, 1f, 1f));
-            _propertyBlock.SetVector(SpriteLocalSizeId, Vector4.one);
+            _propertyBlock.SetVector(_spriteUvMinMaxId, new Vector4(0f, 0f, 1f, 1f));
+            _propertyBlock.SetVector(_spriteLocalSizeId, Vector4.one);
             return;
         }
 
@@ -104,8 +112,8 @@ public sealed class PlayerOutline : MonoBehaviour
         }
 
         Vector3 localSize = spriteRenderer.localBounds.size;
-        _propertyBlock.SetVector(SpriteUvMinMaxId, new Vector4(uvMin.x, uvMin.y, uvMax.x, uvMax.y));
-        _propertyBlock.SetVector(SpriteLocalSizeId, new Vector4(
+        _propertyBlock.SetVector(_spriteUvMinMaxId, new Vector4(uvMin.x, uvMin.y, uvMax.x, uvMax.y));
+        _propertyBlock.SetVector(_spriteLocalSizeId, new Vector4(
             Mathf.Max(localSize.x, 0.0001f),
             Mathf.Max(localSize.y, 0.0001f),
             0f,

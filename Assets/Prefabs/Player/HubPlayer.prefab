@@ -196,6 +196,27 @@ MonoBehaviour:
   _interactionController: {fileID: 7264986152765376962}
   _outlineColor: {r: 1, g: 1, b: 1, a: 1}
   _outlineWidth: 2
+--- !u!114 &900000000000000004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 142067144415907874}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d59a43c9b0a42eaa18c1b38bca57d6f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerOutline
+  _outlineColor: {r: 0, g: 0, b: 0, a: 1}
+  _outlineWidth: 2
+  _outlineMaterial: {fileID: 2100000, guid: a9c6d2e81f24499fb928c3ec61e36501, type: 2}
+  _spriteRenderers:
+  - {fileID: 6622567161960103410}
+  - {fileID: 818323572510164654}
+  - {fileID: 797830342435765584}
+  - {fileID: 841821648973229442}
+  - {fileID: 963102958681479955}
 --- !u!114 &900000000000000001
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -216,22 +237,6 @@ MonoBehaviour:
   _isHorizontal: 1
   _frameInterval: 0.3
   _defaultPose: 0
---- !u!114 &900000000000000004
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 142067144415907874}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7d59a43c9b0a42eaa18c1b38bca57d6f, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerOutline
-  _outlineColor: {r: 0, g: 0, b: 0, a: 1}
-  _outlineWidth: 2
-  _outlineMaterial: {fileID: 2100000, guid: a9c6d2e81f24499fb928c3ec61e36501, type: 2}
-  _spriteRenderers: []
 --- !u!1 &1222987943081895319
 GameObject:
   m_ObjectHideFlags: 0

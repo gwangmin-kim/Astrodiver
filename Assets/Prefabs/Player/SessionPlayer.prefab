@@ -802,6 +802,30 @@ MonoBehaviour:
   _interactionController: {fileID: 2038724707605539685}
   _outlineColor: {r: 1, g: 1, b: 1, a: 1}
   _outlineWidth: 2
+--- !u!114 &900000000000000004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8562921575549458465}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d59a43c9b0a42eaa18c1b38bca57d6f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerOutline
+  _outlineColor: {r: 1, g: 1, b: 1, a: 1}
+  _outlineWidth: 2
+  _outlineMaterial: {fileID: 2100000, guid: a9c6d2e81f24499fb928c3ec61e36501, type: 2}
+  _spriteRenderers:
+  - {fileID: 7631392804896647362}
+  - {fileID: 531303915917683495}
+  - {fileID: 4852907278463846498}
+  - {fileID: 5271723660156540360}
+  - {fileID: 5124690200663963614}
+  - {fileID: 8966285035471001022}
+  - {fileID: 7699988418655978230}
+  - {fileID: 4398446953327209836}
 --- !u!114 &900000000000000002
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -832,28 +856,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a6b20ae8ae7d4b4aa764b1e2f809bb32, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerVisualTiltController
   _inputHandler: {fileID: 2112401720433368642}
   _visualRoot: {fileID: 273320278069400697}
   _inputThreshold: 0.1
   _rotationAngle: 10
---- !u!114 &900000000000000004
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8562921575549458465}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7d59a43c9b0a42eaa18c1b38bca57d6f, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerOutline
-  _outlineColor: {r: 1, g: 1, b: 1, a: 1}
-  _outlineWidth: 2
-  _outlineMaterial: {fileID: 2100000, guid: a9c6d2e81f24499fb928c3ec61e36501, type: 2}
-  _spriteRenderers: []
 --- !u!1 &9117365054830507080
 GameObject:
   m_ObjectHideFlags: 0
@@ -1018,6 +1026,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 427c0eee49ce73443b786a9073dd8a45, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlasmaGunController
+--- !u!212 &4398446953327209836 stripped
+SpriteRenderer:
+  m_CorrespondingSourceObject: {fileID: 4567967469387476092, guid: bb3d2537dc357a6478c62534c1c2be8d, type: 3}
+  m_PrefabInstance: {fileID: 175290763017896208}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &8059839500164034660 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7905100852986556788, guid: bb3d2537dc357a6478c62534c1c2be8d, type: 3}
@@ -1160,6 +1173,11 @@ PrefabInstance:
 --- !u!4 &1163914399788835301 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6926600743232345120, guid: 30a5cc388e8cef64fa3028aae4b218f8, type: 3}
+  m_PrefabInstance: {fileID: 8072481707060770245}
+  m_PrefabAsset: {fileID: 0}
+--- !u!212 &7699988418655978230 stripped
+SpriteRenderer:
+  m_CorrespondingSourceObject: {fileID: 1935683606880892723, guid: 30a5cc388e8cef64fa3028aae4b218f8, type: 3}
   m_PrefabInstance: {fileID: 8072481707060770245}
   m_PrefabAsset: {fileID: 0}
 --- !u!114 &8295745246205966877 stripped
