@@ -18,10 +18,22 @@ MonoBehaviour:
   _spaceBackgroundProfile: {fileID: 0}
   _respawnIntervalSeconds: 5
   _creatures:
-    _maxCount: 0
+    _maxCount: 10
     _respawnProbability: 0.5
-    _entries: []
+    _entries:
+    - _entryId: creature_fire
+      _prefab: {fileID: 508475945939948788, guid: 07307fb44784ea248b8773c34ef1b86a, type: 3}
+      _spawnWeight: 1
+    - _entryId: creature_water
+      _prefab: {fileID: 508475945939948788, guid: 9f458a516b1cae44bb184b084700c9ae, type: 3}
+      _spawnWeight: 1
   _resourceFloatages:
-    _maxCount: 0
+    _maxCount: 10
     _respawnProbability: 0.5
-    _entries: []
+    _entries:
+    - _entryId: floatage_fire_1
+      _prefab: {fileID: 5706660221163112332, guid: 23e1057603236484696020bbdd087029, type: 3}
+      _spawnWeight: 1
+    - _entryId: floatage_water_1
+      _prefab: {fileID: 5706660221163112332, guid: c3686cde44f67af4f91fd07de4b98ee4, type: 3}
+      _spawnWeight: 1

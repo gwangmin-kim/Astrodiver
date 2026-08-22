@@ -18,28 +18,25 @@ MonoBehaviour:
   _spaceBackgroundProfile: {fileID: 0}
   _respawnIntervalSeconds: 5
   _creatures:
-    _maxCount: 8
-    _respawnProbability: 0
+    _maxCount: 12
+    _respawnProbability: 0.1
     _entries:
-    - _entryId: creature_stone
-      _prefab: {fileID: 508475945939948788, guid: f5efb60079e5dcf47844a132d8f43fd4, type: 3}
-      _spawnWeight: 1
     - _entryId: creature_iron
       _prefab: {fileID: 508475945939948788, guid: 9563da9c3dc297545830e288e3b4b4d6, type: 3}
-      _spawnWeight: 0.2
-  _resourceFloatages:
-    _maxCount: 15
-    _respawnProbability: 0
-    _entries:
-    - _entryId: floatage_stone_1
-      _prefab: {fileID: 5706660221163112332, guid: 031d5af0176d3c7469ea5f9a2cdd2d67, type: 3}
       _spawnWeight: 0.5
-    - _entryId: floatage_stone_2
-      _prefab: {fileID: 5706660221163112332, guid: a49b9cb8237caac4cb576b35066b5edd, type: 3}
+    - _entryId: creature_obsidian
+      _prefab: {fileID: 508475945939948788, guid: 9bb40bf1bf93eed458798636b84d8e66, type: 3}
       _spawnWeight: 1
-    - _entryId: floatage_iron_1
-      _prefab: {fileID: 5706660221163112332, guid: 46d8ce96a3f14bb488022e995fdad657, type: 3}
-      _spawnWeight: 0.5
+  _resourceFloatages:
+    _maxCount: 30
+    _respawnProbability: 0.1
+    _entries:
     - _entryId: floatage_iron_2
       _prefab: {fileID: 5706660221163112332, guid: 50125729244c445408fd552971519e9a, type: 3}
-      _spawnWeight: 0.25
+      _spawnWeight: 0.5
+    - _entryId: floatage_obsidian_1
+      _prefab: {fileID: 5706660221163112332, guid: 2cc6d0642ef1d644994259525ece629e, type: 3}
+      _spawnWeight: 1
+    - _entryId: floatage_obsidian_2
+      _prefab: {fileID: 5706660221163112332, guid: 7f7c206564b1ad84485fd6a341b3b927, type: 3}
+      _spawnWeight: 0.5
