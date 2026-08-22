@@ -15,6 +15,7 @@ public class NetGunController : MonoBehaviour
 
     [Header("Capture Settings")]
     [SerializeField] private Transform _shootOrigin;
+    [SerializeField] private Transform _shootDistanceIndicator;
     [SerializeField] private float _collectRadiusThreshold;
 
     [Header("Inertia Settings")]
@@ -28,6 +29,7 @@ public class NetGunController : MonoBehaviour
     private NetRuntime _chargingNet;
     private NetRuntime _retractingNet;
     private int _remainingAmmo;
+    private Vector3 _shootDistanceIndicatorBaseScale;
 
     private enum NetGunState
     {
@@ -58,6 +60,8 @@ public class NetGunController : MonoBehaviour
     private void Start()
     {
         _data = GameDataManager.Instance.GetNetGun();
+        CacheShootDistanceIndicatorScale();
+        SetShootDistanceIndicatorVisible(false);
         BuildNetPool();
         _remainingAmmo = TotalAmmo;
 
@@ -68,6 +72,8 @@ public class NetGunController : MonoBehaviour
 
     private void OnDisable()
     {
+        SetShootDistanceIndicatorVisible(false);
+
         for (int i = 0; i < _netRuntimeList.Count; i++)
         {
             _movementManager.Reset(_netRuntimeList[i].net);
@@ -114,6 +120,7 @@ public class NetGunController : MonoBehaviour
         {
             case NetGunState.Charging:
                 _chargingTime += Time.deltaTime;
+                UpdateShootDistanceIndicator();
                 break;
 
             case NetGunState.Retracting:
@@ -184,10 +191,13 @@ public class NetGunController : MonoBehaviour
         _netGunState = NetGunState.Charging;
         _chargingNet = net;
         _chargingTime = 0f;
+        UpdateShootDistanceIndicator();
     }
 
     private void StartShooting()
     {
+        SetShootDistanceIndicatorVisible(false);
+
         if (_chargingNet == null)
         {
             _netGunState = NetGunState.Idle;
@@ -202,11 +212,7 @@ public class NetGunController : MonoBehaviour
 
         net.shootTween.Stop();
 
-        float chargeRatio = (_data.ChargeTime <= 0f)
-            ? 1f
-            : Mathf.Clamp01(_chargingTime / _data.ChargeTime);
-        float minShootRange = 0.1f;
-        float shootDistance = Mathf.Lerp(minShootRange, _data.MaxShootRange, chargeRatio);
+        float shootDistance = CalculateChargedShootDistance();
 
         Vector2 startPosition = _shootOrigin.position;
         Vector2 shootDirection = _shootOrigin.up;
@@ -233,6 +239,61 @@ public class NetGunController : MonoBehaviour
     private void StartSpreading(NetRuntime net)
     {
         net.net.BeginSpread();
+    }
+
+    private float CalculateChargedShootDistance()
+    {
+        float chargeRatio = (_data.ChargeTime <= 0f)
+            ? 1f
+            : Mathf.Clamp01(_chargingTime / _data.ChargeTime);
+        const float minShootRange = 0.1f;
+        return Mathf.Lerp(minShootRange, _data.MaxShootRange, chargeRatio);
+    }
+
+    private void CacheShootDistanceIndicatorScale()
+    {
+        if (_shootDistanceIndicator != null)
+        {
+            _shootDistanceIndicatorBaseScale = _shootDistanceIndicator.localScale;
+        }
+    }
+
+    private void UpdateShootDistanceIndicator()
+    {
+        if (_shootDistanceIndicator == null || _shootOrigin == null) return;
+
+        if (!_shootDistanceIndicator.gameObject.activeSelf)
+        {
+            _shootDistanceIndicator.gameObject.SetActive(true);
+        }
+
+        float shootDistance = CalculateChargedShootDistance();
+        _shootDistanceIndicator.rotation = _shootOrigin.rotation * Quaternion.Euler(0f, 0f, 90f);
+        _shootDistanceIndicator.localScale = new Vector3(
+            _shootDistanceIndicatorBaseScale.x * shootDistance,
+            _shootDistanceIndicatorBaseScale.y,
+            _shootDistanceIndicatorBaseScale.z);
+
+        // The player mirrors the hand with a negative X scale when aiming left.
+        // Compensate only when that mirroring makes the sprite's visible +X axis
+        // point away from the firing direction. The pivot is a sprite corner, so
+        // both axes must be mirrored together to keep that corner at the muzzle.
+        if (Vector3.Dot(_shootDistanceIndicator.TransformVector(Vector3.right), _shootOrigin.up) < 0f)
+        {
+            Vector3 indicatorScale = _shootDistanceIndicator.localScale;
+            indicatorScale.x *= -1f;
+            indicatorScale.y *= -1f;
+            _shootDistanceIndicator.localScale = indicatorScale;
+        }
+    }
+
+    private void SetShootDistanceIndicatorVisible(bool visible)
+    {
+        if (_shootDistanceIndicator != null
+            && _shootDistanceIndicator.gameObject.activeSelf != visible)
+        {
+            _shootDistanceIndicator.gameObject.SetActive(visible);
+        }
     }
 
     private void PublishAmmoChanged()
@@ -291,6 +352,8 @@ public class NetGunController : MonoBehaviour
 
     private void CancelRetracting()
     {
+        SetShootDistanceIndicatorVisible(false);
+
         // Once folding starts, collection is committed. Clearing _retractingNet here
         // would orphan the FoldCompleted callback and leave an active folded net
         // outside the pool.
@@ -371,6 +434,7 @@ public class NetGunController : MonoBehaviour
         _chargingNet = null;
         _retractingNet = null;
         _netGunState = NetGunState.Idle;
+        SetShootDistanceIndicatorVisible(false);
     }
 
     private bool HasAvailableNet()
@@ -514,11 +578,7 @@ public class NetGunController : MonoBehaviour
         switch (_netGunState)
         {
             case NetGunState.Charging:
-                float chargeRatio = (_data.ChargeTime <= 0f)
-                    ? 1f
-                    : Mathf.Clamp01(_chargingTime / _data.ChargeTime);
-                float minShootRange = 0.1f;
-                float shootDistance = Mathf.Lerp(minShootRange, _data.MaxShootRange, chargeRatio);
+                float shootDistance = CalculateChargedShootDistance();
 
                 Gizmos.DrawWireSphere(_shootOrigin.position, shootDistance);
                 break;
