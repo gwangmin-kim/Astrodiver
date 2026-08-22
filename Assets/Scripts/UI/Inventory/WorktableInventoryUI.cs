@@ -8,6 +8,8 @@ public sealed class WorktableInventoryUI : MonoBehaviour
     [SerializeField] private CreatureInventorySlotUI _slotPrefab;
     [SerializeField] private ChestResourcePopupAnimation _popupAnimation;
     [SerializeField] private RectTransform _slotContainer;
+    [SerializeField] private RectTransform _processingOverlay;
+    [SerializeField] private Image _processingFillImage;
 
     private readonly List<CreatureInventorySlotUI> _slots = new();
     private WorktableService _service;
@@ -18,6 +20,7 @@ public sealed class WorktableInventoryUI : MonoBehaviour
         {
             _popupAnimation.HideImmediate();
         }
+        HideProcessingOverlay();
 
         BindService();
         Refresh();
@@ -32,6 +35,11 @@ public sealed class WorktableInventoryUI : MonoBehaviour
         }
     }
 
+    private void LateUpdate()
+    {
+        UpdateProcessingOverlay();
+    }
+
     private void OnDisable()
     {
         UnbindService();
@@ -39,6 +47,7 @@ public sealed class WorktableInventoryUI : MonoBehaviour
         {
             _popupAnimation.HideImmediate();
         }
+        HideProcessingOverlay();
     }
 
     private void BindService()
@@ -77,6 +86,7 @@ public sealed class WorktableInventoryUI : MonoBehaviour
             !_service.IsInitialized || !_service.IsUnlocked)
         {
             HidePopup();
+            HideProcessingOverlay();
             return;
         }
 
@@ -131,6 +141,61 @@ public sealed class WorktableInventoryUI : MonoBehaviour
         }
 
         LayoutRebuilder.ForceRebuildLayoutImmediate(_slotContainer);
+    }
+
+    private void UpdateProcessingOverlay()
+    {
+        if (_processingOverlay == null || _processingFillImage == null ||
+            _service == null || !_service.IsInitialized || !_service.IsUnlocked)
+        {
+            HideProcessingOverlay();
+            return;
+        }
+
+        int processingIndex = _service.ProcessingSlotIndex;
+        if (processingIndex < 0 || processingIndex >= _slots.Count)
+        {
+            HideProcessingOverlay();
+            return;
+        }
+
+        RectTransform processingSlot = _slots[processingIndex].transform as RectTransform;
+        if (processingSlot == null)
+        {
+            HideProcessingOverlay();
+            return;
+        }
+
+        CopySlotLayout(processingSlot);
+        _processingFillImage.fillAmount = Mathf.Clamp01(_service.NormalizedProgress);
+        if (!_processingOverlay.gameObject.activeSelf)
+        {
+            _processingOverlay.gameObject.SetActive(true);
+        }
+
+        _processingOverlay.SetAsLastSibling();
+    }
+
+    private void CopySlotLayout(RectTransform slot)
+    {
+        _processingOverlay.anchorMin = slot.anchorMin;
+        _processingOverlay.anchorMax = slot.anchorMax;
+        _processingOverlay.pivot = slot.pivot;
+        _processingOverlay.anchoredPosition = slot.anchoredPosition;
+        _processingOverlay.sizeDelta = slot.sizeDelta;
+    }
+
+    private void HideProcessingOverlay()
+    {
+        if (_processingFillImage != null)
+        {
+            _processingFillImage.fillAmount = 0f;
+        }
+
+        if (_processingOverlay != null && _processingOverlay.gameObject.activeSelf)
+        {
+            _processingOverlay.gameObject.SetActive(false);
+        }
     }
 
     private void ClearSlots()
