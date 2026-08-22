@@ -27,7 +27,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 4, y: 4, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2164062134516431424}
@@ -122,10 +122,11 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 2, y: 2, z: 1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1000001}
+  - {fileID: 709901139}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!70 &3453313594667399551
@@ -162,8 +163,8 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0.03, y: 0.03}
-  m_Size: {x: 0.7, y: 0.7}
+  m_Offset: {x: 0.06, y: 0.06}
+  m_Size: {x: 2.4, y: 2.4}
   m_Direction: 1
 --- !u!50 &582000401992344535
 Rigidbody2D:
@@ -177,8 +178,8 @@ Rigidbody2D:
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
-  m_Mass: 1
-  m_LinearDamping: 0
+  m_Mass: 5
+  m_LinearDamping: 0.05
   m_AngularDamping: 0.05
   m_GravityScale: 0
   m_Material: {fileID: 0}
@@ -205,9 +206,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FloatageController
   _definition: {fileID: 11400000, guid: 5e23ec5ec25758c4fa4d779610152833, type: 2}
-  _maxHp: 100
-  _dropRadius: 0.7
-  _dropCount: 4
+  _maxHp: 15000
+  _dropRadius: 1.2
+  _dropCount: 30
 --- !u!114 &1000003
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -237,3 +238,69 @@ MonoBehaviour:
   _bounceEase: 6
   _glowInDuration: 0.05
   _glowEase: 6
+--- !u!1001 &710000114
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 2164062134516431424}
+    m_Modifications:
+    - target: {fileID: 100000, guid: 5a3a03e90cd24a42aa44c33a3ea5f13e, type: 3}
+      propertyPath: m_Name
+      value: FloatageHealthBar
+      objectReference: {fileID: 0}
+    - target: {fileID: 100001, guid: 5a3a03e90cd24a42aa44c33a3ea5f13e, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 100001, guid: 5a3a03e90cd24a42aa44c33a3ea5f13e, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.75
+      objectReference: {fileID: 0}
+    - target: {fileID: 100001, guid: 5a3a03e90cd24a42aa44c33a3ea5f13e, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 100001, guid: 5a3a03e90cd24a42aa44c33a3ea5f13e, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 100001, guid: 5a3a03e90cd24a42aa44c33a3ea5f13e, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 100001, guid: 5a3a03e90cd24a42aa44c33a3ea5f13e, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 100001, guid: 5a3a03e90cd24a42aa44c33a3ea5f13e, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 100001, guid: 5a3a03e90cd24a42aa44c33a3ea5f13e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 100001, guid: 5a3a03e90cd24a42aa44c33a3ea5f13e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 100001, guid: 5a3a03e90cd24a42aa44c33a3ea5f13e, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 100002, guid: 5a3a03e90cd24a42aa44c33a3ea5f13e, type: 3}
+      propertyPath: _verticalOffset
+      value: 1.75
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 5a3a03e90cd24a42aa44c33a3ea5f13e, type: 3}
+--- !u!4 &709901139 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 100001, guid: 5a3a03e90cd24a42aa44c33a3ea5f13e, type: 3}
+  m_PrefabInstance: {fileID: 710000114}
+  m_PrefabAsset: {fileID: 0}

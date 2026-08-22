@@ -26,11 +26,17 @@ public class FloatageController : MonoBehaviour, IDamagable
 
     public FloatageDefinition Definition => _definition;
     public FloatageLifecycleState LifecycleState => _lifecycleState;
+    public int CurrentHp => _hp;
+    public int MaxHp => _maxHp;
+    public float HealthNormalized => _maxHp > 0
+        ? Mathf.Clamp01((float)_hp / _maxHp)
+        : 0f;
 
     // events
     public event Action Spawned;
     public event Action Activated;
     public event Action Damaged;
+    public event Action<int, int> HealthChanged;
 
     private void Awake()
     {
@@ -110,8 +116,9 @@ public class FloatageController : MonoBehaviour, IDamagable
             return;
         }
 
-        _hp -= data.damage;
+        _hp = Mathf.Clamp(_hp - data.damage, 0, _maxHp);
         Damaged?.Invoke();
+        HealthChanged?.Invoke(_hp, _maxHp);
         if (_hp <= 0)
         {
             ResolveDestroy();
