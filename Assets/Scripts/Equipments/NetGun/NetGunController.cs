@@ -72,6 +72,7 @@ public class NetGunController : MonoBehaviour
         {
             _movementManager.Reset(_netRuntimeList[i].net);
             _netRuntimeList[i].shootTween.Stop();
+            _netRuntimeList[i].net.ClearShootOrigin();
             _netRuntimeList[i].net.ResetFolded();
         }
     }
@@ -216,6 +217,7 @@ public class NetGunController : MonoBehaviour
         net.net.ResetFolded();
         net.net.PrepareForLaunch();
         net.net.gameObject.SetActive(true);
+        net.net.SetShootOrigin(_shootOrigin);
 
         float shootSpeed = Mathf.Max(0.01f, _data.ShootSpeed);
         float shootDuration = Mathf.Max(0.01f, shootDistance / shootSpeed);
@@ -354,6 +356,7 @@ public class NetGunController : MonoBehaviour
         net.shootTween.Stop();
         _movementManager.Reset(net.net);
         net.net.transform.SetParent(transform, false);
+        net.net.ClearShootOrigin();
         net.net.ResetFolded();
         net.net.gameObject.SetActive(false);
     }

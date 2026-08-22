@@ -7,6 +7,7 @@ using UnityEngine;
 public sealed class NetCaptureController : MonoBehaviour
 {
     [SerializeField] private Collider2D _captureCollider;
+    [SerializeField] private NetRopeVisualController _ropeVisual;
     [SerializeField, Range(0f, 1f)] private float _netThickness;
     private readonly List<CapturableObject> _capturedTargets = new();
     private readonly List<CapturableObject> _activeTargets = new();
@@ -35,6 +36,7 @@ public sealed class NetCaptureController : MonoBehaviour
     private void Awake()
     {
         if (_captureCollider == null) _captureCollider = GetComponent<Collider2D>();
+        if (_ropeVisual == null) _ropeVisual = GetComponent<NetRopeVisualController>();
         Rigidbody2D body = GetComponent<Rigidbody2D>();
         body.bodyType = RigidbodyType2D.Kinematic;
         body.gravityScale = 0f;
@@ -47,6 +49,8 @@ public sealed class NetCaptureController : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D other) => TryCapture(other);
     private void OnTriggerStay2D(Collider2D other) => TryCapture(other);
     public void Initialize(NetData data) => _data = data;
+    public void SetShootOrigin(Transform shootOrigin) => _ropeVisual?.SetShootOrigin(shootOrigin);
+    public void ClearShootOrigin() => _ropeVisual?.ClearShootOrigin();
 
     public void PrepareForLaunch() { Release(CaptureReleaseReason.Interrupted); _netState = NetState.Spreading; }
     public void BeginSpread() { Release(CaptureReleaseReason.Interrupted); _netState = NetState.Spreading; SpreadStarted?.Invoke(); }
