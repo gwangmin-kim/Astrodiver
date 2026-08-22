@@ -79,7 +79,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 2017737355
-  m_SortingLayer: 0
+  m_SortingLayer: 2
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: 13c108c2b07ede8469d9d4687bd0cdc8, type: 3}
@@ -196,9 +196,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BasicCreatureBrain
   _minimumStateDuration: 1.5
   _maximumStateDuration: 3
-  _tryEscapeDuration: 3
   _initialState: 0
-  _creatureController: {fileID: 0}
 --- !u!114 &153607662919598080
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -211,8 +209,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eaa8a61fc3e1fa74c8dafa188b7a7a2c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CreatureMotionController
-  _brain: {fileID: 0}
-  _creatureController: {fileID: 0}
+  _brain: {fileID: 1817457034798974238}
+  _creatureController: {fileID: 1782572583280949625}
   _moveSpeed: 1
   _chaseSpeed: 1.2
   _runawaySpeed: 1.4
@@ -221,8 +219,8 @@ MonoBehaviour:
   _capturedNetFollowRatio: 0.5
   _capturedRepulsionPadding: 0.1
   _capturedRepulsionSpeed: 2
-  _rootVisualTransform: {fileID: 0}
-  _baseFacingDirection: 1
+  _rootVisualTransform: {fileID: 3267588586958524977}
+  _baseFacingDirection: -1
 --- !u!1 &5752819879080036933
 GameObject:
   m_ObjectHideFlags: 0
@@ -301,7 +299,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 2017737355
-  m_SortingLayer: 0
+  m_SortingLayer: 2
   m_SortingOrder: -1
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: 533a6146c0405fb4e9f63c88a5144275, type: 3}
