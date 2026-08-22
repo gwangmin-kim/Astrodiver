@@ -6,6 +6,8 @@ public class SceneTransitionManager : MonoBehaviour
     public static SceneTransitionManager Instance { get; private set; }
 
     private bool _isLoading;
+    private bool _hasPendingHubSpawnPoint;
+    private HubSpawnPoint _pendingHubSpawnPoint;
 
     private void Awake()
     {
@@ -40,6 +42,38 @@ public class SceneTransitionManager : MonoBehaviour
         SceneManager.LoadSceneAsync(sceneName);
     }
 
+    /// <summary>
+    /// Loads the Hub and records the spawn point for that single transition.
+    /// </summary>
+    public bool LoadHub(string sceneName, HubSpawnPoint spawnPoint)
+    {
+        if (_isLoading || string.IsNullOrWhiteSpace(sceneName))
+        {
+            return false;
+        }
+
+        _isLoading = true;
+        _pendingHubSpawnPoint = spawnPoint;
+        _hasPendingHubSpawnPoint = true;
+        SceneManager.LoadSceneAsync(sceneName);
+        return true;
+    }
+
+    /// <summary>
+    /// Returns the spawn point requested for the current Hub load. Direct Hub
+    /// launches and all unspecified transitions intentionally use Return.
+    /// </summary>
+    public HubSpawnPoint ConsumeHubSpawnPoint()
+    {
+        if (!_hasPendingHubSpawnPoint)
+        {
+            return HubSpawnPoint.Return;
+        }
+
+        _hasPendingHubSpawnPoint = false;
+        return _pendingHubSpawnPoint;
+    }
+
     public void LoadScene(int buildIndex)
     {
         if (_isLoading || buildIndex < 0)
@@ -55,4 +89,10 @@ public class SceneTransitionManager : MonoBehaviour
     {
         _isLoading = false;
     }
+}
+
+public enum HubSpawnPoint
+{
+    Start,
+    Return
 }

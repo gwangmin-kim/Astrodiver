@@ -156,7 +156,8 @@ public sealed class MainMenuController : MonoBehaviour
             return false;
         }
 
-        SceneTransitionManager.Instance.LoadScene(_hubSceneName);
-        return true;
+        return SceneTransitionManager.Instance.LoadHub(
+            _hubSceneName,
+            HubSpawnPoint.Start);
     }
 }

@@ -152,7 +152,10 @@ public class SessionManager : MonoBehaviour
 
     private void ReturnToHub()
     {
-        LoadScene(_hubSceneName);
+        Time.timeScale = 1f;
+        SceneTransitionManager.Instance.LoadHub(
+            _hubSceneName,
+            HubSpawnPoint.Return);
     }
 
     private void RetryExploration()
