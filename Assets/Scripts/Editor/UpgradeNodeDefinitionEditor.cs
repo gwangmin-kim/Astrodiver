@@ -36,6 +36,14 @@ public sealed class UpgradeNodeDefinitionEditor : Editor
                 new UnlockUpgradeEffect();
         }
 
+        if (GUILayout.Button("Add Floatage Drop Multiplier Effect"))
+        {
+            int index = _effects.arraySize;
+            _effects.arraySize++;
+            _effects.GetArrayElementAtIndex(index).managedReferenceValue =
+                new FloatageDropMultiplierUpgradeEffect();
+        }
+
         serializedObject.ApplyModifiedProperties();
 
         UpgradeNodeDefinition node = (UpgradeNodeDefinition)target;

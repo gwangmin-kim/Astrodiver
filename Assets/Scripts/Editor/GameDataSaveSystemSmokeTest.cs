@@ -328,6 +328,33 @@ public static class GameDataSaveSystemSmokeTest
             Require(
                 runtimeData.Facilities.WorktableSlotCapacity == 3,
                 "The worktable slot capacity upgrade was not applied.");
+            FloatageDefinition floatageDefinition = catalog.Floatages[0];
+            UpgradeEffect floatageDropEffect =
+                new FloatageDropMultiplierUpgradeEffect(floatageDefinition, 1.5f);
+            Require(
+                floatageDropEffect.TryApply(
+                    effectContext,
+                    out string floatageDropEffectError),
+                floatageDropEffectError);
+            Require(
+                Mathf.Approximately(
+                    runtimeData.FloatageDropMultipliers.GetMultiplier(floatageDefinition),
+                    1.5f) &&
+                FloatageController.CalculateDropCount(5, 1.5f) == 8,
+                "The floatage drop multiplier upgrade was not applied.");
+            Require(
+                floatageDropEffect.TryApply(
+                    effectContext,
+                    out floatageDropEffectError) &&
+                Mathf.Approximately(
+                    runtimeData.FloatageDropMultipliers.GetMultiplier(floatageDefinition),
+                    2.25f),
+                "Floatage drop multipliers did not stack multiplicatively.");
+            UpgradeEffect invalidFloatageDropEffect =
+                new FloatageDropMultiplierUpgradeEffect(floatageDefinition, 0.5f);
+            Require(
+                !invalidFloatageDropEffect.TryValidate(out _),
+                "A floatage drop multiplier below one was accepted.");
             Require(
                 !Mathf.Approximately(
                     runtimeData.PlayerStats.movement.moveSpeedRatio,

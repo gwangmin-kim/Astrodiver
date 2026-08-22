@@ -16,10 +16,12 @@ public sealed class GameRuntimeData
         Equipment = equipment ?? throw new ArgumentNullException(nameof(equipment));
         Inventory = inventory ?? throw new ArgumentNullException(nameof(inventory));
         Facilities = facilities ?? throw new ArgumentNullException(nameof(facilities));
+        FloatageDropMultipliers = new FloatageDropMultiplierRuntimeData();
     }
 
     public PlayerStatsRuntimeData PlayerStats { get; }
     public EquipmentRuntimeData Equipment { get; }
     public InventoryRuntimeData Inventory { get; }
     public FacilityRuntimeData Facilities { get; }
+    public FloatageDropMultiplierRuntimeData FloatageDropMultipliers { get; }
 }

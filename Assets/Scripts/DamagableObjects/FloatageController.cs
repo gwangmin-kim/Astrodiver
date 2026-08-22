@@ -135,7 +135,13 @@ public class FloatageController : MonoBehaviour, IDamagable
                 transform.position,
                 _definition.DropResource,
                 _dropRadius,
-                _dropCount);
+                CalculateDropCount(
+                    _dropCount,
+                    GameDataManager.Instance != null
+                        ? GameDataManager.Instance.RuntimeData
+                            ?.FloatageDropMultipliers
+                            .GetMultiplier(_definition) ?? 1f
+                        : 1f));
         }
 
         GetComponent<StageSpawnedObject>()?.NotifyRemovedFromStage();
@@ -156,6 +162,22 @@ public class FloatageController : MonoBehaviour, IDamagable
                 _colliders[i].enabled = isEnabled;
             }
         }
+    }
+
+    public static int CalculateDropCount(int baseCount, float multiplier)
+    {
+        int normalizedBaseCount = Mathf.Max(1, baseCount);
+        float normalizedMultiplier =
+            float.IsNaN(multiplier) || float.IsInfinity(multiplier)
+                ? 1f
+                : Mathf.Max(1f, multiplier);
+        double scaled = normalizedBaseCount * (double)normalizedMultiplier;
+        if (scaled >= int.MaxValue)
+        {
+            return int.MaxValue;
+        }
+
+        return Mathf.Max(1, Mathf.RoundToInt((float)scaled));
     }
 
 #if UNITY_EDITOR

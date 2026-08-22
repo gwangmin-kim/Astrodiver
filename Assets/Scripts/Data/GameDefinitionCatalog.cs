@@ -93,6 +93,7 @@ public sealed class GameDefinitionCatalog : ScriptableObject
     {
         HashSet<UpgradeNodeDefinition> nodes = new(_upgrades);
         HashSet<ResourceDefinition> resources = new(_resources);
+        HashSet<FloatageDefinition> floatages = new(_floatages);
         for (int i = 0; i < _upgrades.Length; i++)
         {
             UpgradeNodeDefinition node = _upgrades[i];
@@ -108,6 +109,7 @@ public sealed class GameDefinitionCatalog : ScriptableObject
 
             ValidateCostResources(node.BaseCosts, node, resources, errors);
             ValidateCostResources(node.CostIncreases, node, resources, errors);
+            ValidateFloatageEffects(node, floatages, errors);
 
             if (node.Parent != null && !nodes.Contains(node.Parent))
             {
@@ -127,6 +129,27 @@ public sealed class GameDefinitionCatalog : ScriptableObject
                 }
 
                 current = current.Parent;
+            }
+        }
+    }
+
+    private static void ValidateFloatageEffects(
+        UpgradeNodeDefinition node,
+        ISet<FloatageDefinition> catalogFloatages,
+        ICollection<string> errors)
+    {
+        for (int i = 0; i < node.Effects.Count; i++)
+        {
+            if (node.Effects[i] is not FloatageDropMultiplierUpgradeEffect effect)
+            {
+                continue;
+            }
+
+            if (effect.Floatage != null && !catalogFloatages.Contains(effect.Floatage))
+            {
+                errors.Add(
+                    $"Upgrade node '{node.Id}' references floatage " +
+                    $"'{effect.Floatage.Id}', but it is not in this catalog.");
             }
         }
     }

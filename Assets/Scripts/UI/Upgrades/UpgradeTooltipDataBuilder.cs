@@ -91,13 +91,20 @@ public sealed class UpgradeTooltipDataBuilder
         string current = FormatNumber(
             preview.CurrentValue,
             preview.UsesIntegerFormat);
+        string valueText;
         if (isMaxLevel)
         {
-            return current;
+            valueText = current;
+        }
+        else
+        {
+            string next = FormatNumber(preview.NextValue, preview.UsesIntegerFormat);
+            valueText = $"{current} -> {next}";
         }
 
-        string next = FormatNumber(preview.NextValue, preview.UsesIntegerFormat);
-        return $"{current} -> {next}";
+        return string.IsNullOrWhiteSpace(preview.Label)
+            ? valueText
+            : $"{preview.Label}: {valueText}";
     }
 
     private static string FormatNumber(float value, bool useIntegerFormat)
