@@ -3,5 +3,6 @@
 /// </summary>
 public enum GameProgressEventId
 {
-    None = 0
+    None = 0,
+    ReadLetter = 1
 }

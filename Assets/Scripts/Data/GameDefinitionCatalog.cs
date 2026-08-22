@@ -11,6 +11,8 @@ public sealed class GameDefinitionCatalog : ScriptableObject
     [SerializeField] private CreatureDefinition[] _creatures = Array.Empty<CreatureDefinition>();
     [SerializeField] private FloatageDefinition[] _floatages = Array.Empty<FloatageDefinition>();
     [SerializeField] private UpgradeNodeDefinition[] _upgrades = Array.Empty<UpgradeNodeDefinition>();
+    [SerializeField] private TutorialGuideDefinition[] _tutorialGuides =
+        Array.Empty<TutorialGuideDefinition>();
 
     public IReadOnlyList<ResourceDefinition> Resources => _resources;
     public IReadOnlyList<CreatureDefinition> Creatures => _creatures;
@@ -18,6 +20,8 @@ public sealed class GameDefinitionCatalog : ScriptableObject
         _floatages ?? Array.Empty<FloatageDefinition>();
     public IReadOnlyList<UpgradeNodeDefinition> Upgrades =>
         _upgrades ?? Array.Empty<UpgradeNodeDefinition>();
+    public IReadOnlyList<TutorialGuideDefinition> TutorialGuides =>
+        _tutorialGuides ?? Array.Empty<TutorialGuideDefinition>();
 
     public bool TryValidate(out string error)
     {
@@ -32,6 +36,8 @@ public sealed class GameDefinitionCatalog : ScriptableObject
         _upgrades ??= Array.Empty<UpgradeNodeDefinition>();
         ValidateDefinitions(_upgrades, definition => definition.Id, errors);
         ValidateUpgradeTree(errors);
+        _tutorialGuides ??= Array.Empty<TutorialGuideDefinition>();
+        ValidateDefinitions(_tutorialGuides, definition => definition.Id, errors);
         error = string.Join(Environment.NewLine, errors);
         return errors.Count == 0;
     }
@@ -41,12 +47,14 @@ public sealed class GameDefinitionCatalog : ScriptableObject
         ResourceDefinition[] resources,
         CreatureDefinition[] creatures,
         FloatageDefinition[] floatages,
-        UpgradeNodeDefinition[] upgrades)
+        UpgradeNodeDefinition[] upgrades,
+        TutorialGuideDefinition[] tutorialGuides)
     {
         _resources = resources ?? Array.Empty<ResourceDefinition>();
         _creatures = creatures ?? Array.Empty<CreatureDefinition>();
         _floatages = floatages ?? Array.Empty<FloatageDefinition>();
         _upgrades = upgrades ?? Array.Empty<UpgradeNodeDefinition>();
+        _tutorialGuides = tutorialGuides ?? Array.Empty<TutorialGuideDefinition>();
     }
 #endif
 

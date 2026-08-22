@@ -63,3 +63,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 74b87a1bcf067254984fa57b33a5ab21, type: 2}
   - {fileID: 11400000, guid: 2994d7a97ee35a04db82e0cf396ebcd6, type: 2}
   - {fileID: 11400000, guid: 0c55904ed7e244b09d3605711072530d, type: 2}
+  _tutorialGuides:
+  - {fileID: 11400000, guid: 4e097c9aa71d4482ac00c2e3ea000007, type: 2}

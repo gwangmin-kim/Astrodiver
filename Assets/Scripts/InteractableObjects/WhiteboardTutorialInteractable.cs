@@ -17,6 +17,12 @@ public sealed class WhiteboardTutorialInteractable : InteractableObject
     public override void Interact()
     {
         _tutorialDocument?.Open();
+
+        GameDataManager gameData = GameDataManager.Instance;
+        if (gameData != null && gameData.CompleteEvent(GameProgressEventId.ReadLetter))
+        {
+            gameData.SaveNow();
+        }
     }
 
     private void Reset()

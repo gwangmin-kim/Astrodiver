@@ -7,10 +7,13 @@ public sealed class GameDefinitionRegistry
     private readonly Dictionary<string, ResourceDefinition> _resources;
     private readonly Dictionary<string, CreatureDefinition> _creatures;
     private readonly Dictionary<string, UpgradeNodeDefinition> _upgrades;
+    private readonly TutorialGuideDefinition[] _tutorialGuides;
     private readonly ResourceDefinition[] _orderedResources;
 
     public IReadOnlyList<ResourceDefinition> OrderedResources =>
         _orderedResources;
+    public IReadOnlyList<TutorialGuideDefinition> TutorialGuides =>
+        _tutorialGuides;
 
     public GameDefinitionRegistry(GameDefinitionCatalog catalog)
     {
@@ -29,6 +32,7 @@ public sealed class GameDefinitionRegistry
         _resources = BuildLookup(catalog.Resources, definition => definition.Id);
         _creatures = BuildLookup(catalog.Creatures, definition => definition.Id);
         _upgrades = BuildLookup(catalog.Upgrades, definition => definition.Id);
+        _tutorialGuides = BuildOrderedDefinitions(catalog.TutorialGuides);
         _orderedResources = BuildOrderedResources(_resources.Values);
     }
 
@@ -84,5 +88,27 @@ public sealed class GameDefinitionRegistry
         definitions.CopyTo(ordered, 0);
         Array.Sort(ordered, ResourceDisplayOrder.Compare);
         return ordered;
+    }
+
+    private static TutorialGuideDefinition[] BuildOrderedDefinitions(
+        IReadOnlyList<TutorialGuideDefinition> definitions)
+    {
+        List<TutorialGuideDefinition> ordered = new();
+        for (int index = 0; index < definitions.Count; index++)
+        {
+            if (definitions[index] != null)
+            {
+                ordered.Add(definitions[index]);
+            }
+        }
+
+        ordered.Sort((left, right) =>
+        {
+            int sortOrder = left.SortOrder.CompareTo(right.SortOrder);
+            return sortOrder != 0
+                ? sortOrder
+                : string.Compare(left.Key, right.Key, StringComparison.Ordinal);
+        });
+        return ordered.ToArray();
     }
 }

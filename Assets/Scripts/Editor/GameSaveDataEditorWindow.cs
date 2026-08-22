@@ -367,7 +367,7 @@ public sealed class GameSaveDataEditorWindow : EditorWindow
     {
         completedEvents.isExpanded = EditorGUILayout.Foldout(
             completedEvents.isExpanded,
-            $"Completed Events ({completedEvents.arraySize})",
+            $"Progress Events ({completedEvents.arraySize})",
             true);
         if (!completedEvents.isExpanded)
         {
@@ -399,7 +399,7 @@ public sealed class GameSaveDataEditorWindow : EditorWindow
             }
         }
 
-        if (GUILayout.Button("Add Completed Event"))
+        if (GUILayout.Button("Add Progress Event"))
         {
             int index = completedEvents.arraySize;
             completedEvents.InsertArrayElementAtIndex(index);

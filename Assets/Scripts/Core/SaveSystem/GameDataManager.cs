@@ -40,6 +40,8 @@ public class GameDataManager : MonoBehaviour
     public event Action<GameSaveData> DataSaved;
     public event Action<GameSaveData> DataChanged;
     public event Action<GameRuntimeData> RuntimeDataChanged;
+    /// <summary>Raised once when an event is first added to the saved progress history.</summary>
+    public event Action<GameProgressEventId> ProgressEventCompleted;
     public event Action SaveSuspensionEnded;
 
     private void Awake()
@@ -351,6 +353,7 @@ public class GameDataManager : MonoBehaviour
         }
 
         MarkDirty();
+        ProgressEventCompleted?.Invoke(eventId);
         return true;
     }
 
