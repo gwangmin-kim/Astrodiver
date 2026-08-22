@@ -4879,6 +4879,26 @@ PrefabInstance:
       propertyPath: m_Name
       value: Chest
       objectReference: {fileID: 0}
+    - target: {fileID: 2821827092333847638, guid: ca0ea765c547d1f4f87b394a88a2f6f5, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 0b5b45a1862a3644abeffc632b3c25cf, type: 3}
+    - target: {fileID: 5027293581084409726, guid: ca0ea765c547d1f4f87b394a88a2f6f5, type: 3}
+      propertyPath: m_Size.x
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5027293581084409726, guid: ca0ea765c547d1f4f87b394a88a2f6f5, type: 3}
+      propertyPath: m_Size.y
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5027293581084409726, guid: ca0ea765c547d1f4f87b394a88a2f6f5, type: 3}
+      propertyPath: m_Offset.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6263093753481165420, guid: ca0ea765c547d1f4f87b394a88a2f6f5, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8879631420038780921, guid: ca0ea765c547d1f4f87b394a88a2f6f5, type: 3}
       propertyPath: m_LocalPosition.x
       value: 2.5
