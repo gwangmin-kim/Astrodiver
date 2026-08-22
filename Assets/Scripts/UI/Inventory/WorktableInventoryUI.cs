@@ -151,8 +151,7 @@ public sealed class WorktableInventoryUI : MonoBehaviour
     private void UpdateProcessingOverlay()
     {
         if (_processingOverlay == null || _processingFillImage == null ||
-            !_isPlayerOverlapping || _service == null ||
-            !_service.IsInitialized || !_service.IsUnlocked)
+            !HasActiveProcessing())
         {
             HideProcessingOverlay();
             return;
@@ -228,8 +227,7 @@ public sealed class WorktableInventoryUI : MonoBehaviour
 
     private void RefreshPopupVisibility()
     {
-        bool shouldShow = _isPlayerOverlapping && _service != null &&
-            _service.IsInitialized && _service.IsUnlocked;
+        bool shouldShow = _isPlayerOverlapping || HasActiveProcessing();
         if (shouldShow)
         {
             _popupAnimation?.Show();
@@ -238,6 +236,12 @@ public sealed class WorktableInventoryUI : MonoBehaviour
         {
             HidePopup();
         }
+    }
+
+    private bool HasActiveProcessing()
+    {
+        return _service != null && _service.IsInitialized &&
+            _service.IsUnlocked && _service.ProcessingSlotIndex >= 0;
     }
 
 }
