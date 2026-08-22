@@ -5,15 +5,11 @@ using UnityEngine.UI;
 [DisallowMultipleComponent]
 public sealed class WorktableInventoryUI : MonoBehaviour
 {
-    private const int SlotsPerRow = 4;
-
     [SerializeField] private CreatureInventorySlotUI _slotPrefab;
     [SerializeField] private ChestResourcePopupAnimation _popupAnimation;
-    [SerializeField] private RectTransform _rowContainer;
-    [SerializeField] private RectTransform _rowPrefab;
+    [SerializeField] private RectTransform _slotContainer;
 
-    private readonly List<WorktableInventorySlotUI> _slots = new();
-    private readonly List<GameObject> _rows = new();
+    private readonly List<CreatureInventorySlotUI> _slots = new();
     private WorktableService _service;
 
     private void OnEnable()
@@ -76,8 +72,8 @@ public sealed class WorktableInventoryUI : MonoBehaviour
 
     private void Refresh()
     {
-        if (_popupAnimation == null || _rowContainer == null ||
-            _rowPrefab == null || _slotPrefab == null || _service == null ||
+        if (_popupAnimation == null || _slotContainer == null ||
+            _slotPrefab == null || _service == null ||
             !_service.IsInitialized || !_service.IsUnlocked)
         {
             HidePopup();
@@ -85,7 +81,6 @@ public sealed class WorktableInventoryUI : MonoBehaviour
         }
 
         EnsureSlots(_service.SlotCapacity);
-        int processingIndex = _service.ProcessingSlotIndex;
         for (int i = 0; i < _slots.Count; i++)
         {
             CreatureInventorySlot inventorySlot = i < _service.CreatureSlots.Count
@@ -94,12 +89,9 @@ public sealed class WorktableInventoryUI : MonoBehaviour
             CreatureDefinition definition = null;
             _service.TryResolveCreatureDefinition(inventorySlot, out definition);
             _slots[i].SetSlot(inventorySlot, definition);
-            _slots[i].SetProcessing(
-                i == processingIndex,
-                i == processingIndex ? _service.NormalizedProgress : 0f);
         }
 
-        if (processingIndex >= 0)
+        if (_service.ProcessingSlotIndex >= 0)
         {
             _popupAnimation.Show();
         }
@@ -116,25 +108,20 @@ public sealed class WorktableInventoryUI : MonoBehaviour
             return;
         }
 
-        ClearLayout();
+        ClearSlots();
         for (int slotIndex = 0; slotIndex < slotCount; slotIndex++)
         {
-            if (slotIndex % SlotsPerRow == 0)
-            {
-                CreateRow();
-            }
-
             GameObject slotObject = Instantiate(
                 _slotPrefab.gameObject,
-                _rows[_rows.Count - 1].transform,
+                _slotContainer,
                 false);
             slotObject.name = $"Worktable Slot {slotIndex + 1:00}";
-            WorktableInventorySlotUI slot =
-                slotObject.GetComponent<WorktableInventorySlotUI>();
+            CreatureInventorySlotUI slot =
+                slotObject.GetComponent<CreatureInventorySlotUI>();
             if (slot == null)
             {
                 Debug.LogError(
-                    "Worktable slot template requires WorktableInventorySlotUI.",
+                    "Worktable slot template requires CreatureInventorySlotUI.",
                     slotObject);
                 Destroy(slotObject);
                 continue;
@@ -143,28 +130,20 @@ public sealed class WorktableInventoryUI : MonoBehaviour
             _slots.Add(slot);
         }
 
-        LayoutRebuilder.ForceRebuildLayoutImmediate(_rowContainer);
+        LayoutRebuilder.ForceRebuildLayoutImmediate(_slotContainer);
     }
 
-    private void CreateRow()
+    private void ClearSlots()
     {
-        RectTransform row = Instantiate(_rowPrefab, _rowContainer, false);
-        row.name = $"Worktable Slot Row {_rows.Count + 1:00}";
-        row.gameObject.SetActive(true);
-        _rows.Add(row.gameObject);
-    }
-
-    private void ClearLayout()
-    {
-        for (int i = 0; i < _rows.Count; i++)
+        for (int i = _slotContainer.childCount - 1; i >= 0; i--)
         {
-            if (_rows[i] != null)
+            Transform child = _slotContainer.GetChild(i);
+            if (child.name.StartsWith("Worktable Slot "))
             {
-                Destroy(_rows[i]);
+                Destroy(child.gameObject);
             }
         }
 
-        _rows.Clear();
         _slots.Clear();
     }
 

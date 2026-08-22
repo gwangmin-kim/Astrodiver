@@ -257,6 +257,11 @@ public sealed class PlayerInventoryController : MonoBehaviour
         Changed?.Invoke();
     }
 
+    internal void NotifyWorktableProcessingCommitted()
+    {
+        Changed?.Invoke();
+    }
+
     public bool TryAddResource(ResourceDefinition resource, int amount = 1)
     {
         if (_inventory == null || resource == null ||

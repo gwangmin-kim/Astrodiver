@@ -352,6 +352,12 @@ public sealed class WorktableService : MonoBehaviour
             return;
         }
 
+        if (_completedBuffer.Count > 0)
+        {
+            PlayerInventoryController.Instance
+                ?.NotifyWorktableProcessingCommitted();
+        }
+
         for (int i = 0; i < _completedBuffer.Count; i++)
         {
             CompletedRecipe result = _completedBuffer[i];
