@@ -24,7 +24,7 @@ MonoBehaviour:
       _inventory:
         _creatures: []
         _resourceAmounts: []
-      _processingCreatureId:
+      _processingCreatureId: 
       _remainingBaseProcessSeconds: 0
     upgradeNodes: []
     unlockedUpgradeIds: []
@@ -78,8 +78,8 @@ MonoBehaviour:
       chainRangeRatio: 1
   _inventory:
     _creatureSlotCapacity: 1
-    _creatureMaxStackCount: 10
-    _timeoutInventoryLossRatio: 1
+    _creatureMaxStackCount: 4
+    _timeoutInventoryLossRatio: 0.9
   _facilities:
     _resourceChestUnlocked: 0
     _worktableUnlocked: 0
