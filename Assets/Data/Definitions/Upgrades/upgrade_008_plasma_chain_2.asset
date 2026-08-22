@@ -21,8 +21,8 @@ MonoBehaviour:
   _parent: {fileID: 11400000, guid: 12e133644286fb74abe405bfa3439e01, type: 2}
   _maxLevel: 1
   _baseCosts:
-  - _resource: {fileID: 11400000, guid: 1059946eedbea974699f29d697f124de, type: 2}
-    _amount: 750
+  - _resource: {fileID: 11400000, guid: 6b79aa7fa28661e4aafbef73e29d4a80, type: 2}
+    _amount: 500
   _costIncreases: []
   _effects:
   - rid: 8656187084178194573

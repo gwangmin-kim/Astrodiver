@@ -24,6 +24,8 @@ MonoBehaviour:
   _baseCosts:
   - _resource: {fileID: 11400000, guid: 1059946eedbea974699f29d697f124de, type: 2}
     _amount: 10
+  - _resource: {fileID: 11400000, guid: f7bf18dc02ff9454ca10d23514f6374d, type: 2}
+    _amount: 5
   _costIncreases: []
   _effects:
   - rid: 8656187132053815422

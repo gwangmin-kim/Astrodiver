@@ -19,11 +19,13 @@ MonoBehaviour:
   _description: "\uD0D0\uC0AC\uC5D0\uC11C \uD68D\uB4DD\uD55C \uC790\uC6D0\uC744 \uC548\uC804\uD558\uAC8C
     \uBCF4\uAD00\uD558\uB294 \uC0C1\uC790\uB97C \uB9CC\uB4ED\uB2C8\uB2E4."
   _icon: {fileID: 21300000, guid: 6fd6698c123c43f4bb91ad03ef614f4b, type: 3}
-  _parent: {fileID: 11400000, guid: 113959368ffda2f48bc3ded1f6a8c16e, type: 2}
+  _parent: {fileID: 11400000, guid: db476f7ebb5cede42bdb477ee1918792, type: 2}
   _maxLevel: 1
   _baseCosts:
   - _resource: {fileID: 11400000, guid: 1059946eedbea974699f29d697f124de, type: 2}
-    _amount: 10
+    _amount: 5
+  - _resource: {fileID: 11400000, guid: f7bf18dc02ff9454ca10d23514f6374d, type: 2}
+    _amount: 5
   _costIncreases: []
   _effects:
   - rid: 8656187132053815417

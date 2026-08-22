@@ -21,7 +21,11 @@ MonoBehaviour:
   _icon: {fileID: 21300000, guid: ca09367dc46392e4485b187521e1be00, type: 3}
   _parent: {fileID: 11400000, guid: ebc5fe42fc2c37c42997ada314f8ff80, type: 2}
   _maxLevel: 1
-  _baseCosts: []
+  _baseCosts:
+  - _resource: {fileID: 11400000, guid: 6cae5ba7d51ba5d4b838ba85ce2ded9e, type: 2}
+    _amount: 100
+  - _resource: {fileID: 11400000, guid: add969f825baea148a7ac8973072816b, type: 2}
+    _amount: 50
   _costIncreases: []
   _effects:
   - rid: 8656187279957819534

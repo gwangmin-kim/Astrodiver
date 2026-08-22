@@ -18,11 +18,17 @@ MonoBehaviour:
   _displayName: "\uBC30\uD130\uB9AC \uC6A9\uB7C9 \uC99D\uAC00 I"
   _description: "\uC678\uC7A5 \uBC30\uD130\uB9AC\uC758 \uCD5C\uB300 \uC6A9\uB7C9\uC774
     \uC99D\uAC00\uD569\uB2C8\uB2E4."
-  _icon: {fileID: 21300000, guid: 6f79e50e70e776b4783f9acb5ee9883b, type: 3}
+  _icon: {fileID: 21300000, guid: a1e3a9347fd65a842811d8ea60b15db5, type: 3}
   _parent: {fileID: 11400000, guid: 113959368ffda2f48bc3ded1f6a8c16e, type: 2}
   _maxLevel: 10
-  _baseCosts: []
-  _costIncreases: []
+  _baseCosts:
+  - _resource: {fileID: 11400000, guid: 1059946eedbea974699f29d697f124de, type: 2}
+    _amount: 5
+  _costIncreases:
+  - _resource: {fileID: 11400000, guid: 1059946eedbea974699f29d697f124de, type: 2}
+    _amount: 5
+  - _resource: {fileID: 11400000, guid: f7bf18dc02ff9454ca10d23514f6374d, type: 2}
+    _amount: 1
   _effects:
   - rid: 8656187279957819513
   references:

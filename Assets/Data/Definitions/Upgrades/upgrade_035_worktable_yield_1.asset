@@ -20,7 +20,15 @@ MonoBehaviour:
   _icon: {fileID: 21300000, guid: a1db36ef0bb32d041b36c17219da6325, type: 3}
   _parent: {fileID: 11400000, guid: 0c55904ed7e244b09d3605711072530d, type: 2}
   _maxLevel: 5
-  _baseCosts: []
+  _baseCosts:
+  - _resource: {fileID: 11400000, guid: 1059946eedbea974699f29d697f124de, type: 2}
+    _amount: 50
+  - _resource: {fileID: 11400000, guid: f7bf18dc02ff9454ca10d23514f6374d, type: 2}
+    _amount: 50
+  - _resource: {fileID: 11400000, guid: 6b79aa7fa28661e4aafbef73e29d4a80, type: 2}
+    _amount: 50
+  - _resource: {fileID: 11400000, guid: 6cae5ba7d51ba5d4b838ba85ce2ded9e, type: 2}
+    _amount: 50
   _costIncreases: []
   _effects:
   - rid: 8656187279957819533
