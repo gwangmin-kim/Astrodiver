@@ -1,4 +1,6 @@
+using PrimeTween;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 /// <summary>
@@ -7,10 +9,16 @@ using UnityEngine.UI;
 /// </summary>
 [DisallowMultipleComponent]
 [RequireComponent(typeof(Button))]
-public sealed class StageDestinationVisualUI : BaseMeshEffect
+public sealed class StageDestinationVisualUI : BaseMeshEffect,
+    IPointerEnterHandler, IPointerExitHandler
 {
     [Header("Visual Rotation")]
     [SerializeField, Min(0f)] private float _rotationSpeedDegrees = 8f;
+
+    [Header("Hover")]
+    [SerializeField, Min(1f)] private float _hoverScaleMultiplier = 1.1f;
+    [SerializeField, Min(0.01f)] private float _hoverDuration = 0.16f;
+    [SerializeField] private Ease _hoverEase = Ease.OutBack;
 
     [Header("Previous Stage Connection")]
     [SerializeField] private Button _previousStageButton;
@@ -23,12 +31,15 @@ public sealed class StageDestinationVisualUI : BaseMeshEffect
     private RectTransform _rectTransform;
     private Image _connectionLine;
     private float _rotationDegrees;
+    private Vector3 _baseScale;
+    private Tween _hoverScaleTween;
 
     protected override void Awake()
     {
         base.Awake();
         _button = GetComponent<Button>();
         _rectTransform = transform as RectTransform;
+        _baseScale = transform.localScale;
     }
 
     protected override void OnEnable()
@@ -42,6 +53,8 @@ public sealed class StageDestinationVisualUI : BaseMeshEffect
     protected override void OnDisable()
     {
         base.OnDisable();
+        _hoverScaleTween.Stop();
+        transform.localScale = _baseScale;
         if (_connectionLine != null)
         {
             _connectionLine.gameObject.SetActive(false);
@@ -62,6 +75,19 @@ public sealed class StageDestinationVisualUI : BaseMeshEffect
     private void LateUpdate()
     {
         RefreshConnection();
+    }
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        if (_button != null && _button.interactable)
+        {
+            PlayHoverScale(true);
+        }
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        PlayHoverScale(false);
     }
 
     public override void ModifyMesh(VertexHelper vertexHelper)
@@ -87,6 +113,16 @@ public sealed class StageDestinationVisualUI : BaseMeshEffect
                 offset.x * sine + offset.y * cosine);
             vertexHelper.SetUIVertex(vertex, i);
         }
+    }
+
+    private void PlayHoverScale(bool hovered)
+    {
+        _hoverScaleTween.Stop();
+        _hoverScaleTween = Tween.Scale(
+            transform,
+            hovered ? _baseScale * _hoverScaleMultiplier : _baseScale,
+            _hoverDuration,
+            _hoverEase);
     }
 
     private void EnsureConnectionLine()
