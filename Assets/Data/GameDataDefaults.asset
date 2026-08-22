@@ -62,7 +62,7 @@ MonoBehaviour:
       baseCollectSpeed: 5
       collectSpeedRatio: 1
     plasmaGun:
-      ammoCapacity: 30
+      ammoCapacity: 20
       baseChargeTime: 2
       chargeSpeedMultiplier: 1
       chargedRetentionTime: 0.5
