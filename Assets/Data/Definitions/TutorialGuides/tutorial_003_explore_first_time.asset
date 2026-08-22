@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e097c9aa71d4482ac00c2e3ea000002, type: 3}
+  m_Name: tutorial_003_explore_first_time
+  m_EditorClassIdentifier: 
+  _id: tutorial.explore_first_time
+  _key: explore_first_time
+  _sortOrder: 3
+  _text: "\uCCAB \uC6B0\uC8FC \uD0D0\uC0AC\uB97C \uB098\uC11C\uBCF4\uC138\uC694."
+  _requireNoCompletedEvents: 0
+  _requiredCompletedEvents: ea030000
+  _forbiddenCompletedEvents: 
+  _completionEvent: 1003

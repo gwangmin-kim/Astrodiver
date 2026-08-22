@@ -13,7 +13,7 @@ public enum GameProgressEventId
     GetFirstResource = 1004,
     ReturnSafely = 1005,
     UnlockNetgun = 1006,
-    UnlockWorktable = 1007,
-    CaptureFirstCreature = 1008,
+    CaptureFirstCreature = 1007,
+    UnlockWorktable = 1008,
     UseWorktable = 1009,
 }
