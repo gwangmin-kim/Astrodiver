@@ -113,6 +113,7 @@ MonoBehaviour:
   _popupAnimation: {fileID: 3433046644037135014}
   _entryContainer: {fileID: 6014921809544097879}
   _entryPrefab: {fileID: 5662638313103722865, guid: 12a66e1562356fd49a680f4d85bb02f4, type: 3}
+  _resourceChangeDisplayDuration: 1
 --- !u!1 &3539423129399687104
 GameObject:
   m_ObjectHideFlags: 0
@@ -150,7 +151,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 3}
-  m_SizeDelta: {x: 240, y: 360}
+  m_SizeDelta: {x: 256, y: 360}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!223 &8491849484604960785
 Canvas:
@@ -199,7 +200,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 706b77737bf94fbc93d6920196769c8c, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ChestResourcePopupAnimation
+  m_EditorClassIdentifier: Assembly-CSharp::PopupFadeSlideAnimation
   _popupTransform: {fileID: 1101693383928596128}
   _canvasGroup: {fileID: 1180341110852058646}
   _showDuration: 0.2

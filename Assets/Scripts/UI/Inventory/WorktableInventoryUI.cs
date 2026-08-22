@@ -6,13 +6,25 @@ using UnityEngine.UI;
 public sealed class WorktableInventoryUI : MonoBehaviour
 {
     [SerializeField] private CreatureInventorySlotUI _slotPrefab;
-    [SerializeField] private ChestResourcePopupAnimation _popupAnimation;
+    [SerializeField] private PopupFadeSlideAnimation _popupAnimation;
     [SerializeField] private RectTransform _slotContainer;
     [SerializeField] private RectTransform _processingOverlay;
     [SerializeField] private Image _processingFillImage;
 
     private readonly List<CreatureInventorySlotUI> _slots = new();
     private WorktableService _service;
+    private bool _isPlayerOverlapping;
+
+    public void SetPlayerOverlapping(bool isOverlapping)
+    {
+        if (_isPlayerOverlapping == isOverlapping)
+        {
+            return;
+        }
+
+        _isPlayerOverlapping = isOverlapping;
+        RefreshPopupVisibility();
+    }
 
     private void OnEnable()
     {
@@ -101,14 +113,7 @@ public sealed class WorktableInventoryUI : MonoBehaviour
             _slots[i].SetSlot(inventorySlot, definition);
         }
 
-        if (_service.ProcessingSlotIndex >= 0)
-        {
-            _popupAnimation.Show();
-        }
-        else
-        {
-            HidePopup();
-        }
+        RefreshPopupVisibility();
     }
 
     private void EnsureSlots(int slotCount)
@@ -146,7 +151,8 @@ public sealed class WorktableInventoryUI : MonoBehaviour
     private void UpdateProcessingOverlay()
     {
         if (_processingOverlay == null || _processingFillImage == null ||
-            _service == null || !_service.IsInitialized || !_service.IsUnlocked)
+            !_isPlayerOverlapping || _service == null ||
+            !_service.IsInitialized || !_service.IsUnlocked)
         {
             HideProcessingOverlay();
             return;
@@ -217,6 +223,20 @@ public sealed class WorktableInventoryUI : MonoBehaviour
         if (_popupAnimation != null)
         {
             _popupAnimation.Hide();
+        }
+    }
+
+    private void RefreshPopupVisibility()
+    {
+        bool shouldShow = _isPlayerOverlapping && _service != null &&
+            _service.IsInitialized && _service.IsUnlocked;
+        if (shouldShow)
+        {
+            _popupAnimation?.Show();
+        }
+        else
+        {
+            HidePopup();
         }
     }
 

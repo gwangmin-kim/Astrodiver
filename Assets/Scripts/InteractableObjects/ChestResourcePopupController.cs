@@ -6,11 +6,15 @@ using UnityEngine;
 public sealed class ChestResourcePopupController : MonoBehaviour
 {
     [SerializeField] private LayerMask _playerLayer;
-    [SerializeField] private ChestResourcePopupAnimation _popupAnimation;
+    [SerializeField] private PopupFadeSlideAnimation _popupAnimation;
     [SerializeField] private Transform _entryContainer;
     [SerializeField] private ResourceFragmentEntryUI _entryPrefab;
+    [SerializeField, Min(0f)] private float _resourceChangeDisplayDuration = 2f;
 
+    private readonly HashSet<Collider2D> _overlappingPlayerColliders = new();
     private PlayerInventoryController _playerInventory;
+    private float _temporaryDisplayRemaining;
+    private bool _hasEntries;
 
     private void Awake()
     {
@@ -25,9 +29,38 @@ public sealed class ChestResourcePopupController : MonoBehaviour
         _popupAnimation?.HideImmediate();
     }
 
+    private void OnEnable()
+    {
+        BindInventory();
+    }
+
+    private void Update()
+    {
+        if (_playerInventory != PlayerInventoryController.Instance)
+        {
+            BindInventory();
+        }
+
+        if (_temporaryDisplayRemaining <= 0f)
+        {
+            return;
+        }
+
+        _temporaryDisplayRemaining = Mathf.Max(
+            0f,
+            _temporaryDisplayRemaining - Time.unscaledDeltaTime);
+        if (_temporaryDisplayRemaining <= 0f)
+        {
+            RefreshVisibility();
+        }
+    }
+
     private void OnDisable()
     {
         Unsubscribe();
+        _overlappingPlayerColliders.Clear();
+        _temporaryDisplayRemaining = 0f;
+        _hasEntries = false;
         _popupAnimation?.HideImmediate();
     }
 
@@ -38,7 +71,9 @@ public sealed class ChestResourcePopupController : MonoBehaviour
             return;
         }
 
-        ShowPopup();
+        _overlappingPlayerColliders.Add(other);
+        BindInventory();
+        RefreshEntries();
     }
 
     private void OnTriggerExit2D(Collider2D other)
@@ -48,7 +83,8 @@ public sealed class ChestResourcePopupController : MonoBehaviour
             return;
         }
 
-        HidePopup();
+        _overlappingPlayerColliders.Remove(other);
+        RefreshVisibility();
     }
 
     private bool IsPlayerCollider(Collider2D other)
@@ -57,35 +93,48 @@ public sealed class ChestResourcePopupController : MonoBehaviour
                (_playerLayer.value & (1 << other.gameObject.layer)) != 0;
     }
 
-    private void ShowPopup()
+    private void BindInventory()
     {
         PlayerInventoryController inventory = PlayerInventoryController.Instance;
-        if (_playerInventory != inventory)
+        if (_playerInventory == inventory)
         {
-            Unsubscribe();
-            _playerInventory = inventory;
+            return;
         }
 
+        Unsubscribe();
+        _playerInventory = inventory;
         if (_playerInventory != null)
         {
-            _playerInventory.Changed -= RefreshEntries;
-            _playerInventory.Changed += RefreshEntries;
+            _playerInventory.Changed += HandleInventoryChanged;
+            _playerInventory.ChestResourcesChanged += HandleChestResourcesChanged;
+
+            if (_playerInventory.ConsumePendingChestResourcePopupRequest())
+            {
+                StartTemporaryDisplay();
+            }
         }
 
         RefreshEntries();
     }
 
-    private void HidePopup()
+    private void HandleInventoryChanged()
     {
-        Unsubscribe();
-        _popupAnimation?.Hide();
+        RefreshEntries();
+    }
+
+    private void HandleChestResourcesChanged()
+    {
+        _playerInventory?.ConsumePendingChestResourcePopupRequest();
+        StartTemporaryDisplay();
+        RefreshEntries();
     }
 
     private void Unsubscribe()
     {
         if (_playerInventory != null)
         {
-            _playerInventory.Changed -= RefreshEntries;
+            _playerInventory.Changed -= HandleInventoryChanged;
+            _playerInventory.ChestResourcesChanged -= HandleChestResourcesChanged;
             _playerInventory = null;
         }
     }
@@ -96,7 +145,8 @@ public sealed class ChestResourcePopupController : MonoBehaviour
 
         if (_playerInventory == null || _entryContainer == null || _entryPrefab == null)
         {
-            _popupAnimation?.Hide();
+            _hasEntries = false;
+            RefreshVisibility();
             return;
         }
 
@@ -104,7 +154,8 @@ public sealed class ChestResourcePopupController : MonoBehaviour
             GameDataManager.Instance?.Definitions?.OrderedResources;
         if (definitions == null)
         {
-            _popupAnimation?.Hide();
+            _hasEntries = false;
+            RefreshVisibility();
             return;
         }
 
@@ -126,7 +177,21 @@ public sealed class ChestResourcePopupController : MonoBehaviour
             entryCount++;
         }
 
-        if (entryCount > 0)
+        _hasEntries = entryCount > 0;
+        RefreshVisibility();
+    }
+
+    private void StartTemporaryDisplay()
+    {
+        _temporaryDisplayRemaining = _resourceChangeDisplayDuration;
+    }
+
+    private void RefreshVisibility()
+    {
+        bool shouldShow = _hasEntries &&
+            (_overlappingPlayerColliders.Count > 0 ||
+             _temporaryDisplayRemaining > 0f);
+        if (shouldShow)
         {
             _popupAnimation?.Show();
         }

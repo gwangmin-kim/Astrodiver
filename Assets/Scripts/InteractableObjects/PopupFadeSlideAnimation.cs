@@ -3,7 +3,7 @@ using UnityEngine;
 
 [DisallowMultipleComponent]
 [RequireComponent(typeof(CanvasGroup))]
-public sealed class ChestResourcePopupAnimation : MonoBehaviour
+public sealed class PopupFadeSlideAnimation : MonoBehaviour
 {
     [SerializeField] private RectTransform _popupTransform;
     [SerializeField] private CanvasGroup _canvasGroup;
@@ -27,6 +27,7 @@ public sealed class ChestResourcePopupAnimation : MonoBehaviour
 
     private void OnDisable()
     {
+        IsShown = false;
         StopTweens();
     }
 

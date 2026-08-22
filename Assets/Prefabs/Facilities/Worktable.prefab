@@ -239,7 +239,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 706b77737bf94fbc93d6920196769c8c, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ChestResourcePopupAnimation
+  m_EditorClassIdentifier: Assembly-CSharp::PopupFadeSlideAnimation
   _popupTransform: {fileID: 5775909612286662677}
   _canvasGroup: {fileID: 3436944688290677736}
   _showDuration: 0.2
@@ -346,6 +346,10 @@ MonoBehaviour:
   _repeatInterval: 0.3
   _visualRoot: {fileID: 846360706350897056}
   _interactionCollider: {fileID: 4971113050158754337}
+  _playerLayer:
+    serializedVersion: 2
+    m_Bits: 8
+  _inventoryPopup: {fileID: 731977030536967771}
 --- !u!114 &731977030536967771
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -16,8 +16,10 @@ public sealed class PlayerInventoryController : MonoBehaviour
     private InventoryData _sessionStartSnapshot;
     private bool _sessionStartWasDirty;
     private bool _isExploreSessionActive;
+    private bool _hasPendingChestResourcePopupRequest;
 
     public event Action Changed; // 자원 변경이 일어났을 때 호출
+    public event Action ChestResourcesChanged;
 
     public IReadOnlyList<CreatureInventorySlot> CreatureSlots =>
         _creatureSlots;
@@ -260,6 +262,14 @@ public sealed class PlayerInventoryController : MonoBehaviour
     internal void NotifyWorktableProcessingCommitted()
     {
         Changed?.Invoke();
+        NotifyChestResourcesChanged();
+    }
+
+    internal bool ConsumePendingChestResourcePopupRequest()
+    {
+        bool hasRequest = _hasPendingChestResourcePopupRequest;
+        _hasPendingChestResourcePopupRequest = false;
+        return hasRequest;
     }
 
     public bool TryAddResource(ResourceDefinition resource, int amount = 1)
@@ -274,7 +284,17 @@ public sealed class PlayerInventoryController : MonoBehaviour
         InventoryData snapshot = CreateHubRollbackSnapshot(destination);
         bool wasDirty = GameDataManager.Instance.HasUnsavedChanges;
         destination.AddResource(resource.Id, amount);
-        return CompleteInventoryMutation(destination, snapshot, wasDirty);
+        if (!CompleteInventoryMutation(destination, snapshot, wasDirty))
+        {
+            return false;
+        }
+
+        if (ReferenceEquals(destination, _resourceChest))
+        {
+            NotifyChestResourcesChanged();
+        }
+
+        return true;
     }
 
     public int GetResourceAmount(ResourceDefinition resource)
@@ -379,6 +399,10 @@ public sealed class PlayerInventoryController : MonoBehaviour
     internal void NotifyTransactionCommitted()
     {
         Changed?.Invoke();
+        if (IsResourceChestUnlocked)
+        {
+            NotifyChestResourcesChanged();
+        }
     }
 
     public bool BeginExploreSession()
@@ -399,7 +423,8 @@ public sealed class PlayerInventoryController : MonoBehaviour
         InventoryData playerBeforeDeposit = _inventory.Clone();
         InventoryData chestBeforeDeposit = _resourceChest.Clone();
         bool wasDirtyBeforeDeposit = manager.HasUnsavedChanges;
-        if (DepositCarriedResourcesToChest())
+        bool depositedResources = DepositCarriedResourcesToChest();
+        if (depositedResources)
         {
             manager.MarkDirty();
         }
@@ -422,6 +447,10 @@ public sealed class PlayerInventoryController : MonoBehaviour
         _sessionStartSnapshot = _inventory.Clone();
         _sessionStartWasDirty = manager.HasUnsavedChanges;
         _isExploreSessionActive = true;
+        if (depositedResources)
+        {
+            NotifyChestResourcesChanged();
+        }
         return true;
     }
 
@@ -438,7 +467,7 @@ public sealed class PlayerInventoryController : MonoBehaviour
         InventoryData chestBeforeDeposit = _resourceChest.Clone();
         bool wasDirty = manager.HasUnsavedChanges;
         ApplySessionLoss(lossRatio);
-        DepositCarriedResourcesToChest();
+        bool depositedResources = DepositCarriedResourcesToChest();
         manager.MarkDirty();
 
         if (!manager.SaveExplorationResult())
@@ -454,6 +483,10 @@ public sealed class PlayerInventoryController : MonoBehaviour
 
         ClearSessionState();
         Changed?.Invoke();
+        if (depositedResources)
+        {
+            NotifyChestResourcesChanged();
+        }
         return true;
     }
 
@@ -649,6 +682,10 @@ public sealed class PlayerInventoryController : MonoBehaviour
         if (manager.SaveNow())
         {
             Changed?.Invoke();
+            if (ReferenceEquals(spentInventory, _resourceChest))
+            {
+                NotifyChestResourcesChanged();
+            }
             return true;
         }
 
@@ -710,6 +747,12 @@ public sealed class PlayerInventoryController : MonoBehaviour
                _inventory != null &&
                _resourceChest != null &&
                _inventory.TransferAllResourcesTo(_resourceChest);
+    }
+
+    private void NotifyChestResourcesChanged()
+    {
+        _hasPendingChestResourcePopupRequest = true;
+        ChestResourcesChanged?.Invoke();
     }
 
     private void OnGameDataChanged(GameSaveData data)

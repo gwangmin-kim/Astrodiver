@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 [DisallowMultipleComponent]
@@ -6,7 +7,10 @@ public sealed class WorktableFacilityController : InteractableObject
 {
     [SerializeField] private GameObject _visualRoot;
     [SerializeField] private Collider2D _interactionCollider;
+    [SerializeField] private LayerMask _playerLayer;
+    [SerializeField] private WorktableInventoryUI _inventoryPopup;
 
+    private readonly HashSet<Collider2D> _overlappingPlayerColliders = new();
     private GameDataManager _gameDataManager;
 
     public override float RepeatInterval
@@ -34,6 +38,16 @@ public sealed class WorktableFacilityController : InteractableObject
         {
             _interactionCollider = GetComponent<Collider2D>();
         }
+
+        if (_playerLayer.value == 0)
+        {
+            _playerLayer = LayerMask.GetMask("Player");
+        }
+
+        if (_inventoryPopup == null)
+        {
+            _inventoryPopup = GetComponent<WorktableInventoryUI>();
+        }
     }
 
     private void OnEnable()
@@ -51,6 +65,31 @@ public sealed class WorktableFacilityController : InteractableObject
     private void OnDisable()
     {
         Unsubscribe();
+        _overlappingPlayerColliders.Clear();
+        _inventoryPopup?.SetPlayerOverlapping(false);
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (!IsPlayerCollider(other))
+        {
+            return;
+        }
+
+        _overlappingPlayerColliders.Add(other);
+        _inventoryPopup?.SetPlayerOverlapping(true);
+    }
+
+    private void OnTriggerExit2D(Collider2D other)
+    {
+        if (!IsPlayerCollider(other))
+        {
+            return;
+        }
+
+        _overlappingPlayerColliders.Remove(other);
+        _inventoryPopup?.SetPlayerOverlapping(
+            _overlappingPlayerColliders.Count > 0);
     }
 
     public override void Interact()
@@ -112,12 +151,26 @@ public sealed class WorktableFacilityController : InteractableObject
         {
             _interactionCollider.enabled = unlocked;
         }
+
+        if (!unlocked)
+        {
+            _overlappingPlayerColliders.Clear();
+            _inventoryPopup?.SetPlayerOverlapping(false);
+        }
+    }
+
+    private bool IsPlayerCollider(Collider2D other)
+    {
+        return other != null &&
+            (_playerLayer.value & (1 << other.gameObject.layer)) != 0;
     }
 
     private void Reset()
     {
         _isRepeatable = true;
         _interactionCollider = GetComponent<Collider2D>();
+        _inventoryPopup = GetComponent<WorktableInventoryUI>();
+        _playerLayer = LayerMask.GetMask("Player");
         if (_interactionCollider != null)
         {
             _interactionCollider.isTrigger = true;
