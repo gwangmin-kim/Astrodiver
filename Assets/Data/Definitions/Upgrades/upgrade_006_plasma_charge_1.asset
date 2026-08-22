@@ -17,7 +17,7 @@ MonoBehaviour:
   _sortOrder: 6
   _displayName: "\uB808\uC774\uC800 \uCDA9\uC804 I"
   _description: "\uB808\uC774\uC800 \uCDA9\uC804 \uC18D\uB3C4\uAC00 \uC99D\uAC00\uD569\uB2C8\uB2E4."
-  _icon: {fileID: 0}
+  _icon: {fileID: 21300000, guid: d0e58e201a04d6e45a9cbf198ea8293e, type: 3}
   _parent: {fileID: 11400000, guid: de02d7f8d6df8c24198505f9653b568f, type: 2}
   _maxLevel: 5
   _baseCosts:

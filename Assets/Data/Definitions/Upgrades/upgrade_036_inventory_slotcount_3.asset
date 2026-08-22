@@ -18,7 +18,7 @@ MonoBehaviour:
   _displayName: "\uC778\uBCA4\uD1A0\uB9AC \uC6A9\uB7C9 \uC99D\uAC00 III"
   _description: "\uD50C\uB808\uC774\uC5B4\uC640 \uC138\uACF5\uC18C\uC758 \uC0DD\uBB3C
     \uC2AC\uB86F \uC218\uAC00 \uC99D\uAC00\uD569\uB2C8\uB2E4."
-  _icon: {fileID: 0}
+  _icon: {fileID: 21300000, guid: ca09367dc46392e4485b187521e1be00, type: 3}
   _parent: {fileID: 11400000, guid: ebc5fe42fc2c37c42997ada314f8ff80, type: 2}
   _maxLevel: 1
   _baseCosts: []
