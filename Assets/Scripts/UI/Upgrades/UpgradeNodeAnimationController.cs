@@ -102,7 +102,10 @@ public sealed class UpgradeNodeAnimationController : MonoBehaviour
     /// <summary>Plays a fast scale bounce after a successful purchase.</summary>
     public void PlayPurchaseSucceeded()
     {
-        if (!CanPlayInteractionAnimation())
+        // UpgradeService refreshes the visual state before publishing the result.
+        // A final successful purchase is therefore already marked Completed here,
+        // but still needs its success feedback.
+        if (_animatedTransform == null || _node == null)
         {
             RestoreInteractionBaseline();
             return;
