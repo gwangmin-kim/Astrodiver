@@ -39,6 +39,9 @@ TagManager:
   - 
   - Platform
   m_SortingLayers:
+  - name: SpaceBackground
+    uniqueID: 396120418
+    locked: 0
   - name: Back
     uniqueID: 1875436737
     locked: 0

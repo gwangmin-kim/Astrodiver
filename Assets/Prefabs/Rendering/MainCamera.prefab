@@ -72,6 +72,7 @@ GameObject:
   - component: {fileID: 7044675095357684350}
   - component: {fileID: 8894370302938960992}
   - component: {fileID: 8934971185341294591}
+  - component: {fileID: 5685976072005900156}
   - component: {fileID: 6970615886787957431}
   m_Layer: 0
   m_Name: Space Background
@@ -147,11 +148,24 @@ MeshRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: 396120418
+  m_SortingLayer: -3
   m_SortingOrder: -32768
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!210 &5685976072005900156
+SortingGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6443908357454555948}
+  m_Enabled: 1
+  m_SortingLayerID: 396120418
+  m_SortingLayer: -3
+  m_SortingOrder: -32768
+  m_SortAtRoot: 0
+  m_Sort3DAs2D: 0
 --- !u!114 &6970615886787957431
 MonoBehaviour:
   m_ObjectHideFlags: 0

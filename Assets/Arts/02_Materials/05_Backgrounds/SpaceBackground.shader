@@ -53,8 +53,10 @@ Shader "Astrodiver/Background/Space Background"
     {
         Tags
         {
-            "Queue" = "Transparent"
-            "RenderType" = "Transparent"
+            // Render before 2D sprite layers. Keeping this out of the transparent
+            // queue prevents it from overpainting objects on lower sorting layers.
+            "Queue" = "Background"
+            "RenderType" = "Background"
             "RenderPipeline" = "UniversalPipeline"
             "IgnoreProjector" = "True"
         }
@@ -64,7 +66,7 @@ Shader "Astrodiver/Background/Space Background"
             Name "SpaceBackground"
             Cull Off
             ZWrite Off
-            ZTest Always
+            ZTest LEqual
             Blend One Zero
 
             HLSLPROGRAM

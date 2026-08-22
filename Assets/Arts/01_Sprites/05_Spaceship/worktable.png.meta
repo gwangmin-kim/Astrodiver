@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 8eb727b573654f946aa852318a79e1b5
+guid: 03427a08c2024cb4d90489d2d2c3ed18
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 7686359598664653406
-    second: tile_spaceship_middle_0
+      213: 731710082999836163
+    second: worktable_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -49,7 +49,7 @@ TextureImporter:
   spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 0
-  alignment: 6
+  alignment: 7
   spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 16
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: tile_spaceship_middle_0
+      name: worktable_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 16
-        height: 70
+        width: 40
+        height: 46
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e5a1256b45f6baa60800000000000000
-      internalID: 7686359598664653406
+      spriteID: 30ed6c7917e872a00800000000000000
+      internalID: 731710082999836163
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      tile_spaceship_middle_0: 7686359598664653406
+      worktable_0: 731710082999836163
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
