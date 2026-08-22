@@ -9768,23 +9768,27 @@ MonoBehaviour:
   _definition: {fileID: 11400000, guid: aec72bcc1ecae462b83f726539e778d4, type: 2}
   _spawnAreas:
     _creatureAreas:
-    - _min: {x: -17, y: -10}
-      _max: {x: -4, y: 14}
-    - _min: {x: 4, y: -14}
+    - _min: {x: -19, y: 4}
+      _max: {x: -1, y: 10}
+    - _min: {x: -12, y: -14}
+      _max: {x: 3, y: -7}
+    - _min: {x: 8, y: 11}
+      _max: {x: 19, y: 14}
+    - _min: {x: -19, y: -14}
+      _max: {x: -13, y: -10}
+    - _min: {x: 4, y: -4}
       _max: {x: 19, y: 3}
-    - _min: {x: -3, y: 4}
-      _max: {x: 10, y: 14}
-    - _min: {x: -3, y: -14}
-      _max: {x: 3, y: -4}
     _resourceAreas:
-    - _min: {x: -17, y: -10}
-      _max: {x: -4, y: 14}
-    - _min: {x: 4, y: -14}
+    - _min: {x: -19, y: 4}
+      _max: {x: -1, y: 10}
+    - _min: {x: -12, y: -14}
+      _max: {x: 3, y: -7}
+    - _min: {x: 8, y: 11}
+      _max: {x: 19, y: 14}
+    - _min: {x: -19, y: -14}
+      _max: {x: -13, y: -10}
+    - _min: {x: 4, y: -4}
       _max: {x: 19, y: 3}
-    - _min: {x: -3, y: 4}
-      _max: {x: 10, y: 14}
-    - _min: {x: -3, y: -14}
-      _max: {x: 3, y: -4}
   _creatureRuntimeRoot: {fileID: 898617720}
   _resourceRuntimeRoot: {fileID: 557276029}
   _spawnOnStart: 1
