@@ -144,7 +144,7 @@ MonoBehaviour:
   _data:
     moveSpeed: 3
     dampingTime: 0.1
-    jumpHeight: 1.5
+    jumpHeight: 1
   _inputThreshold: 0.1
   _groundNormalThreshold: 0.7
   _coyoteTime: 0.15
