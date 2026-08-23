@@ -17,6 +17,9 @@ public class PlasmaGunController : MonoBehaviour
     [Tooltip("첫 목표 탐색 시 수행하는 CircleCast의 반지름")]
     [SerializeField, Min(0.01f)] private float _initialCastRadius = 0.05f;
 
+    [Header("Charge UI")]
+    [SerializeField] private PlasmaGunChargeUI _chargeUI;
+
     private ContactFilter2D _targetFilter;
     private readonly List<Collider2D> _overlapBuffer = new(10);
 
@@ -131,18 +134,18 @@ public class PlasmaGunController : MonoBehaviour
                 break;
         }
 
-        UpdateChargeParticles();
+        UpdateChargeVisuals();
     }
 
-    private void UpdateChargeParticles()
+    private void UpdateChargeVisuals()
     {
-        if (_chargeParticles == null) return;
-
         bool isCharging = _chargeState == ChargeState.Charging && isAttacking && HasAmmo;
         float progress = _data.ChargeTime <= Mathf.Epsilon
             ? 1f
             : 1f - Mathf.Clamp01(_chargeTimer / _data.ChargeTime);
-        _chargeParticles.SetCharging(isCharging, progress);
+
+        _chargeParticles?.SetCharging(isCharging, progress);
+        _chargeUI?.SetCharging(isCharging, progress);
     }
 
     private void PublishAmmoChanged()
