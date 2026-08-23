@@ -1,9 +1,12 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 [DefaultExecutionOrder(100)]
 [DisallowMultipleComponent]
 public sealed class UpgradeTreeNavigationUI : MonoBehaviour
 {
+    private const int DefaultNodeBoundsPadding = 300;
+
     [Header("References")]
     [SerializeField] private UIInputHandler _input;
     [SerializeField] private RectTransform _viewport;
@@ -11,8 +14,9 @@ public sealed class UpgradeTreeNavigationUI : MonoBehaviour
 
     [Header("Pan")]
     [SerializeField, Min(0f)] private float _panSensitivity = 1f;
-    [SerializeField] private Vector2 _minPanPosition = new(-600f, -350f);
-    [SerializeField] private Vector2 _maxPanPosition = new(600f, 350f);
+
+    [Header("Automatic Pan Bounds")]
+    [SerializeField] private RectOffset _nodeBoundsPadding;
 
     [Header("Editor Visualization")]
     [SerializeField] private bool _showPanBoundsGizmo = true;
@@ -29,6 +33,11 @@ public sealed class UpgradeTreeNavigationUI : MonoBehaviour
     private bool _previousMiddleClickHeld;
     private bool _hasStarted;
 
+    private readonly Vector3[] _worldCorners = new Vector3[4];
+    private readonly Vector3[] _viewportWorldCorners = new Vector3[4];
+    private readonly List<UpgradeNodeUI> _nodes = new();
+    private bool _missingNodesWarningLogged;
+
     private Camera EventCamera =>
         _canvas != null && _canvas.renderMode != RenderMode.ScreenSpaceOverlay
             ? _canvas.worldCamera
@@ -36,22 +45,28 @@ public sealed class UpgradeTreeNavigationUI : MonoBehaviour
 
     private void Awake()
     {
+        EnsureNodeBoundsPadding();
         _canvas = GetComponentInParent<Canvas>();
     }
 
     private void OnEnable()
     {
+        EnsureNodeBoundsPadding();
         ResetInteraction();
+        RefreshNodeTargets();
         if (_hasStarted)
         {
-            _input.SetInputEnabled(true);
+            _input?.SetInputEnabled(true);
+            ClampPanPosition();
         }
     }
 
     private void Start()
     {
         _hasStarted = true;
-        _input.SetInputEnabled(true);
+        _input?.SetInputEnabled(true);
+        Canvas.ForceUpdateCanvases();
+        RefreshNodeTargets();
         SetZoom(_treeContent.localScale.x);
         ClampPanPosition();
     }
@@ -182,18 +197,187 @@ public sealed class UpgradeTreeNavigationUI : MonoBehaviour
 
     private void ClampPanPosition()
     {
-        Vector2 min = Vector2.Min(_minPanPosition, _maxPanPosition);
-        Vector2 max = Vector2.Max(_minPanPosition, _maxPanPosition);
+        if (!TryGetPanPositionBounds(out Vector2 min, out Vector2 max))
+        {
+            return;
+        }
+
         Vector2 position = _treeContent.anchoredPosition;
         position.x = Mathf.Clamp(position.x, min.x, max.x);
         position.y = Mathf.Clamp(position.y, min.y, max.y);
         _treeContent.anchoredPosition = position;
     }
 
+    private bool TryGetPanPositionBounds(out Vector2 min, out Vector2 max)
+    {
+        min = default;
+        max = default;
+
+        if (_treeContent == null || _viewport == null ||
+            _treeContent.parent is not RectTransform parent ||
+            !TryGetNodeBounds(out Rect nodeBounds) ||
+            !TryGetRectBoundsInParent(_viewport, parent, out Rect viewportBounds))
+        {
+            return false;
+        }
+
+        Vector2 contentScale = _treeContent.localScale;
+        if (contentScale.x <= 0f || contentScale.y <= 0f)
+        {
+            return false;
+        }
+
+        Vector2 anchorPosition = GetAnchorPosition(parent);
+        min = new Vector2(
+            viewportBounds.xMax - anchorPosition.x - nodeBounds.xMax * contentScale.x,
+            viewportBounds.yMax - anchorPosition.y - nodeBounds.yMax * contentScale.y);
+        max = new Vector2(
+            viewportBounds.xMin - anchorPosition.x - nodeBounds.xMin * contentScale.x,
+            viewportBounds.yMin - anchorPosition.y - nodeBounds.yMin * contentScale.y);
+
+        CollapseInvertedRange(ref min.x, ref max.x);
+        CollapseInvertedRange(ref min.y, ref max.y);
+        return true;
+    }
+
+    private bool TryGetNodeBounds(out Rect bounds)
+    {
+        bounds = default;
+        if (_treeContent == null)
+        {
+            return false;
+        }
+
+        if (_nodes.Count == 0)
+        {
+            if (!_missingNodesWarningLogged)
+            {
+                Debug.LogWarning(
+                    "UpgradeTreeNavigationUI: No upgrade nodes were found under TreeContent; pan is disabled.",
+                    this);
+                _missingNodesWarningLogged = true;
+            }
+
+            return false;
+        }
+
+        bool hasBounds = false;
+        Vector2 min = default;
+        Vector2 max = default;
+        foreach (UpgradeNodeUI node in _nodes)
+        {
+            if (node == null || !node.gameObject.activeInHierarchy ||
+                node.transform is not RectTransform nodeRect)
+            {
+                continue;
+            }
+
+            nodeRect.GetWorldCorners(_worldCorners);
+            for (int i = 0; i < _worldCorners.Length; i++)
+            {
+                Vector2 point = (Vector2)_treeContent.InverseTransformPoint(_worldCorners[i]);
+                if (!hasBounds)
+                {
+                    min = point;
+                    max = point;
+                    hasBounds = true;
+                    continue;
+                }
+
+                min = Vector2.Min(min, point);
+                max = Vector2.Max(max, point);
+            }
+        }
+
+        if (!hasBounds)
+        {
+            return false;
+        }
+
+        int left = Mathf.Max(0, _nodeBoundsPadding.left);
+        int right = Mathf.Max(0, _nodeBoundsPadding.right);
+        int top = Mathf.Max(0, _nodeBoundsPadding.top);
+        int bottom = Mathf.Max(0, _nodeBoundsPadding.bottom);
+        bounds = Rect.MinMaxRect(
+            min.x - left,
+            min.y - bottom,
+            max.x + right,
+            max.y + top);
+        return true;
+    }
+
+    [ContextMenu("Refresh Automatic Pan Bounds")]
+    public void RefreshNodeTargets()
+    {
+        _nodes.Clear();
+        _missingNodesWarningLogged = false;
+
+        if (_treeContent != null)
+        {
+            _treeContent.GetComponentsInChildren(true, _nodes);
+        }
+
+        ClampPanPosition();
+    }
+
+    private bool TryGetRectBoundsInParent(
+        RectTransform rect,
+        RectTransform parent,
+        out Rect bounds)
+    {
+        rect.GetWorldCorners(_viewportWorldCorners);
+
+        Vector2 min = (Vector2)parent.InverseTransformPoint(_viewportWorldCorners[0]);
+        Vector2 max = min;
+        for (int i = 1; i < _viewportWorldCorners.Length; i++)
+        {
+            Vector2 point = (Vector2)parent.InverseTransformPoint(_viewportWorldCorners[i]);
+            min = Vector2.Min(min, point);
+            max = Vector2.Max(max, point);
+        }
+
+        bounds = Rect.MinMaxRect(min.x, min.y, max.x, max.y);
+        return true;
+    }
+
+    private Vector2 GetAnchorPosition(RectTransform parent)
+    {
+        Vector2 normalizedAnchor =
+            (_treeContent.anchorMin + _treeContent.anchorMax) * 0.5f;
+        return new Vector2(
+            Mathf.Lerp(parent.rect.xMin, parent.rect.xMax, normalizedAnchor.x),
+            Mathf.Lerp(parent.rect.yMin, parent.rect.yMax, normalizedAnchor.y));
+    }
+
+    private static void CollapseInvertedRange(ref float min, ref float max)
+    {
+        if (min <= max)
+        {
+            return;
+        }
+
+        min = max = (min + max) * 0.5f;
+    }
+
+    private void EnsureNodeBoundsPadding()
+    {
+        _nodeBoundsPadding ??= new RectOffset(
+            DefaultNodeBoundsPadding,
+            DefaultNodeBoundsPadding,
+            DefaultNodeBoundsPadding,
+            DefaultNodeBoundsPadding);
+    }
+
 #if UNITY_EDITOR
+    private void OnValidate()
+    {
+        EnsureNodeBoundsPadding();
+    }
+
     private void OnDrawGizmos()
     {
-        if (!_showPanBoundsGizmo || _treeContent == null)
+        if (!_showPanBoundsGizmo || _treeContent == null ||
+            !TryGetPanPositionBounds(out Vector2 min, out Vector2 max))
         {
             return;
         }
@@ -204,13 +388,7 @@ public sealed class UpgradeTreeNavigationUI : MonoBehaviour
             return;
         }
 
-        Vector2 min = Vector2.Min(_minPanPosition, _maxPanPosition);
-        Vector2 max = Vector2.Max(_minPanPosition, _maxPanPosition);
-        Vector2 normalizedAnchor =
-            (_treeContent.anchorMin + _treeContent.anchorMax) * 0.5f;
-        Vector2 anchorPosition = new(
-            Mathf.Lerp(parent.rect.xMin, parent.rect.xMax, normalizedAnchor.x),
-            Mathf.Lerp(parent.rect.yMin, parent.rect.yMax, normalizedAnchor.y));
+        Vector2 anchorPosition = GetAnchorPosition(parent);
 
         Vector3 bottomLeft = parent.TransformPoint(anchorPosition + new Vector2(min.x, min.y));
         Vector3 topLeft = parent.TransformPoint(anchorPosition + new Vector2(min.x, max.y));

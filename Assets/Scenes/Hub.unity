@@ -5894,8 +5894,11 @@ MonoBehaviour:
   _viewport: {fileID: 567399001}
   _treeContent: {fileID: 995663841}
   _panSensitivity: 1
-  _minPanPosition: {x: -600, y: -350}
-  _maxPanPosition: {x: 600, y: 350}
+  _nodeBoundsPadding:
+    m_Left: 500
+    m_Right: 500
+    m_Top: 500
+    m_Bottom: 500
   _showPanBoundsGizmo: 1
   _panBoundsGizmoColor: {r: 0.2, g: 0.85, b: 1, a: 0.9}
   _minZoom: 0.3
