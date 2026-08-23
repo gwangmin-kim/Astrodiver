@@ -1,10 +1,11 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
 /// Controls the short stage-unlock report sequence independently from the
-/// whiteboard tutorial. Its page is a pre-authored prefab; this class only
-/// determines when that page is displayed.
+/// whiteboard tutorial. Its pages are pre-authored prefabs; this class only
+/// determines when those pages are displayed.
 /// </summary>
 public sealed class StageUnlockReportFlow : IDisposable
 {
@@ -70,7 +71,7 @@ public sealed class StageUnlockReportFlow : IDisposable
         UpgradePurchaseResult result)
     {
         if (IsActive || !result.Succeeded ||
-            !TryGetReportPage(result.NodeId, out GameObject reportPagePrefab))
+            !TryGetReportPages(result.NodeId, out IReadOnlyList<GameObject> reportPagePrefabs))
         {
             return;
         }
@@ -84,7 +85,7 @@ public sealed class StageUnlockReportFlow : IDisposable
 
         IsActive = true;
         _upgradeTree.gameObject.SetActive(false);
-        if (!_document.OpenWithTemporaryPage(reportPagePrefab))
+        if (!_document.OpenWithTemporaryPages(reportPagePrefabs))
         {
             Finish();
         }
@@ -107,22 +108,22 @@ public sealed class StageUnlockReportFlow : IDisposable
         }
     }
 
-    private bool TryGetReportPage(
+    private bool TryGetReportPages(
         string upgradeId,
-        out GameObject reportPagePrefab)
+        out IReadOnlyList<GameObject> reportPagePrefabs)
     {
         for (int i = 0; i < _reportPages.Length; i++)
         {
             StageUnlockReportPageEntry entry = _reportPages[i];
             if (entry != null && entry.Matches(upgradeId) &&
-                entry.PagePrefab != null)
+                entry.HasUsablePages)
             {
-                reportPagePrefab = entry.PagePrefab;
+                reportPagePrefabs = entry.PagePrefabs;
                 return true;
             }
         }
 
-        reportPagePrefab = null;
+        reportPagePrefabs = null;
         return false;
     }
 }
@@ -131,9 +132,30 @@ public sealed class StageUnlockReportFlow : IDisposable
 public sealed class StageUnlockReportPageEntry
 {
     [SerializeField] private string _upgradeId;
-    [SerializeField] private GameObject _pagePrefab;
+    [SerializeField] private GameObject[] _pagePrefabs;
 
-    public GameObject PagePrefab => _pagePrefab;
+    public IReadOnlyList<GameObject> PagePrefabs => _pagePrefabs ?? Array.Empty<GameObject>();
+
+    public bool HasUsablePages
+    {
+        get
+        {
+            if (_pagePrefabs == null || _pagePrefabs.Length == 0)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < _pagePrefabs.Length; i++)
+            {
+                if (_pagePrefabs[i] == null)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+    }
 
     public bool Matches(string upgradeId)
     {

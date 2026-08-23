@@ -11,7 +11,7 @@ using UnityEngine.UI;
 /// Displays pre-authored page GameObjects as a modal, paged document.
 ///
 /// The default pages are authored beneath this document's ContentRoot. Other
-/// flows can temporarily display one pre-authored page prefab without changing
+/// flows can temporarily display pre-authored page prefabs without changing
 /// the default pages, keeping the whiteboard tutorial independent.
 /// </summary>
 [DisallowMultipleComponent]
@@ -51,7 +51,7 @@ public sealed class TutorialDocumentView : MonoBehaviour
     private int _pageIndex;
     private Transform _contentRoot;
     private IReadOnlyList<GameObject> _activePages;
-    private GameObject _temporaryPage;
+    private readonly List<GameObject> _temporaryPages = new();
     private Tween _dimmerTween;
     private Tween _documentAlphaTween;
     private Coroutine _motionRoutine;
@@ -81,7 +81,7 @@ public sealed class TutorialDocumentView : MonoBehaviour
             RestoreInventoryHud();
             IsOpen = false;
             _closing = false;
-            ClearTemporaryPage();
+            ClearTemporaryPages();
             Closed?.Invoke();
         }
     }
@@ -134,16 +134,41 @@ public sealed class TutorialDocumentView : MonoBehaviour
     /// </summary>
     public bool OpenWithTemporaryPage(GameObject pagePrefab)
     {
+        return OpenWithTemporaryPages(new[] { pagePrefab });
+    }
+
+    /// <summary>
+    /// Opens this document with pre-authored page prefabs in the supplied
+    /// order. The temporary pages are removed when the document closes and the
+    /// normal pages remain intact.
+    /// </summary>
+    public bool OpenWithTemporaryPages(IReadOnlyList<GameObject> pagePrefabs)
+    {
         Initialize();
-        if (IsOpen || pagePrefab == null || _contentRoot == null)
+        if (IsOpen || pagePrefabs == null || pagePrefabs.Count == 0 ||
+            _contentRoot == null)
         {
             return false;
         }
 
-        ClearTemporaryPage();
-        _temporaryPage = Instantiate(pagePrefab, _contentRoot, false);
-        _temporaryPage.name = pagePrefab.name;
-        OpenInternal(new[] { _temporaryPage });
+        for (int i = 0; i < pagePrefabs.Count; i++)
+        {
+            if (pagePrefabs[i] == null)
+            {
+                return false;
+            }
+        }
+
+        ClearTemporaryPages();
+        for (int i = 0; i < pagePrefabs.Count; i++)
+        {
+            GameObject pagePrefab = pagePrefabs[i];
+            GameObject temporaryPage = Instantiate(pagePrefab, _contentRoot, false);
+            temporaryPage.name = pagePrefab.name;
+            _temporaryPages.Add(temporaryPage);
+        }
+
+        OpenInternal(_temporaryPages);
         return IsOpen;
     }
 
@@ -234,7 +259,7 @@ public sealed class TutorialDocumentView : MonoBehaviour
         RestoreInventoryHud();
         IsOpen = false;
         _closing = false;
-        ClearTemporaryPage();
+        ClearTemporaryPages();
         Closed?.Invoke();
         gameObject.SetActive(false);
     }
@@ -383,14 +408,17 @@ public sealed class TutorialDocumentView : MonoBehaviour
             : HiddenPosition;
     }
 
-    private void ClearTemporaryPage()
+    private void ClearTemporaryPages()
     {
-        if (_temporaryPage != null)
+        for (int i = 0; i < _temporaryPages.Count; i++)
         {
-            Destroy(_temporaryPage);
-            _temporaryPage = null;
+            if (_temporaryPages[i] != null)
+            {
+                Destroy(_temporaryPages[i]);
+            }
         }
 
+        _temporaryPages.Clear();
         _activePages = _pages;
         SetPagesActive(_pages, false);
     }

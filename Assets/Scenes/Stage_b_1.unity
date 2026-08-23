@@ -9765,7 +9765,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c61b1bd1a57244f9cba143108ae41925, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StagePopulationManager
-  _definition: {fileID: 11400000, guid: aec72bcc1ecae462b83f726539e778d4, type: 2}
+  _definition: {fileID: 11400000, guid: 1db156ba12101824fa28b08e8008ff52, type: 2}
   _spawnAreas:
     _creatureAreas:
     - _min: {x: -19, y: 4}
