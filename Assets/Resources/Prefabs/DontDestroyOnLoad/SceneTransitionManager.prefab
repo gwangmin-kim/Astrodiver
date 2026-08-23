@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2202652777150247717}
   - component: {fileID: 4915007131652051269}
+  - component: {fileID: 4818832554619003123}
   m_Layer: 0
   m_Name: SceneTransitionManager
   m_TagString: Untagged
@@ -44,3 +45,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 80dfd61ff5c24353a83d7596919f7743, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SceneTransitionManager
+--- !u!114 &4818832554619003123
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1824113052539913122}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ab9fb654b8ee5f4097b549c021f8032, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::IrisSceneTransition
+  _closeDuration: 0.35
+  _openDuration: 0.45
+  _outsideColor: {r: 0, g: 0, b: 0, a: 1}
+  _edgeSoftness: 0.008

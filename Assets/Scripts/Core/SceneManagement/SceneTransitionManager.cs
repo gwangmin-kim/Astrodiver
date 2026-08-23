@@ -1,13 +1,16 @@
+using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class SceneTransitionManager : MonoBehaviour
+public sealed class SceneTransitionManager : MonoBehaviour
 {
     public static SceneTransitionManager Instance { get; private set; }
 
     private bool _isLoading;
     private bool _hasPendingHubSpawnPoint;
     private HubSpawnPoint _pendingHubSpawnPoint;
+    private IrisSceneTransition _irisTransition;
 
     private void Awake()
     {
@@ -19,27 +22,27 @@ public class SceneTransitionManager : MonoBehaviour
 
         Instance = this;
         DontDestroyOnLoad(gameObject);
-        SceneManager.sceneLoaded += HandleSceneLoaded;
+        _irisTransition = GetComponent<IrisSceneTransition>();
     }
 
     private void OnDestroy()
     {
         if (Instance == this)
         {
-            SceneManager.sceneLoaded -= HandleSceneLoaded;
             Instance = null;
         }
     }
 
     public void LoadScene(string sceneName)
     {
-        if (_isLoading || string.IsNullOrWhiteSpace(sceneName))
+        if (!CanLoadScene(sceneName))
         {
             return;
         }
 
-        _isLoading = true;
-        SceneManager.LoadSceneAsync(sceneName);
+        BeginLoad(
+            () => SceneManager.LoadSceneAsync(sceneName),
+            $"scene '{sceneName}'");
     }
 
     /// <summary>
@@ -47,15 +50,21 @@ public class SceneTransitionManager : MonoBehaviour
     /// </summary>
     public bool LoadHub(string sceneName, HubSpawnPoint spawnPoint)
     {
-        if (_isLoading || string.IsNullOrWhiteSpace(sceneName))
+        if (_isLoading || !CanLoadScene(sceneName))
         {
             return false;
         }
 
-        _isLoading = true;
+        bool started = BeginLoad(
+            () => SceneManager.LoadSceneAsync(sceneName),
+            $"Hub scene '{sceneName}'");
+        if (!started)
+        {
+            return false;
+        }
+
         _pendingHubSpawnPoint = spawnPoint;
         _hasPendingHubSpawnPoint = true;
-        SceneManager.LoadSceneAsync(sceneName);
         return true;
     }
 
@@ -76,18 +85,84 @@ public class SceneTransitionManager : MonoBehaviour
 
     public void LoadScene(int buildIndex)
     {
-        if (_isLoading || buildIndex < 0)
+        if (buildIndex < 0 || buildIndex >= SceneManager.sceneCountInBuildSettings)
         {
+            Debug.LogError($"Scene build index is out of range: {buildIndex}.", this);
             return;
         }
 
-        _isLoading = true;
-        SceneManager.LoadSceneAsync(buildIndex);
+        BeginLoad(
+            () => SceneManager.LoadSceneAsync(buildIndex),
+            $"build index {buildIndex}");
     }
 
-    private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
+    private bool BeginLoad(Func<AsyncOperation> loadOperationFactory, string destinationDescription)
     {
+        if (_isLoading)
+        {
+            return false;
+        }
+
+        if (_irisTransition == null || !_irisTransition.IsAvailable)
+        {
+            Debug.LogError(
+                "SceneTransitionManager requires an available IrisSceneTransition component.",
+                this);
+            return false;
+        }
+
+        _isLoading = true;
+        StartCoroutine(LoadSceneRoutine(loadOperationFactory, destinationDescription));
+        return true;
+    }
+
+    private IEnumerator LoadSceneRoutine(
+        Func<AsyncOperation> loadOperationFactory,
+        string destinationDescription)
+    {
+        yield return _irisTransition.Close();
+
+        AsyncOperation loadOperation = loadOperationFactory();
+        if (loadOperation == null)
+        {
+            Debug.LogError($"Could not start loading {destinationDescription}.", this);
+            yield return _irisTransition.Open();
+            _isLoading = false;
+            yield break;
+        }
+
+        loadOperation.allowSceneActivation = false;
+        while (loadOperation.progress < 0.9f)
+        {
+            yield return null;
+        }
+
+        loadOperation.allowSceneActivation = true;
+        while (!loadOperation.isDone)
+        {
+            yield return null;
+        }
+
+        // Let scene Awake/Start work and the new camera render once while still covered.
+        yield return null;
+        yield return _irisTransition.Open();
         _isLoading = false;
+    }
+
+    private bool CanLoadScene(string sceneName)
+    {
+        if (string.IsNullOrWhiteSpace(sceneName))
+        {
+            return false;
+        }
+
+        if (Application.CanStreamedLevelBeLoaded(sceneName))
+        {
+            return true;
+        }
+
+        Debug.LogError($"Scene cannot be loaded because it is not in Build Settings: {sceneName}.", this);
+        return false;
     }
 }
 

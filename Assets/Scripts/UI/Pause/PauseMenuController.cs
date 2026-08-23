@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 [DisallowMultipleComponent]
@@ -160,7 +159,9 @@ public sealed class PauseMenuController : MonoBehaviour
         }
         else
         {
-            SceneManager.LoadSceneAsync(_titleSceneName);
+            Debug.LogError(
+                "PauseMenuController: SceneTransitionManager is not available.",
+                this);
         }
     }
 
