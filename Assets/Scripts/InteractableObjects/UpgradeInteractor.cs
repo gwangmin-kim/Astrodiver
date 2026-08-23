@@ -7,6 +7,8 @@ public sealed class UpgradeInteractor : InteractableObject
     [SerializeField] private PlayerInputHandler _playerInput;
     [SerializeField] private UIInputHandler _uiInput;
     [SerializeField] private GameObject _inventoryHud;
+    [SerializeField] private TutorialDocumentView _stageUnlockReportDocument;
+    [SerializeField] private StageUnlockReportPageEntry[] _stageUnlockReportPages;
 
     private bool _panelWasOpen;
     private bool _inputStateCaptured;
@@ -14,6 +16,7 @@ public sealed class UpgradeInteractor : InteractableObject
     private bool _uiInputWasEnabled;
     private bool _inventoryHudStateCaptured;
     private bool _inventoryHudWasActive;
+    private StageUnlockReportFlow _stageUnlockReportFlow;
 
     private void Awake()
     {
@@ -32,10 +35,16 @@ public sealed class UpgradeInteractor : InteractableObject
             InventoryHudUI inventoryHud = FindAnyObjectByType<InventoryHudUI>();
             _inventoryHud = inventoryHud != null ? inventoryHud.gameObject : null;
         }
+
+        _stageUnlockReportFlow = new StageUnlockReportFlow(
+            _upgradeTreeUI,
+            _stageUnlockReportDocument,
+            _stageUnlockReportPages);
     }
 
     private void OnEnable()
     {
+        _stageUnlockReportFlow?.Enable();
         if (_uiInput != null)
         {
             _uiInput.CancelPressed += HandleCancelPressed;
@@ -51,6 +60,7 @@ public sealed class UpgradeInteractor : InteractableObject
 
     private void OnDisable()
     {
+        _stageUnlockReportFlow?.Dispose();
         if (_uiInput != null)
         {
             _uiInput.CancelPressed -= HandleCancelPressed;
@@ -74,6 +84,12 @@ public sealed class UpgradeInteractor : InteractableObject
 
     private void HandleCancelPressed()
     {
+        if (_stageUnlockReportFlow != null && _stageUnlockReportFlow.IsActive)
+        {
+            _stageUnlockReportDocument?.Close();
+            return;
+        }
+
         if (_upgradeTreeUI == null)
         {
             return;
@@ -86,12 +102,15 @@ public sealed class UpgradeInteractor : InteractableObject
     private void SyncWithPanelState()
     {
         bool isOpen = _upgradeTreeUI != null && _upgradeTreeUI.gameObject.activeSelf;
+        bool reportIsOpen = _stageUnlockReportFlow != null &&
+                            _stageUnlockReportFlow.IsActive;
+        bool holdsInteractionState = isOpen || reportIsOpen;
 
-        if (isOpen != _panelWasOpen)
+        if (holdsInteractionState != _panelWasOpen)
         {
-            _panelWasOpen = isOpen;
+            _panelWasOpen = holdsInteractionState;
 
-            if (isOpen)
+            if (holdsInteractionState)
             {
                 CaptureAndApplyInputState();
             }
@@ -103,7 +122,7 @@ public sealed class UpgradeInteractor : InteractableObject
 
         // UIInputHandler.Start can run after this component's OnEnable.
         // Keep the required maps in the correct state without pausing the scene.
-        if (isOpen)
+        if (holdsInteractionState)
         {
             if (_playerInput != null && _playerInput.InputEnabled)
             {

@@ -8,6 +8,7 @@ using UnityEngine;
 public sealed class WhiteboardTutorialInteractable : InteractableObject
 {
     [SerializeField] private TutorialDocumentView _tutorialDocument;
+    [SerializeField] private GameObject _tutorialPagePrefab;
 
     public override bool IsAvaiableBeforeFirstEvent => true;
 
@@ -18,7 +19,14 @@ public sealed class WhiteboardTutorialInteractable : InteractableObject
 
     public override void Interact()
     {
-        _tutorialDocument?.Open();
+        if (_tutorialPagePrefab != null)
+        {
+            _tutorialDocument?.OpenWithTemporaryPage(_tutorialPagePrefab);
+        }
+        else
+        {
+            _tutorialDocument?.Open();
+        }
 
         GameDataManager gameData = GameDataManager.Instance;
         if (gameData != null && gameData.CompleteEvent(GameProgressEventId.ReadLetter))

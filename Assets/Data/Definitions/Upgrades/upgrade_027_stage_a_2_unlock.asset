@@ -15,9 +15,10 @@ MonoBehaviour:
   _id: upgrade.stage_a_2_unlock
   _key: stage_a_2_unlock
   _sortOrder: 27
-  _displayName: "\uD56D\uB85C \uD574\uAE08 I"
-  _description: "\uB450 \uBC88\uC9F8 \uC6B0\uC8FC \uAD6C\uC5ED\uC744 \uD0D0\uD5D8\uD560
-    \uC218 \uC788\uAC8C \uB429\uB2C8\uB2E4."
+  _displayName: "\uD56D\uB85C \uAC1C\uCC99 I"
+  _description: "\uC9C0\uAE08\uAE4C\uC9C0 \uBAA8\uC740 \uC790\uC6D0 \uC0D8\uD50C\uC744
+    \uC9C0\uAD6C\uB85C \uBCF4\uB0B4\uC8FC\uACE0, \uB2E4\uC74C \uC9C0\uC5ED\uC73C\uB85C
+    \uB098\uC544\uAC11\uB2C8\uB2E4."
   _icon: {fileID: 21300000, guid: 9e4fdb5b5485c184681de9bd01ce7f59, type: 3}
   _parent: {fileID: 11400000, guid: 113959368ffda2f48bc3ded1f6a8c16e, type: 2}
   _maxLevel: 1

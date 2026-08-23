@@ -18,6 +18,6 @@ MonoBehaviour:
   _text: "\uC138\uACF5\uC18C\uC5D0\uC11C \uC2AC\uB77C\uC784\uC73C\uB85C\uBD80\uD130
     \uC790\uC6D0\uC744 \uC5BB\uC5B4\uBCF4\uC138\uC694."
   _requireNoCompletedEvents: 0
-  _requiredCompletedEvents: f0030000
+  _requiredCompletedEvents: f0030000ef030000
   _forbiddenCompletedEvents: 
   _completionEvent: 1009
