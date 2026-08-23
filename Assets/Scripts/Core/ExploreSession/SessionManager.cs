@@ -20,6 +20,7 @@ public class SessionManager : MonoBehaviour
     [SerializeField] private Button _retryButton;
 
     private bool _sessionStarted;
+    private GameObject _timeoutInventoryLossMessage;
 
     public bool IsSessionFinished { get; private set; }
     public PlayerContext SpawnedPlayer { get; private set; }
@@ -41,7 +42,14 @@ public class SessionManager : MonoBehaviour
                 GameProgressEventId.ExploreFirstTime);
         }
 
+        _timeoutInventoryLossMessage = _sessionEndPanel.transform
+            .Find("Dialog/Timeout Inventory Loss Message")?.gameObject;
+
         _sessionEndPanel.SetActive(false);
+        if (_timeoutInventoryLossMessage != null)
+        {
+            _timeoutInventoryLossMessage.SetActive(false);
+        }
 
         _returnButton.onClick.AddListener(ReturnToHub);
         _retryButton.onClick.AddListener(RetryExploration);
@@ -155,6 +163,11 @@ public class SessionManager : MonoBehaviour
         {
             GameDataManager.Instance?.CompleteEventAndSave(
                 GameProgressEventId.ReturnSafely);
+        }
+
+        if (_timeoutInventoryLossMessage != null)
+        {
+            _timeoutInventoryLossMessage.SetActive(isTimeout);
         }
 
         Time.timeScale = 0f;
