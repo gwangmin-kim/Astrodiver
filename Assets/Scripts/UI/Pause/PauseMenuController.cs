@@ -56,7 +56,11 @@ public sealed class PauseMenuController : MonoBehaviour
     private void Start()
     {
         _uiInput = FindAnyObjectByType<UIInputHandler>();
-        _playerInput.CancelPressed += HandleCancelPressed;
+        _playerInput.CancelPressed += HandleGameplayCancelPressed;
+        if (_uiInput != null)
+        {
+            _uiInput.CancelPressed += HandleUiCancelPressed;
+        }
 
         _continueButton.onClick.AddListener(Resume);
         _exitButton.onClick.AddListener(ExitToTitle);
@@ -66,7 +70,12 @@ public sealed class PauseMenuController : MonoBehaviour
     {
         if (_playerInput != null)
         {
-            _playerInput.CancelPressed -= HandleCancelPressed;
+            _playerInput.CancelPressed -= HandleGameplayCancelPressed;
+        }
+
+        if (_uiInput != null)
+        {
+            _uiInput.CancelPressed -= HandleUiCancelPressed;
         }
 
         if (_continueButton != null)
@@ -85,16 +94,10 @@ public sealed class PauseMenuController : MonoBehaviour
         }
     }
 
-    private void HandleCancelPressed()
+    private void HandleGameplayCancelPressed()
     {
-        if (_isLeaving)
+        if (_isLeaving || _isPaused)
         {
-            return;
-        }
-
-        if (_isPaused)
-        {
-            Resume();
             return;
         }
 
@@ -109,6 +112,16 @@ public sealed class PauseMenuController : MonoBehaviour
         }
 
         Pause();
+    }
+
+    private void HandleUiCancelPressed()
+    {
+        if (!_isPaused || _isLeaving)
+        {
+            return;
+        }
+
+        Resume();
     }
 
     public void Pause()

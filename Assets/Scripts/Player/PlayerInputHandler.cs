@@ -105,7 +105,6 @@ public class PlayerInputHandler : MonoBehaviour
         else
         {
             map.Disable();
-            _cancelAction?.Enable();
         }
     }
 
