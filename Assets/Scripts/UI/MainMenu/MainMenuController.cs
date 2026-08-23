@@ -6,10 +6,15 @@ public sealed class MainMenuController : MonoBehaviour
 {
     [Header("Scene")]
     [SerializeField] private string _hubSceneName = "Hub";
+    [SerializeField] private string _endGameSceneName = "Stage_ex";
+
+    [Header("End Game Mode")]
+    [SerializeField] private GameDataDefaults _endGameDefaults;
 
     [Header("Buttons")]
     [SerializeField] private Button _newGameButton;
     [SerializeField] private Button _continueButton;
+    [SerializeField] private Button _endGameModeButton;
     [SerializeField] private Button _quitButton;
 
     [Header("Labels")]
@@ -30,6 +35,7 @@ public sealed class MainMenuController : MonoBehaviour
     {
         _newGameButton.onClick.AddListener(StartNewGame);
         _continueButton.onClick.AddListener(ContinueGame);
+        _endGameModeButton.onClick.AddListener(StartEndGameMode);
         _quitButton.onClick.AddListener(RequestQuit);
         RefreshContinueState();
     }
@@ -38,6 +44,7 @@ public sealed class MainMenuController : MonoBehaviour
     {
         _newGameButton.onClick.RemoveListener(StartNewGame);
         _continueButton.onClick.RemoveListener(ContinueGame);
+        _endGameModeButton.onClick.RemoveListener(StartEndGameMode);
         _quitButton.onClick.RemoveListener(RequestQuit);
     }
 
@@ -76,6 +83,27 @@ public sealed class MainMenuController : MonoBehaviour
         if (!LoadHub())
         {
             HandleGameStartFailure("load the Hub scene", "SceneTransitionManager is not available.");
+        }
+    }
+
+    private void StartEndGameMode()
+    {
+        if (!TryBeginGameStart(out GameDataManager manager))
+        {
+            return;
+        }
+
+        if (!manager.TryStartEndGameMode(_endGameDefaults, out string error))
+        {
+            HandleGameStartFailure("start end-game mode", error);
+            return;
+        }
+
+        if (!LoadEndGameScene())
+        {
+            HandleGameStartFailure(
+                "load the Stage_ex scene",
+                "SceneTransitionManager is not available.");
         }
     }
 
@@ -136,6 +164,7 @@ public sealed class MainMenuController : MonoBehaviour
         CancelQuitConfirmation();
         _newGameButton.interactable = false;
         _continueButton.interactable = false;
+        _endGameModeButton.interactable = false;
         _quitButton.interactable = false;
         return true;
     }
@@ -145,6 +174,7 @@ public sealed class MainMenuController : MonoBehaviour
         Debug.LogError($"MainMenuController: Could not {operation}. {error}", this);
         _isStartingGame = false;
         _newGameButton.interactable = true;
+        _endGameModeButton.interactable = true;
         _quitButton.interactable = true;
         RefreshContinueState();
     }
@@ -159,5 +189,17 @@ public sealed class MainMenuController : MonoBehaviour
         return SceneTransitionManager.Instance.LoadHub(
             _hubSceneName,
             HubSpawnPoint.Start);
+    }
+
+    private bool LoadEndGameScene()
+    {
+        if (SceneTransitionManager.Instance == null ||
+            string.IsNullOrWhiteSpace(_endGameSceneName))
+        {
+            return false;
+        }
+
+        SceneTransitionManager.Instance.LoadScene(_endGameSceneName);
+        return true;
     }
 }

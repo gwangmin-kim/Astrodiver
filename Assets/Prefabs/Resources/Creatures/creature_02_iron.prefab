@@ -80,7 +80,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 2017737355
-  m_SortingLayer: 0
+  m_SortingLayer: 2
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: 5b22cdad9a71f504eae69ceb0b42157f, type: 3}
@@ -124,7 +124,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.5, y: 1.5, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3267588586958524977}
@@ -197,9 +197,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BasicCreatureBrain
   _minimumStateDuration: 1.5
   _maximumStateDuration: 3
-  _tryEscapeDuration: 3
   _initialState: 0
-  _creatureController: {fileID: 0}
 --- !u!114 &8465724476418650927
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -212,8 +210,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eaa8a61fc3e1fa74c8dafa188b7a7a2c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CreatureMotionController
-  _brain: {fileID: 0}
-  _creatureController: {fileID: 0}
+  _brain: {fileID: 1521376237189619736}
+  _creatureController: {fileID: 1782572583280949625}
   _moveSpeed: 1
   _chaseSpeed: 1.2
   _runawaySpeed: 1.4
@@ -222,7 +220,7 @@ MonoBehaviour:
   _capturedNetFollowRatio: 0.5
   _capturedRepulsionPadding: 0.1
   _capturedRepulsionSpeed: 2
-  _rootVisualTransform: {fileID: 0}
+  _rootVisualTransform: {fileID: 3267588586958524977}
   _baseFacingDirection: 1
 --- !u!1 &5752819879080036933
 GameObject:
@@ -302,7 +300,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 2017737355
-  m_SortingLayer: 0
+  m_SortingLayer: 2
   m_SortingOrder: 1
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: 813320a91e6ab554db97e5cf52a3b025, type: 3}
@@ -394,7 +392,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 2017737355
-  m_SortingLayer: 0
+  m_SortingLayer: 2
   m_SortingOrder: 1
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: c22a1a3ab9a1f294eb13e98ab530ca60, type: 3}

@@ -255,12 +255,20 @@ public sealed class StagePopulationManager : MonoBehaviour
         IReadOnlyList<StageSpawnRect> areas,
         Transform runtimeRoot)
     {
-        int guaranteedCount = StageSpawnPlanner.SampleGuaranteedCount(
-            population.MaxCount,
+        int missingCount = population.MaxCount - GetAliveCount(category);
+        if (missingCount <= 0)
+        {
+            return;
+        }
+
+        // Roll once per vacant slot. Sampling a target population from the
+        // maximum count would make a low respawn probability cap the entire
+        // population at that percentage instead of restoring removed objects.
+        int respawnCount = StageSpawnPlanner.SampleGuaranteedCount(
+            missingCount,
             population.RespawnProbability,
             _random);
-        int deficit = guaranteedCount - GetAliveCount(category);
-        if (deficit <= 0)
+        if (respawnCount <= 0)
         {
             return;
         }
@@ -271,7 +279,7 @@ public sealed class StagePopulationManager : MonoBehaviour
             category,
             areas,
             runtimeRoot,
-            deficit);
+            respawnCount);
     }
 
     private void SpawnBatch(

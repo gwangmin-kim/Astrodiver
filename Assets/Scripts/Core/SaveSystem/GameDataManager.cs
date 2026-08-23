@@ -15,6 +15,10 @@ public class GameDataManager : MonoBehaviour
 
     private bool _isDirty;
     private bool _isSaveSuspended;
+    private GameDataDefaults _activeDefaults;
+    private bool _applyUpgradeEffects = true;
+    private GameDataPersistenceMode _persistenceMode =
+        GameDataPersistenceMode.Persistent;
 
     private sealed class PreparedGameData
     {
@@ -30,6 +34,8 @@ public class GameDataManager : MonoBehaviour
     public bool IsInitialized => SaveData != null && RuntimeData != null;
     public bool HasUnsavedChanges => _isDirty;
     public bool IsSaveSuspended => _isSaveSuspended;
+    public bool IsMemoryOnlySession =>
+        _persistenceMode == GameDataPersistenceMode.MemoryOnly;
     public string SaveFilePath => System.IO.Path.Combine(
         Application.persistentDataPath,
         SaveFileName);
@@ -64,6 +70,7 @@ public class GameDataManager : MonoBehaviour
 
         Definitions = new GameDefinitionRegistry(_definitionCatalog);
         Upgrades = new UpgradeService(this);
+        _activeDefaults = _defaults;
 
 #if UNITY_EDITOR
         InitializeForEditorScenePlay();
@@ -93,6 +100,8 @@ public class GameDataManager : MonoBehaviour
         GameSaveData defaultData = _defaults.CreateSaveData();
         if (!TryPrepareData(
                 defaultData,
+                _defaults,
+                true,
                 out PreparedGameData prepared,
                 out string prepareError))
         {
@@ -102,7 +111,13 @@ public class GameDataManager : MonoBehaviour
             return;
         }
 
-        CommitPreparedData(prepared, false, false);
+        CommitPreparedData(
+            prepared,
+            false,
+            false,
+            _defaults,
+            true,
+            GameDataPersistenceMode.Persistent);
     }
 #endif
 
@@ -115,7 +130,12 @@ public class GameDataManager : MonoBehaviour
 
         GameSaveData candidate = _defaults.CreateSaveData();
 
-        if (!TryPrepareData(candidate, out PreparedGameData prepared, out error))
+        if (!TryPrepareData(
+                candidate,
+                _defaults,
+                true,
+                out PreparedGameData prepared,
+                out error))
         {
             return false;
         }
@@ -125,7 +145,13 @@ public class GameDataManager : MonoBehaviour
             return false;
         }
 
-        CommitPreparedData(prepared, false, true);
+        CommitPreparedData(
+            prepared,
+            false,
+            true,
+            _defaults,
+            true,
+            GameDataPersistenceMode.Persistent);
         error = null;
         return true;
     }
@@ -145,12 +171,64 @@ public class GameDataManager : MonoBehaviour
             return false;
         }
 
-        if (!TryPrepareData(loadedData, out PreparedGameData prepared, out error))
+        if (!TryPrepareData(
+                loadedData,
+                _defaults,
+                true,
+                out PreparedGameData prepared,
+                out error))
         {
             return false;
         }
 
-        CommitPreparedData(prepared, prepared.hasDerivedChanges, true);
+        CommitPreparedData(
+            prepared,
+            prepared.hasDerivedChanges,
+            true,
+            _defaults,
+            true,
+            GameDataPersistenceMode.Persistent);
+        error = null;
+        return true;
+    }
+
+    /// <summary>
+    /// Creates an isolated, in-memory session from an authored defaults asset.
+    /// This path never reads or writes the player's save file.
+    /// </summary>
+    public bool TryStartEndGameMode(
+        GameDataDefaults endGameDefaults,
+        out string error)
+    {
+        if (!CanInitializeGameData(out error))
+        {
+            return false;
+        }
+
+        if (endGameDefaults == null)
+        {
+            error = "End-game defaults are not assigned.";
+            return false;
+        }
+
+        GameSaveData candidate = endGameDefaults.CreateSaveData();
+        if (!TryPrepareData(
+                candidate,
+                endGameDefaults,
+                false,
+                out PreparedGameData prepared,
+                out error))
+        {
+            return false;
+        }
+
+        CommitPreparedData(
+            prepared,
+            false,
+            true,
+            endGameDefaults,
+            false,
+            GameDataPersistenceMode.MemoryOnly);
         error = null;
         return true;
     }
@@ -217,6 +295,12 @@ public class GameDataManager : MonoBehaviour
         if (SaveData == null)
         {
             return false;
+        }
+
+        if (IsMemoryOnlySession)
+        {
+            _isDirty = false;
+            return true;
         }
 
         if (!GameDataFileStore.TrySave(SaveFilePath, SaveData, out string error))
@@ -394,18 +478,34 @@ public class GameDataManager : MonoBehaviour
 
     private void ReplaceData(GameSaveData data)
     {
-        if (!TryPrepareData(data ?? new GameSaveData(), out PreparedGameData prepared, out string error))
+        if (!TryPrepareData(
+                data ?? new GameSaveData(),
+                _activeDefaults ?? _defaults,
+                _applyUpgradeEffects,
+                out PreparedGameData prepared,
+                out string error))
         {
             Debug.LogError($"Could not rebuild runtime stats. {error}", this);
             return;
         }
 
-        CommitPreparedData(prepared, _isDirty, false);
+        CommitPreparedData(
+            prepared,
+            _isDirty,
+            false,
+            _activeDefaults ?? _defaults,
+            _applyUpgradeEffects,
+            _persistenceMode);
     }
 
     internal bool RebuildRuntimeData(out string error)
     {
-        if (!TryPrepareData(SaveData, out PreparedGameData prepared, out error))
+        if (!TryPrepareData(
+                SaveData,
+                _activeDefaults ?? _defaults,
+                _applyUpgradeEffects,
+                out PreparedGameData prepared,
+                out error))
         {
             return false;
         }
@@ -421,6 +521,8 @@ public class GameDataManager : MonoBehaviour
     /// </summary>
     private bool TryPrepareData(
         GameSaveData data,
+        GameDataDefaults defaults,
+        bool applyUpgradeEffects,
         out PreparedGameData prepared,
         out string error)
     {
@@ -431,7 +533,7 @@ public class GameDataManager : MonoBehaviour
             return false;
         }
 
-        if (_defaults == null || _definitionCatalog == null)
+        if (defaults == null || _definitionCatalog == null)
         {
             error = "Game runtime data sources are not configured.";
             return false;
@@ -444,48 +546,49 @@ public class GameDataManager : MonoBehaviour
             return false;
         }
 
-        GameRuntimeData rebuiltRuntimeData = _defaults.CreateRuntimeData();
+        GameRuntimeData rebuiltRuntimeData = defaults.CreateRuntimeData();
 
         bool hasDerivedChanges = false;
-
-        UpgradeEffectContext effectContext = new(rebuiltRuntimeData);
-
-        for (int definitionIndex = 0;
-             definitionIndex < _definitionCatalog.Upgrades.Count;
-             definitionIndex++)
+        if (applyUpgradeEffects)
         {
-            UpgradeNodeDefinition node = _definitionCatalog.Upgrades[definitionIndex];
-            if (node == null)
+            UpgradeEffectContext effectContext = new(rebuiltRuntimeData);
+            for (int definitionIndex = 0;
+                 definitionIndex < _definitionCatalog.Upgrades.Count;
+                 definitionIndex++)
             {
-                continue;
-            }
-
-            int savedLevel = GetUpgradeLevel(data, node.Id);
-            int appliedLevel = Mathf.Min(savedLevel, node.MaxLevel);
-            if (savedLevel > node.MaxLevel)
-            {
-                Debug.LogWarning(
-                    $"Saved level {savedLevel} for upgrade '{node.Id}' exceeds its current " +
-                    $"maximum level {node.MaxLevel}. Only {appliedLevel} levels will be applied.",
-                    node);
-            }
-
-            for (int level = 0; level < appliedLevel; level++)
-            {
-                for (int effectIndex = 0; effectIndex < node.Effects.Count; effectIndex++)
+                UpgradeNodeDefinition node = _definitionCatalog.Upgrades[definitionIndex];
+                if (node == null)
                 {
-                    UpgradeEffect effect = node.Effects[effectIndex];
-                    string effectError = null;
-                    if (effect != null &&
-                        effect.TryApply(effectContext, out effectError))
-                    {
-                        continue;
-                    }
+                    continue;
+                }
 
-                    error = effect != null
-                        ? $"Upgrade '{node.Id}' effect {effectIndex} failed: {effectError}"
-                        : $"Upgrade '{node.Id}' effect {effectIndex} is null.";
-                    return false;
+                int savedLevel = GetUpgradeLevel(data, node.Id);
+                int appliedLevel = Mathf.Min(savedLevel, node.MaxLevel);
+                if (savedLevel > node.MaxLevel)
+                {
+                    Debug.LogWarning(
+                        $"Saved level {savedLevel} for upgrade '{node.Id}' exceeds its current " +
+                        $"maximum level {node.MaxLevel}. Only {appliedLevel} levels will be applied.",
+                        node);
+                }
+
+                for (int level = 0; level < appliedLevel; level++)
+                {
+                    for (int effectIndex = 0; effectIndex < node.Effects.Count; effectIndex++)
+                    {
+                        UpgradeEffect effect = node.Effects[effectIndex];
+                        string effectError = null;
+                        if (effect != null &&
+                            effect.TryApply(effectContext, out effectError))
+                        {
+                            continue;
+                        }
+
+                        error = effect != null
+                            ? $"Upgrade '{node.Id}' effect {effectIndex} failed: {effectError}"
+                            : $"Upgrade '{node.Id}' effect {effectIndex} is null.";
+                        return false;
+                    }
                 }
             }
         }
@@ -518,10 +621,16 @@ public class GameDataManager : MonoBehaviour
     private void CommitPreparedData(
         PreparedGameData prepared,
         bool isDirty,
-        bool notifyLoaded)
+        bool notifyLoaded,
+        GameDataDefaults activeDefaults,
+        bool applyUpgradeEffects,
+        GameDataPersistenceMode persistenceMode)
     {
         SaveData = prepared.saveData;
         RuntimeData = prepared.runtimeData;
+        _activeDefaults = activeDefaults;
+        _applyUpgradeEffects = applyUpgradeEffects;
+        _persistenceMode = persistenceMode;
         _isSaveSuspended = false;
         _isDirty = isDirty;
 

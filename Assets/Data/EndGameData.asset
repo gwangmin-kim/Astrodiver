@@ -1,0 +1,89 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26d44a3ef31ec9242a6dcc6ccb1daed1, type: 3}
+  m_Name: EndGameData
+  m_EditorClassIdentifier: Assembly-CSharp::GameDataDefaults
+  _data:
+    schemaVersion: 12
+    inventory:
+      _creatures: []
+      _resourceAmounts: []
+    resourceChest:
+      _creatures: []
+      _resourceAmounts: []
+    worktable:
+      _inventory:
+        _creatures: []
+        _resourceAmounts: []
+      _processingCreatureId: 
+      _remainingBaseProcessSeconds: 0
+    upgradeNodes: []
+    unlockedUpgradeIds: []
+    completedEvents: 
+  _playerStats:
+    movement:
+      baseMoveSpeed: 10
+      moveSpeedRatio: 1
+      moveDampingTime: 0.3
+      stopDampingTime: 0.8
+    battery:
+      amount: 9999
+    magnet:
+      radius: 99
+      radiusRatio: 1
+      pullSpeedRange: {x: 1, y: 10}
+      collectRadius: 0.5
+  _equipment:
+    netGun:
+      isUnlocked: 1
+      ammoCapacity: 999
+      netData:
+        captureCount: 99
+        spreadDuration: 0.2
+        foldDuration: 0.1
+        radius: 4
+        radiusRatio: 1
+      netCount: 1
+      baseShootSpeed: 10
+      shootSpeedRatio: 1
+      baseShootRange: 15
+      shootRangeRatio: 1
+      baseChargeTime: 1
+      chargeTimeRatio: 1
+      baseCollectSpeed: 20
+      collectSpeedRatio: 1
+    plasmaGun:
+      ammoCapacity: 9999
+      baseChargeTime: 0.1
+      chargeSpeedMultiplier: 1
+      chargedRetentionTime: 0.5
+      tickDamage: 999
+      tickInterval: 0.2
+      tickSpeedMultiplier: 1
+      baseAttackRange: 15
+      attackRangeRatio: 1
+      chainCount: 6
+      chainedDamageRate: 1.2
+      chainedDamageRateRatio: 1
+      baseChainRange: 10
+      chainRangeRatio: 1
+  _inventory:
+    _creatureSlotCapacity: 8
+    _creatureMaxStackCount: 99
+    _timeoutInventoryLossRatio: 0
+  _facilities:
+    _resourceChestUnlocked: 0
+    _worktableUnlocked: 0
+    _worktableSlotCapacity: 8
+    _worktableTransferSpeedMultiplier: 1
+    _worktableProcessSpeedMultiplier: 1
+    _worktableYieldMultiplier: 1

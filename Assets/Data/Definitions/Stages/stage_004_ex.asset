@@ -1,0 +1,72 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 54d486b5f6d4f48c6817230749450c9b, type: 3}
+  m_Name: stage_004_ex
+  m_EditorClassIdentifier: Assembly-CSharp::StageDefinition
+  _id: stage.ex
+  _key: ex
+  _sortOrder: 4
+  _spaceBackgroundProfile: {fileID: 0}
+  _respawnIntervalSeconds: 1
+  _creatures:
+    _maxCount: 100
+    _respawnProbability: 1
+    _entries:
+    - _entryId: creature_stone
+      _prefab: {fileID: 508475945939948788, guid: f5efb60079e5dcf47844a132d8f43fd4, type: 3}
+      _spawnWeight: 1
+    - _entryId: creature_iron
+      _prefab: {fileID: 508475945939948788, guid: 9563da9c3dc297545830e288e3b4b4d6, type: 3}
+      _spawnWeight: 1
+    - _entryId: creature_obsidian
+      _prefab: {fileID: 508475945939948788, guid: 9bb40bf1bf93eed458798636b84d8e66, type: 3}
+      _spawnWeight: 1
+    - _entryId: creature_crystal
+      _prefab: {fileID: 508475945939948788, guid: 8d508f12c1e8eb74abcf1c0b2d5bd0d1, type: 3}
+      _spawnWeight: 1
+    - _entryId: creature_fire
+      _prefab: {fileID: 508475945939948788, guid: 07307fb44784ea248b8773c34ef1b86a, type: 3}
+      _spawnWeight: 1
+    - _entryId: creature_water
+      _prefab: {fileID: 508475945939948788, guid: 9f458a516b1cae44bb184b084700c9ae, type: 3}
+      _spawnWeight: 1
+    - _entryId: creature_methane
+      _prefab: {fileID: 508475945939948788, guid: 408432be6dbbcc6428126b2e1dde071b, type: 3}
+      _spawnWeight: 1
+    - _entryId: creature_radioactive
+      _prefab: {fileID: 508475945939948788, guid: 1ee4c94004b670d4f9e561391cd30996, type: 3}
+      _spawnWeight: 1
+  _resourceFloatages:
+    _maxCount: 100
+    _respawnProbability: 1
+    _entries:
+    - _entryId: floatage_stone
+      _prefab: {fileID: 5706660221163112332, guid: 031d5af0176d3c7469ea5f9a2cdd2d67, type: 3}
+      _spawnWeight: 1
+    - _entryId: floatage_iron
+      _prefab: {fileID: 5706660221163112332, guid: 46d8ce96a3f14bb488022e995fdad657, type: 3}
+      _spawnWeight: 1
+    - _entryId: floatage_obsidian
+      _prefab: {fileID: 5706660221163112332, guid: 2cc6d0642ef1d644994259525ece629e, type: 3}
+      _spawnWeight: 1
+    - _entryId: floatage_crystal
+      _prefab: {fileID: 5706660221163112332, guid: 10183a139297b1145a99b7de721928eb, type: 3}
+      _spawnWeight: 1
+    - _entryId: floatage_fire
+      _prefab: {fileID: 5706660221163112332, guid: 23e1057603236484696020bbdd087029, type: 3}
+      _spawnWeight: 1
+    - _entryId: floatage_water
+      _prefab: {fileID: 5706660221163112332, guid: c3686cde44f67af4f91fd07de4b98ee4, type: 3}
+      _spawnWeight: 1
+    - _entryId: floatage_methane
+      _prefab: {fileID: 5706660221163112332, guid: 57119312883db4543b2d2c5b1bbf0ff0, type: 3}
+      _spawnWeight: 1
