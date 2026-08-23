@@ -106,6 +106,7 @@ GameObject:
   - component: {fileID: 3620961694982501985}
   - component: {fileID: 8441416412723253797}
   - component: {fileID: 5392692110117105825}
+  - component: {fileID: 5152724681890285124}
   m_Layer: 6
   m_Name: creature_05_fire
   m_TagString: Untagged
@@ -221,6 +222,20 @@ MonoBehaviour:
   _capturedRepulsionSpeed: 2
   _rootVisualTransform: {fileID: 3267588586958524977}
   _baseFacingDirection: -1
+--- !u!114 &5152724681890285124
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 508475945939948788}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6027c1b672be2c4786be9db4cefc39a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CreatureSpawnAnimation
+  _duration: 0.5
+  _ease: 30
 --- !u!1 &5752819879080036933
 GameObject:
   m_ObjectHideFlags: 0
