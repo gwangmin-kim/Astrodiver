@@ -176,7 +176,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC885\uACB0 \uBAA8\uB4DC"
+  m_text: "\uBCF4\uB108\uC2A4 \uBAA8\uB4DC"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 741e8ae3b12d8634ca8c1a5cb5d90c44, type: 2}
   m_sharedMaterial: {fileID: 599501575}
@@ -187,8 +187,8 @@ MonoBehaviour:
   - {fileID: 599501575}
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4278190335
-  m_fontColor: {r: 1, g: 0, b: 0, a: 1}
+    rgba: 4278255615
+  m_fontColor: {r: 1, g: 1, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
