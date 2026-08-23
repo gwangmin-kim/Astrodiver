@@ -12311,6 +12311,10 @@ PrefabInstance:
       propertyPath: _tutorialDocument
       value: 
       objectReference: {fileID: 821829569}
+    - target: {fileID: 2826458092178575707, guid: ad7579b03770e054eb6e6204b34fd569, type: 3}
+      propertyPath: _tutorialPagePrefab
+      value:
+      objectReference: {fileID: 7276752106424200401, guid: 51a27e00e6164b3cbdbbcd5d465cb69e, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -12575,6 +12579,54 @@ PrefabInstance:
       propertyPath: _upgradeTreeUI
       value: 
       objectReference: {fileID: 1029504458}
+    - target: {fileID: 5695373426462791988, guid: ba0abd27385546d4fb6fea50dfb140a4, type: 3}
+      propertyPath: _stageUnlockReportDocument
+      value:
+      objectReference: {fileID: 821829569}
+    - target: {fileID: 5695373426462791988, guid: ba0abd27385546d4fb6fea50dfb140a4, type: 3}
+      propertyPath: _stageUnlockReportPages.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 5695373426462791988, guid: ba0abd27385546d4fb6fea50dfb140a4, type: 3}
+      propertyPath: _stageUnlockReportPages.Array.data[0]._upgradeId
+      value: upgrade.stage_a_2_unlock
+      objectReference: {fileID: 0}
+    - target: {fileID: 5695373426462791988, guid: ba0abd27385546d4fb6fea50dfb140a4, type: 3}
+      propertyPath: _stageUnlockReportPages.Array.data[0]._pagePrefabs.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5695373426462791988, guid: ba0abd27385546d4fb6fea50dfb140a4, type: 3}
+      propertyPath: _stageUnlockReportPages.Array.data[0]._pagePrefabs.Array.data[0]
+      value:
+      objectReference: {fileID: 7276752106424200101, guid: b24916f68d70417d94729f6c34124e0a, type: 3}
+    - target: {fileID: 5695373426462791988, guid: ba0abd27385546d4fb6fea50dfb140a4, type: 3}
+      propertyPath: _stageUnlockReportPages.Array.data[1]._upgradeId
+      value: upgrade.stage_a_3_unlock
+      objectReference: {fileID: 0}
+    - target: {fileID: 5695373426462791988, guid: ba0abd27385546d4fb6fea50dfb140a4, type: 3}
+      propertyPath: _stageUnlockReportPages.Array.data[1]._pagePrefabs.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5695373426462791988, guid: ba0abd27385546d4fb6fea50dfb140a4, type: 3}
+      propertyPath: _stageUnlockReportPages.Array.data[1]._pagePrefabs.Array.data[0]
+      value:
+      objectReference: {fileID: 7276752106424200201, guid: ee6c34f1f09c4c0b83fd1efc9524b8f2, type: 3}
+    - target: {fileID: 5695373426462791988, guid: ba0abd27385546d4fb6fea50dfb140a4, type: 3}
+      propertyPath: _stageUnlockReportPages.Array.data[2]._upgradeId
+      value: upgrade.stage_b_1_unlock
+      objectReference: {fileID: 0}
+    - target: {fileID: 5695373426462791988, guid: ba0abd27385546d4fb6fea50dfb140a4, type: 3}
+      propertyPath: _stageUnlockReportPages.Array.data[2]._pagePrefabs.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5695373426462791988, guid: ba0abd27385546d4fb6fea50dfb140a4, type: 3}
+      propertyPath: _stageUnlockReportPages.Array.data[2]._pagePrefabs.Array.data[0]
+      value:
+      objectReference: {fileID: 7276752106424200301, guid: f7bdbab862e546bf8a5f57f687b94d2d, type: 3}
+    - target: {fileID: 5695373426462791988, guid: ba0abd27385546d4fb6fea50dfb140a4, type: 3}
+      propertyPath: _stageUnlockReportPages.Array.data[2]._pagePrefabs.Array.data[1]
+      value:
+      objectReference: {fileID: 7276752106424200305, guid: 2e0a8c2eb21c4a38b8af7475e2f8b9cf, type: 3}
     - target: {fileID: 8463715423100842699, guid: ba0abd27385546d4fb6fea50dfb140a4, type: 3}
       propertyPath: m_LocalPosition.x
       value: -3.75

@@ -15,8 +15,9 @@ MonoBehaviour:
   _id: tutorial.get_first_resource
   _key: get_first_resource
   _sortOrder: 4
-  _text: "\uD50C\uB77C\uC988\uB9C8 \uAC74(\uC67C\uCABD \uD074\uB9AD)\uC744 \uC0AC\uC6A9\uD574
-    \uB3CC\uB369\uC774\uB97C \uD30C\uAD34\uD558\uACE0, \uC790\uC6D0\uC744 \uD68D\uB4DD\uD558\uC138\uC694."
+  _text: "\uD50C\uB77C\uC988\uB9C8 \uAC74(\uC67C\uCABD \uD074\uB9AD \uD640\uB4DC)\uC744
+    \uC0AC\uC6A9\uD574 \uB3CC\uB369\uC774\uB97C \uD30C\uAD34\uD558\uACE0, \uC790\uC6D0\uC744
+    \uD68D\uB4DD\uD558\uC138\uC694."
   _requireNoCompletedEvents: 0
   _requiredCompletedEvents: eb030000
   _forbiddenCompletedEvents: 

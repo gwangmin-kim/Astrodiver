@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using PrimeTween;
@@ -7,7 +8,11 @@ using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 /// <summary>
-/// Displays a collection of complete page GameObjects as a modal, paged document.
+/// Displays pre-authored page GameObjects as a modal, paged document.
+///
+/// The default pages are authored beneath this document's ContentRoot. Other
+/// flows can temporarily display pre-authored page prefabs without changing
+/// the default pages, keeping the whiteboard tutorial independent.
 /// </summary>
 [DisallowMultipleComponent]
 public sealed class TutorialDocumentView : MonoBehaviour
@@ -44,11 +49,15 @@ public sealed class TutorialDocumentView : MonoBehaviour
     private bool _initialized;
     private bool _closing;
     private int _pageIndex;
+    private Transform _contentRoot;
+    private IReadOnlyList<GameObject> _activePages;
+    private readonly List<GameObject> _temporaryPages = new();
     private Tween _dimmerTween;
     private Tween _documentAlphaTween;
     private Coroutine _motionRoutine;
 
     public bool IsOpen { get; private set; }
+    public event Action Closed;
 
     private void Awake()
     {
@@ -71,6 +80,9 @@ public sealed class TutorialDocumentView : MonoBehaviour
             RestoreInput();
             RestoreInventoryHud();
             IsOpen = false;
+            _closing = false;
+            ClearTemporaryPages();
+            Closed?.Invoke();
         }
     }
 
@@ -113,11 +125,62 @@ public sealed class TutorialDocumentView : MonoBehaviour
     public void Open()
     {
         Initialize();
-        if (IsOpen || _pages.Count == 0)
+        OpenInternal(_pages);
+    }
+
+    /// <summary>
+    /// Opens this document with one pre-authored page prefab. The temporary page
+    /// is removed when the document closes and the normal pages remain intact.
+    /// </summary>
+    public bool OpenWithTemporaryPage(GameObject pagePrefab)
+    {
+        return OpenWithTemporaryPages(new[] { pagePrefab });
+    }
+
+    /// <summary>
+    /// Opens this document with pre-authored page prefabs in the supplied
+    /// order. The temporary pages are removed when the document closes and the
+    /// normal pages remain intact.
+    /// </summary>
+    public bool OpenWithTemporaryPages(IReadOnlyList<GameObject> pagePrefabs)
+    {
+        Initialize();
+        if (IsOpen || pagePrefabs == null || pagePrefabs.Count == 0 ||
+            _contentRoot == null)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < pagePrefabs.Count; i++)
+        {
+            if (pagePrefabs[i] == null)
+            {
+                return false;
+            }
+        }
+
+        ClearTemporaryPages();
+        for (int i = 0; i < pagePrefabs.Count; i++)
+        {
+            GameObject pagePrefab = pagePrefabs[i];
+            GameObject temporaryPage = Instantiate(pagePrefab, _contentRoot, false);
+            temporaryPage.name = pagePrefab.name;
+            _temporaryPages.Add(temporaryPage);
+        }
+
+        OpenInternal(_temporaryPages);
+        return IsOpen;
+    }
+
+    private void OpenInternal(IReadOnlyList<GameObject> pages)
+    {
+        if (IsOpen || pages == null || pages.Count == 0)
         {
             return;
         }
 
+        _activePages = pages;
+        SetPagesActive(_pages, false);
         gameObject.SetActive(true);
         IsOpen = true;
         _closing = false;
@@ -178,7 +241,8 @@ public sealed class TutorialDocumentView : MonoBehaviour
             return;
         }
 
-        if (_pageIndex >= _pages.Count - 1)
+        IReadOnlyList<GameObject> pages = _activePages ?? _pages;
+        if (_pageIndex >= pages.Count - 1)
         {
             Close();
             return;
@@ -195,6 +259,8 @@ public sealed class TutorialDocumentView : MonoBehaviour
         RestoreInventoryHud();
         IsOpen = false;
         _closing = false;
+        ClearTemporaryPages();
+        Closed?.Invoke();
         gameObject.SetActive(false);
     }
 
@@ -227,6 +293,13 @@ public sealed class TutorialDocumentView : MonoBehaviour
 
     private void PopulatePagesFromContentRoot()
     {
+        _contentRoot = transform.Find(
+            "DocumentMotionRoot/PaperFrame/ContentRoot");
+        if (_contentRoot == null)
+        {
+            return;
+        }
+
         bool hasAssignedPage = false;
         for (int i = 0; i < _pages.Count; i++)
         {
@@ -242,32 +315,26 @@ public sealed class TutorialDocumentView : MonoBehaviour
             return;
         }
 
-        Transform contentRoot = transform.Find(
-            "DocumentMotionRoot/PaperFrame/ContentRoot");
-        if (contentRoot == null)
-        {
-            return;
-        }
-
         _pages.Clear();
-        for (int i = 0; i < contentRoot.childCount; i++)
+        for (int i = 0; i < _contentRoot.childCount; i++)
         {
-            _pages.Add(contentRoot.GetChild(i).gameObject);
+            _pages.Add(_contentRoot.GetChild(i).gameObject);
         }
     }
 
     private void RefreshPage()
     {
-        for (int i = 0; i < _pages.Count; i++)
+        IReadOnlyList<GameObject> pages = _activePages ?? _pages;
+        for (int i = 0; i < pages.Count; i++)
         {
-            if (_pages[i] != null)
+            if (pages[i] != null)
             {
-                _pages[i].SetActive(i == _pageIndex);
+                pages[i].SetActive(i == _pageIndex);
             }
         }
 
         bool isFirstPage = _pageIndex == 0;
-        bool isLastPage = _pageIndex >= _pages.Count - 1;
+        bool isLastPage = _pageIndex >= pages.Count - 1;
         if (_previousButton != null)
         {
             _previousButton.gameObject.SetActive(!isFirstPage);
@@ -339,6 +406,39 @@ public sealed class TutorialDocumentView : MonoBehaviour
         _documentMotionRoot.localPosition = visible
             ? _shownPosition
             : HiddenPosition;
+    }
+
+    private void ClearTemporaryPages()
+    {
+        for (int i = 0; i < _temporaryPages.Count; i++)
+        {
+            if (_temporaryPages[i] != null)
+            {
+                Destroy(_temporaryPages[i]);
+            }
+        }
+
+        _temporaryPages.Clear();
+        _activePages = _pages;
+        SetPagesActive(_pages, false);
+    }
+
+    private static void SetPagesActive(
+        IReadOnlyList<GameObject> pages,
+        bool active)
+    {
+        if (pages == null)
+        {
+            return;
+        }
+
+        for (int i = 0; i < pages.Count; i++)
+        {
+            if (pages[i] != null)
+            {
+                pages[i].SetActive(active);
+            }
+        }
     }
 
     private Vector3 HiddenPosition =>
