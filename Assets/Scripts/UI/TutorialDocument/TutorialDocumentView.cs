@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using PrimeTween;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 /// <summary>
@@ -46,6 +45,7 @@ public sealed class TutorialDocumentView : MonoBehaviour
     private bool _previousUiInputEnabled;
     private bool _inventoryHudStateCaptured;
     private bool _inventoryHudWasActive;
+    private bool _uiInputSubscribed;
     private bool _initialized;
     private bool _closing;
     private int _pageIndex;
@@ -66,6 +66,8 @@ public sealed class TutorialDocumentView : MonoBehaviour
 
     private void OnEnable()
     {
+        SubscribeToUiInput();
+
         if (_initialized && !IsOpen)
         {
             SetVisualStateImmediate(false);
@@ -74,6 +76,7 @@ public sealed class TutorialDocumentView : MonoBehaviour
 
     private void OnDisable()
     {
+        UnsubscribeFromUiInput();
         StopTweens();
         if (IsOpen)
         {
@@ -96,29 +99,6 @@ public sealed class TutorialDocumentView : MonoBehaviour
         if (_nextOrCloseButton != null)
         {
             _nextOrCloseButton.onClick.RemoveListener(ShowNextPageOrClose);
-        }
-    }
-
-    private void Update()
-    {
-        if (!IsOpen || _closing || Keyboard.current == null)
-        {
-            return;
-        }
-
-        if (Keyboard.current.leftArrowKey.wasPressedThisFrame)
-        {
-            ShowPreviousPage();
-        }
-
-        if (Keyboard.current.rightArrowKey.wasPressedThisFrame)
-        {
-            ShowNextPageOrClose();
-        }
-
-        if (Keyboard.current.xKey.wasPressedThisFrame)
-        {
-            Close();
         }
     }
 
@@ -350,12 +330,44 @@ public sealed class TutorialDocumentView : MonoBehaviour
     {
         _playerInput ??= FindAnyObjectByType<PlayerInputHandler>();
         _uiInput ??= FindAnyObjectByType<UIInputHandler>();
+        SubscribeToUiInput();
         _previousPlayerInputEnabled = _playerInput != null && _playerInput.InputEnabled;
         _previousUiInputEnabled = _uiInput != null && _uiInput.InputEnabled;
         _previousSelection = EventSystem.current?.currentSelectedGameObject;
 
         _playerInput?.SetInputEnabled(false);
         _uiInput?.SetInputEnabled(true);
+    }
+
+    private void SubscribeToUiInput()
+    {
+        _uiInput ??= FindAnyObjectByType<UIInputHandler>();
+        if (_uiInput == null || _uiInputSubscribed)
+        {
+            return;
+        }
+
+        _uiInput.CancelPressed += HandleCancelPressed;
+        _uiInputSubscribed = true;
+    }
+
+    private void UnsubscribeFromUiInput()
+    {
+        if (_uiInput == null || !_uiInputSubscribed)
+        {
+            return;
+        }
+
+        _uiInput.CancelPressed -= HandleCancelPressed;
+        _uiInputSubscribed = false;
+    }
+
+    private void HandleCancelPressed()
+    {
+        if (IsOpen)
+        {
+            Close();
+        }
     }
 
     private void RestoreInput()
