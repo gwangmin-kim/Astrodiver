@@ -97,6 +97,10 @@ public sealed class CreatureInventoryBarUI : MonoBehaviour
                 continue;
             }
 
+            // The GridLayoutGroup displays children in sibling order. Keep the slot
+            // sequence stable so slots always fill from the left in numeric order.
+            slotObject.transform.SetSiblingIndex(i);
+
             CreatureInventorySlotUI slot = slotObject.GetComponent<CreatureInventorySlotUI>();
             if (slot == null)
             {

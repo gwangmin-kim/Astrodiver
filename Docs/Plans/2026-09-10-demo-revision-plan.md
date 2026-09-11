@@ -148,6 +148,35 @@
 
 ## 6. 단계 완료 기록
 
+### 2026-09-11 — 2단계 재구현: 공통 인벤토리 정렬과 보조 잔탄 표시
+
+- 수정: `Assets/Prefabs/UI/HUD/InventoryHUD.prefab`의 Creature Inventory Bar와 Resource Fragment List를 좌하단 anchor/pivot으로 정렬했다. 슬롯 바는 `(32, 84)`, 자원 리스트는 그 위 `(32, 176)`을 기준으로 하며, GridLayoutGroup은 LowerLeft/가로 시작/한 줄로 고정했다. `SessionHUD`의 중첩 인스턴스와 `Hub` 씬 인스턴스에도 같은 설정을 Editor로 확인·적용했다.
+- 수정: `CreatureInventoryBarUI.cs`가 각 슬롯을 숫자 순서의 sibling index로 정렬하게 해, 용량 증가/초기 배치 순서와 무관하게 왼쪽부터 오른쪽으로 채운다.
+- 수정: 기존 `SessionEquipmentAmmoHUD`의 무기 아이콘, `current / total` 텍스트, 선택 tint, 잠금 처리에는 변경하지 않았다. 기존 우하단 잔탄 그룹만 배터리 영역을 피해 소폭 위로 이동했다.
+- 추가: `SessionAmmoSupplementHUD.cs`와 `SessionHUD.prefab`의 별도 `Ammo Supplement Group`을 추가했다. 네트는 `net.png` 아이콘을 하단부터 위로 쌓아 표시하고, 기존 아이콘을 재사용한다. 플라즈마는 별도 BottomToTop Slider로 비율을 표시한다. 두 보조 표시는 기존 수치 UI 위쪽에만 배치한다.
+- 검증: Unity 6000.5.1f1 Editor ready/비컴파일 상태에서 `InventoryHUD`, SessionHUD, Hub 씬을 저장했다. Editor 검증으로 두 InventoryHUD 사용처의 좌하단 anchor/pivot 및 자원 리스트 상단 위치, GridLayoutGroup의 좌→우 채움, 기존 두 Ammo Text 활성 상태, 보조 그룹의 상단 위치, 네트 3개 생성 및 하단→상단 위치, 플라즈마 BottomToTop Slider를 확인했다.
+- 미검증: 실제 PlayMode에서 Hub↔세션 전환, 16:9/좁은 화면비, 실제 발사/해금/새 세션 및 세션 종료 창과의 겹침은 수동 검증하지 못했다. 콘솔에는 이번 작업 전 시각의 TutorialGuideSystem `IsMemoryOnlySession` 관련 오류가 남아 있다. `git diff --check`는 Unity가 새 UI 컴포넌트에 기록한 빈 `m_Name: ` 필드의 trailing whitespace 때문에 실패한다.
+- 다음 단계 인계: 3단계에서는 TutorialGuideSystem 표현·진행만 다룬다. 공통 InventoryHUD 좌하단 좌표, 슬롯 sibling 순서 보정, 기존 잔탄 UI와 분리된 Ammo Supplement Group은 변경하지 않는다.
+
+### 2026-09-11 — 2단계 보완: 단일 활성 보조 잔탄 표시
+
+- 수정: `SessionHUD.prefab`의 `Ammo Supplement Group`을 우측 중앙 anchor/pivot `(1, 0.5)`로 옮기고 `360 x 440`으로 확대했다. 네트 아이콘 스택과 플라즈마 바는 이 그룹의 동일한 중앙 좌표를 공유한다.
+- 수정: `SessionAmmoSupplementHUD`가 `PlayerAttackController.EquipmentSelected`를 구독한다. 활성 무기가 NetGun이면 잠금 해제된 네트 스택만, PlasmaGun이면 플라즈마 바만 표시하며, 둘은 동시에 표시하지 않는다. 기존 기본 잔탄 UI에는 영향을 주지 않는다.
+- 검증: Unity Editor 재컴파일 완료 후 프리팹 검증으로 우측 중앙 anchor, 대형 영역, 두 보조 표시의 동일 좌표, 플라즈마 선택 시 네트 숨김/플라즈마 표시, 네트 선택 시 플라즈마 숨김을 확인했다.
+- 미검증: 실제 PlayMode에서 NetGun이 해금된 상태의 네트 표시 전환, 해상도별 대형 UI 가독성, 발사 중 갱신은 수동 검증하지 못했다.
+
+### 2026-09-11 — 2단계 보완: 네트 보조 표시 레이아웃 단순화
+
+- 수정: `SessionAmmoSupplementHUD.cs`에서 네트 아이콘의 spacing/RectTransform 위치 계산을 제거했다. 코드는 필요한 아이콘의 생성·재사용·활성 상태만 관리한다.
+- 수정: `SessionHUD.prefab`의 Net Ammo Stack에 VerticalLayoutGroup을 추가해 아이콘을 그룹 안의 우측 중앙에 정렬한다. LayoutGroup은 아이콘 크기를 제어하지 않으며, 아이콘 템플릿은 프리팹 내부 localScale X를 음수로 설정해 좌우 반전한다. 복제 아이콘도 이 반전을 상속한다.
+- 검증: Unity Editor 재컴파일과 프리팹 검증으로 VerticalLayoutGroup의 MiddleRight 정렬, 아이콘 크기 제어 비활성, 템플릿의 좌우 반전을 확인했다.
+
+### 2026-09-11 — 2단계 보완: 반전 아이콘의 LayoutGroup 위치 보존
+
+- 수정: LayoutGroup이 배치하는 `Icon Template` 루트의 X scale을 정상값으로 되돌렸다. 이로써 사용자가 프리팹에서 조정한 아이콘 위치와 런타임 복제본의 레이아웃 위치가 반전되지 않는다.
+- 수정: 템플릿 내부에 stretch된 `Visual` 자식을 추가하고, 이 자식의 X scale만 음수로 설정했다. 루트 Image는 렌더링하지 않고 Visual Image가 같은 스프라이트를 좌우 반전해 표시한다.
+- 검증: Editor 프리팹 검증으로 템플릿 루트 정상 scale, 원본 Image 비표시, 내부 Visual의 반전 스프라이트를 확인했다.
+
 ### 2026-09-10 — 1단계 완료: 업그레이드/스테이지 선택 닫기 입력
 
 - 수정: `Assets/InputActions.inputactions`의 UI 맵을 키보드/마우스용으로 정리했다. 기본 `*/{Submit}`은 `<Keyboard>/enter`로, 기본 `*/{Cancel}`은 `<Keyboard>/escape`와 `<Keyboard>/x`의 두 명시 바인딩으로 교체했다. UI Navigate의 게임패드 바인딩과 Pen/Touch/XR 포인터·클릭 바인딩은 제거했다. Player 맵의 기존 Esc/X 변경은 보존했다.
