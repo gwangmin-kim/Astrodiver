@@ -58,12 +58,6 @@ public sealed class TutorialGuideSystem : MonoBehaviour
         }
 
         _gameData = GameDataManager.Instance;
-        if (_gameData.IsMemoryOnlySession)
-        {
-            StopProcessing();
-            yield break;
-        }
-
         _gameData.ProgressEventCompleted += HandleProgressEventCompleted;
         _gameData.DataLoaded += HandleDataLoaded;
         RefreshVisibleGuides();
@@ -83,12 +77,6 @@ public sealed class TutorialGuideSystem : MonoBehaviour
 
     private void HandleDataLoaded(GameSaveData _)
     {
-        if (_gameData != null && _gameData.IsMemoryOnlySession)
-        {
-            StopProcessing();
-            return;
-        }
-
         RefreshVisibleGuides();
     }
 
@@ -103,7 +91,7 @@ public sealed class TutorialGuideSystem : MonoBehaviour
             scene.name,
             _mainMenuSceneName,
             StringComparison.Ordinal);
-        if (isMainMenu || IsMemoryOnlySession())
+        if (isMainMenu)
         {
             StopProcessing();
             return;
@@ -114,12 +102,6 @@ public sealed class TutorialGuideSystem : MonoBehaviour
 
     private void StartProcessing()
     {
-        if (IsMemoryOnlySession())
-        {
-            StopProcessing();
-            return;
-        }
-
         if (_isProcessing)
         {
             RefreshVisibleGuides();
@@ -166,7 +148,7 @@ public sealed class TutorialGuideSystem : MonoBehaviour
 
     private void HandleProgressEventCompleted(GameProgressEventId eventId)
     {
-        if (!_isProcessing || _gameData == null || _gameData.IsMemoryOnlySession)
+        if (!_isProcessing)
         {
             return;
         }
@@ -185,12 +167,6 @@ public sealed class TutorialGuideSystem : MonoBehaviour
 
     private void RefreshVisibleGuides()
     {
-        if (_gameData != null && _gameData.IsMemoryOnlySession)
-        {
-            StopProcessing();
-            return;
-        }
-
         if (!_isProcessing || _gameData == null || !_gameData.IsInitialized)
         {
             return;
@@ -262,11 +238,5 @@ public sealed class TutorialGuideSystem : MonoBehaviour
         return order != 0
             ? order
             : string.Compare(left.Key, right.Key, StringComparison.Ordinal);
-    }
-
-    private static bool IsMemoryOnlySession()
-    {
-        return GameDataManager.Instance != null &&
-            GameDataManager.Instance.IsMemoryOnlySession;
     }
 }
