@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 9100479806043322977}
   - component: {fileID: 3301890714732023912}
   - component: {fileID: 5160017054573521484}
+  - component: {fileID: 1970684350210323314}
   m_Layer: 0
   m_Name: TutorialGuideText
   m_TagString: Untagged
@@ -66,8 +67,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TutorialGuideItemUI
   _text: {fileID: 3301890714732023912}
   _canvasGroup: {fileID: 5937443115396149078}
+  _materialAnimation: {fileID: 1970684350210323314}
   _popDuration: 0.18
-  _moveDuration: 1
+  _moveDuration: 1.5
   _completionDuration: 0.2
   _popPeakScale: 2
 --- !u!222 &9100479806043322977
@@ -184,3 +186,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ContentSizeFitter
   m_HorizontalFit: 2
   m_VerticalFit: 2
+--- !u!114 &1970684350210323314
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3631477098285761021}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 99710614b0d6a0b4ab7fc3d05a2e6bda, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TutorialGuideTextMaterialAnimation
+  _text: {fileID: 3301890714732023912}
+  _flashOutlineColor: {r: 1, g: 1, b: 1, a: 1}
+  _flashOutlineWidth: 0.28
+  _flashUnderlayColor: {r: 1, g: 1, b: 1, a: 0.85}
+  _flashUnderlayDilate: 0.18
+  _flashUnderlaySoftness: 0.45

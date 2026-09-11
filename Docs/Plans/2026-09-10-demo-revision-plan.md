@@ -1,5 +1,23 @@
 # 데모 이후 UI·채굴 전환 작업 계획
 
+### 2026-09-11 — 3A 보완: 텍스트 머터리얼 연출 책임 분리
+
+- 수정 파일: `Assets/Scripts/TutorialGuides/TutorialGuideTextUI.cs`, `Assets/Scripts/TutorialGuides/TutorialGuideTextMaterialAnimation.cs`, `Assets/Prefabs/UI/TutorialGuides/TutorialGuideText.prefab`, `Docs/Plans/2026-09-10-demo-revision-plan.md`.
+- 수정: TMP 공유 머터리얼의 런타임 복제·Outline/Underlay flash 값·원복·폐기와 fade Tween 생성을 `TutorialGuideTextMaterialAnimation`으로 분리했다. `TutorialGuideTextUI`는 새 컴포넌트의 시작·fade Tween·해제만 호출하며, 텍스트 바인딩과 위치·scale·alpha 연출만 보유한다.
+- 수정: 프리팹 루트에 새 컴포넌트를 추가하고, 양 컴포넌트가 같은 `TextMeshProUGUI`를 참조하도록 Unity Editor PrefabContents API로 직렬화했다. 새 컴포넌트의 static readonly Shader property ID는 프로젝트 요청에 맞춰 `_camelCase` 이름을 사용한다.
+- 검증: Unity 6000.5.1f1 Editor 재컴파일 성공, Editor ready/비컴파일 상태와 콘솔 오류 0개를 확인했다. Editor 직렬화 검사로 `TutorialGuideTextUI._materialAnimation`과 `TutorialGuideTextMaterialAnimation._text`가 모두 프리팹 루트의 유효한 컴포넌트를 참조함을 확인했다. `git diff --check`는 Unity가 새 컴포넌트에 직렬화한 빈 `m_Name: ` 한 줄의 trailing whitespace 때문에 실패하며, 기능과 무관한 프리팹 YAML 정규화는 하지 않았다.
+- 미검증: 실제 PlayMode에서 발광 연출의 시각 결과와 안내 생성·취소·파괴 시 머터리얼 복원은 수동 확인이 필요하다.
+- 다음 단계 인계: flash 수치 조정은 `TutorialGuideTextMaterialAnimation`만 수정한다. `TutorialGuideTextUI`의 중앙→목록 배치 흐름 또는 3B의 안내 정의·조건에는 변경을 가하지 않는다.
+
+### 2026-09-11 — 3A 보완: 중앙 표시의 TMP 발광 전환
+
+- 수정 파일: `Assets/Scripts/TutorialGuides/TutorialGuideTextUI.cs`, `Docs/Plans/2026-09-10-demo-revision-plan.md`.
+- 수정: 중앙에서 새 안내가 표시될 때만 `TextMeshProUGUI.fontSharedMaterial`을 원본 Guide Material의 런타임 복제본으로 교체한다. 복제본의 Outline·Underlay를 밝은 흰색의 넓고 부드러운 값으로 즉시 올리고, 중앙→목록 이동 동안 PrimeTween으로 기존 머터리얼 값까지 보간한다. 이동 종료·연출 취소·오브젝트 파괴 때는 복제본을 폐기하고 원래 공유 머터리얼을 다시 할당한다.
+- 결정: uGUI TMP는 CanvasRenderer 경로라 MaterialPropertyBlock을 안정적으로 적용할 수 없다. 따라서 공유 `M_PFStardust-ExtraBold_Outline_Underlay.mat`은 수정하지 않고, 항목별·연출 기간 한정 Material 인스턴스를 소유·파기하는 방식으로 분리했다.
+- 검증: Unity 6000.5.1f1 Editor 재컴파일 성공, Editor ready/비컴파일 상태, 콘솔 오류 0개, `git diff --check` 성공을 확인했다. 현재 Guide Material이 Outline·Underlay 프로퍼티를 제공하는 TMP SDF-Mobile 계열임을 확인했고, 스크립트는 해당 프로퍼티가 모두 없으면 발광 인스턴스 생성을 건너뛴다.
+- 미검증: 실제 PlayMode에서 이벤트 해금 시 첫 `0.18s`의 흰색 발광과 뒤이은 `0.55s` 감쇠, 빠른 씬 전환/안내 완료 중 인스턴스 복원, 배경별 가독성 및 수치 조정은 수동 확인이 필요하다.
+- 다음 단계 인계: 발광 강도는 `TutorialGuideTextUI`의 Presentation Flash 직렬화 필드에서 조정한다. 3B의 안내 정의·조건 변경이나 공유 폰트 머터리얼 수정으로 범위를 넓히지 않는다.
+
 작성: 2026-09-10. Unity 6000.5.1f1. 소스와 직렬화된 프리팹을 검토한 계획이며, Editor 실행·화면 검증·PlayMode 테스트는 하지 않았다. 이 문서 외 구현 변경은 하지 않았다.
 
 ## 1. 이번 작업 범위

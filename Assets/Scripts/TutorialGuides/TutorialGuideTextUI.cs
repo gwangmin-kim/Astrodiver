@@ -10,6 +10,7 @@ public sealed class TutorialGuideTextUI : MonoBehaviour
     [Header("Prefab References")]
     [SerializeField] private TextMeshProUGUI _text;
     [SerializeField] private CanvasGroup _canvasGroup;
+    [SerializeField] private TutorialGuideTextMaterialAnimation _materialAnimation;
 
     [Header("Animation")]
     [SerializeField, Min(0.01f)] private float _popDuration = 0.18f;
@@ -49,6 +50,8 @@ public sealed class TutorialGuideTextUI : MonoBehaviour
     {
         Initialize();
         StopAnimation();
+        bool hasPresentationFlash = _materialAnimation != null
+            && _materialAnimation.BeginPresentationFlash();
 
         RectTransform itemTransform = (RectTransform)transform;
         itemTransform.SetParent(guideListRoot, false);
@@ -72,7 +75,17 @@ public sealed class TutorialGuideTextUI : MonoBehaviour
                 itemTransform, listWorldPosition, _moveDuration, Ease.InOutCubic))
             .Group(Tween.Scale(
                 itemTransform, _baseScale, _moveDuration, Ease.InOutCubic));
+        if (hasPresentationFlash)
+        {
+            _presentationSequence.Group(
+                _materialAnimation.CreatePresentationFadeTween(_moveDuration));
+        }
+
         yield return _presentationSequence.ToYieldInstruction();
+        if (_materialAnimation != null)
+        {
+            _materialAnimation.ReleasePresentationMaterial();
+        }
 
         itemTransform.SetParent(guideListRoot, true);
         itemTransform.SetSiblingIndex(siblingIndex);
@@ -111,6 +124,10 @@ public sealed class TutorialGuideTextUI : MonoBehaviour
     public void StopAnimation()
     {
         _presentationSequence.Stop();
+        if (_materialAnimation != null)
+        {
+            _materialAnimation.ReleasePresentationMaterial();
+        }
     }
 
     private void Initialize()
@@ -124,6 +141,11 @@ public sealed class TutorialGuideTextUI : MonoBehaviour
         if (_text == null)
         {
             _text = GetComponent<TextMeshProUGUI>();
+        }
+
+        if (_materialAnimation == null)
+        {
+            _materialAnimation = GetComponent<TutorialGuideTextMaterialAnimation>();
         }
 
         _baseScale = transform.localScale;
@@ -140,4 +162,5 @@ public sealed class TutorialGuideTextUI : MonoBehaviour
             itemTransform.rect.center);
         return centerWorldPosition - itemCenterOffset;
     }
+
 }
