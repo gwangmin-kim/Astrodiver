@@ -148,6 +148,92 @@
 
 ## 6. 단계 완료 기록
 
+### 2026-09-11 — 3A 완료: 튜토리얼 표현·PrimeTween 전환
+
+- 수정: `TutorialGuideDefinition`에 선택적 `Sprite` 아이콘과 `InputActionReference`를 추가했다. 입력 표시는 참조한 액션의 실제 binding display string으로 계산하므로, 3B에서 정의 자산에 액션만 지정하면 문구와 실제 키가 분리되지 않는다.
+- 수정: `TutorialGuideItemUI`에서 Animator/`Complete` trigger/Rebind 의존성을 제거했다. PrimeTween으로 팝·페이드·유지·우측 상단 이동 및 완료 페이드·축소를 실행하며, 비활성화·재시작 시 진행 중 Sequence를 중단한다. 아이콘·입력 힌트가 없으면 각각 숨기고, 표시될 때 본문 여백을 조정한다.
+- 수정: `TutorialGuideSystem`에 중앙 연출 큐와 별도 `Center Presentation Root`를 추가했다. 새로 활성화된 안내는 하나씩 중앙에 표시된 뒤 LayoutGroup의 목록으로 편입되며, 이미 목록에 있는 안내를 재정렬해도 재등장하지 않는다. 씬 전환/비활성화에서는 코루틴·큐·항목을 함께 정리한다.
+- 프리팹: Unity 6000.5.1f1 Editor의 PrefabContents API로 `TutorialGuideSystem.prefab`에 stretch 중앙 root를, `TutorialGuideItem.prefab`에 선택적 Icon/Input Hint 자식과 참조를 추가했다. 기존 Animator 컴포넌트는 Item 프리팹에서 제거했고, 기존 AnimatorController 자산의 불필요한 Editor 위치 변경은 되돌렸다.
+- 검증: Editor ready/비컴파일 상태에서 스크립트 재컴파일 성공, 두 프리팹의 `_centerPresentationRoot`·`_icon`·`_inputHint` 직렬화 참조 확인, TutorialGuides 소스의 Animator/Rebind/CompleteTrigger 참조 제거, Editor console error 0개를 확인했다. 등록된 Unity 테스트는 0개였다.
+- 미검증: 정상 저장 세션으로 새 게임 첫 안내, 연출 중 완료, 여러 안내 큐, Hub↔Stage 전환·재로드의 실제 화면/PlayMode 동작은 자동 테스트가 없어 수동 검증하지 못했다. `git diff --check`는 Unity가 새 TMP/UI 컴포넌트에 기록한 기존 형식의 빈 `m_Name:`/`m_text:` trailing whitespace 때문에 실패한다.
+- 다음 단계 인계: 3B에서만 실제 안내 정의·문구·InputActionReference 할당·완료 이벤트를 확정한다. 첫 채굴 완료 이벤트는 5단계 채굴 성공 지점까지 연결하지 않는다. 4단계의 채굴 데이터·타일맵에는 변경하지 않는다.
+
+### 2026-09-11 — 3A 보완: 텍스트 중심 연출과 동적 높이
+
+- 수정: 피드백에 따라 `TutorialGuideDefinition`의 아이콘·입력 액션 데이터와 `TutorialGuideItem.prefab`의 Icon/Input Hint 자식을 모두 제거했다. 조작 안내는 별도 UI 기획이 확정될 때까지 튜토리얼 항목에 포함하지 않는다.
+- 수정: `TutorialGuideItemUI`가 TMP의 실제 preferred height를 측정해 `LayoutElement.preferredHeight`를 갱신한다. 긴 문구는 520 폭 안에서 줄바꿈되며, 목록의 우측 상단 VerticalLayoutGroup은 계산된 각 항목 높이를 사용한다.
+- 수정: 중앙 표시 전에는 목록에 임시 배치·레이아웃 갱신하여 우측 상단의 실제 최종 world 위치와 동적 크기를 얻는다. 중앙에서는 base scale에서 빠르게 `1.16x`로 팝한 후, 그 위치로 이동하는 동안 base scale까지 서서히 돌아온다.
+- 검증: Unity Editor PrefabContents API로 보조 UI 제거와 LayoutElement 연결을 적용했고, 재컴파일 성공을 확인했다. 실제 화면·긴 문구·해상도별 PlayMode 확인은 수동 검증이 필요하다.
+
+### 2026-09-11 — 3A 보완: TutorialGuideText 단순화
+
+- 수정: `Assets/Prefabs/UI/TutorialGuides` 폴더를 `Assets/Prefabs/UI/TutorialGuideText`로, `TutorialGuideItem.prefab`을 `TutorialGuideText.prefab`으로 Unity Editor AssetDatabase를 통해 이동·이름 변경했다. 기존 시스템 프리팹 참조는 GUID 유지로 자동 갱신된다.
+- 수정: `TutorialGuideText` 프리팹은 루트 `TextMeshProUGUI`·`CanvasGroup`·`ContentSizeFitter`·`TutorialGuideItemUI`만 남긴다. 기존 Text/Background 자식 및 LayoutElement를 제거했으며 ContentSizeFitter는 가로·세로 모두 Preferred Size를 사용한다.
+- 수정: GuideList VerticalLayoutGroup의 자식 width/height 제어를 해제해, 각 텍스트가 실제 preferred 크기로 우측 상단에 배치되도록 했다.
+- 검증: Editor PrefabContents/AssetDatabase로 변환 및 이동 성공, 시스템의 `_itemPrefab`이 새 `TutorialGuideText.prefab`을 참조함, 루트 자식 0개, ContentSizeFitter 가로/세로 Preferred Size, GuideList 자식 크기 제어 해제를 확인했다. 실제 화면에서 긴 단일 행 텍스트의 화면 경계 처리와 해상도별 연출은 수동 PlayMode 검증이 필요하다.
+
+### 2026-09-11 — 3A 보완: TutorialGuideTextUI 이름 정렬
+
+- 수정: Unity Editor AssetDatabase로 `TutorialGuideItemUI.cs`를 `TutorialGuideTextUI.cs`로 GUID 유지 이동하고, 컴포넌트 클래스와 `TutorialGuideSystem`의 모든 타입 참조를 `TutorialGuideTextUI`로 변경했다. 프리팹의 기존 스크립트 GUID 참조는 유지된다.
+
+### 2026-09-11 — 3A 보완: 씬 동기화와 이벤트 연출 분리
+
+- 수정 파일: `Assets/Scripts/TutorialGuides/TutorialGuideSystem.cs`, `Assets/Scripts/TutorialGuides/TutorialGuideTextUI.cs`, `Docs/Plans/2026-09-10-demo-revision-plan.md`.
+- 수정: `TutorialGuideSystem`의 목록 갱신을 즉시 동기화와 신규 항목 연출로 분리했다. 시스템 바인딩, 저장 데이터 로드, 비-MainMenu 씬 진입은 현재 조건을 만족하는 모든 안내를 우측 상단 목록에 즉시 배치한다.
+- 수정: `ProgressEventCompleted`로 실제 진행 이벤트가 발생할 때만 새로 표시 가능한 안내를 중앙 팝·이동 연출 큐에 넣는다. 완료 애니메이션 뒤의 재동기화도 즉시 방식으로 처리해, 씬/저장 복원 항목이 다시 연출되지 않는다.
+- 수정: 즉시 동기화는 대기 중인 연출 큐를 비우고, 중앙에서 이동 중인 항목도 `TutorialGuideTextUI`를 통해 목록의 최종 sibling 위치·기본 scale·불투명 상태로 정착시킨다.
+- 검증: Unity 6000.5.1f1 Editor 재컴파일 성공, ready/비컴파일 상태, 콘솔 오류 0개, TutorialGuideSystem 프리팹의 `_itemPrefab` `TutorialGuideTextUI` 참조, `git diff --check` 성공을 확인했다.
+- 미검증: 실제 PlayMode에서 MainMenu→Hub/Stage 진입 직후의 무연출 표시, 이벤트로 해금되는 신규 안내의 중앙→목록 연출, 전환 중 진행 중이던 연출의 즉시 정착은 수동 확인이 필요하다.
+- 다음 단계 인계: 3B에서만 안내 정의/문구/완료 조건을 확정한다. 이 분리된 갱신 정책은 유지하고, 기존 안내 구현이나 4단계 이후 채굴 흐름으로 범위를 넓히지 않는다.
+
+### 2026-09-11 — 3A 보완: 중앙→목록 이동 좌표 안정화
+
+- 수정 파일: `Assets/Scripts/TutorialGuides/TutorialGuideTextUI.cs`, `Docs/Plans/2026-09-10-demo-revision-plan.md`.
+- 수정: 중앙 연출의 이동 목적지를 읽기 전에 `GuideList`의 `VerticalLayoutGroup`을 즉시 재계산한다. 따라서 항목의 확정된 우측 상단 목록 위치를 중앙 Presentation Root 좌표로 변환해 Tween에 전달하며, 프레임 지연 레이아웃의 이전 좌표를 향해 이동하지 않는다.
+- 검증: Unity 6000.5.1f1 Editor 재컴파일 성공, ready/비컴파일 상태 및 콘솔 오류 0개, `git diff --check` 성공을 확인했다. 실제 PlayMode에서 중앙→우측 상단 이동 경로는 수동 확인이 필요하다.
+
+### 2026-09-11 — 3A 보완: 완료 코루틴의 연출 중단 제거
+
+- 수정 파일: `Assets/Scripts/TutorialGuides/TutorialGuideSystem.cs`, `Docs/Plans/2026-09-10-demo-revision-plan.md`.
+- 원인: 진행 이벤트는 완료될 기존 항목의 `0.2s` 완료 애니메이션과, 새로 표시될 항목의 `0.18s + 0.55s` 중앙→목록 연출을 동시에 시작한다. 기존 항목의 완료 코루틴이 끝난 직후 즉시 동기화를 호출하면서, 진행 중이던 새 항목의 Presentation Queue를 중단하고 목록 위치에 강제로 정착시켰다.
+- 수정: 완료 코루틴은 자신을 제거하는 역할만 맡긴다. 진행 이벤트 직후의 `RefreshVisibleGuides(true)`가 신규 항목을 이미 큐잉하므로, 완료 뒤 별도 갱신은 필요하지 않다. 이로써 새 항목의 팝과 이동 Tween이 끝까지 유지된다.
+- 검증: Unity 6000.5.1f1 Editor 재컴파일 성공, 콘솔 오류 0개를 확인했다. `git diff --check`는 이번 변경과 무관한 기존 `Assets/Scenes/Hub.unity`의 `m_Name:` trailing whitespace 3건으로 실패했으며 해당 사용자 변경은 보존했다. 실제 이벤트로 기존 안내 완료와 신규 안내 해금이 동시에 발생하는 PlayMode 시각 검증은 수동 확인이 필요하다.
+
+### 2026-09-11 — 3A 보완: Unity Object null 비교와 연출 흐름 검토
+
+- 수정 파일: `Assets/Scripts/TutorialGuides/TutorialGuideTextUI.cs`, `Docs/Plans/2026-09-10-demo-revision-plan.md`.
+- 수정: `TutorialGuideTextUI.Initialize()`의 `_canvasGroup ??=`와 `_text ??=`를 명시적인 `== null` 검사로 교체했다. UnityEngine.Object의 파괴된 객체 판별 연산자를 우회하지 않는다. TutorialGuides 소스에는 null 조건 연산자(`?.`) 사용이 없다.
+- 검토: `Bind()`의 TMP mesh 갱신과 항목 자신에 대한 `ForceRebuildLayoutImmediate`는 텍스트 변경 직후 ContentSizeFitter의 preferred size를 확보하기 위해 필요하다. `PlayPresentation()`의 GuideList 강제 rebuild는 중앙 이동 전에 최종 목록 좌표를 읽기 위해 필요하다. 이어지는 `Canvas.ForceUpdateCanvases()`는 앞 rebuild가 처리한 레이아웃과 중복이므로 실제 화면 확인 후 제거 후보이다.
+- 검토: 기존 항목 완료와 신규 항목 해금이 동시에 일어날 때, 완료 중인 항목이 GuideList 레이아웃 공간을 계속 차지해 신규 항목이 한 칸 아래를 목표로 잡고, 완료 항목 제거 후 위로 튀는 구조다. 가장 단순한 해결은 신규 안내의 큐잉을 기존 완료 애니메이션 이후로 지연해, 목록에서 완료 항목이 제거된 뒤 최종 위치를 계산하는 방식이다. 이 흐름 변경은 이번 검토에서는 적용하지 않았다.
+
+### 2026-09-11 — 3A 보완: 연출 레이아웃 간소화와 완료 항목 분리
+
+- 수정 파일: `Assets/Scripts/TutorialGuides/TutorialGuideTextUI.cs`, `Assets/Scripts/TutorialGuides/TutorialGuideSystem.cs`, `Docs/Plans/2026-09-10-demo-revision-plan.md`.
+- 수정: `Bind()`의 TMP `ForceMeshUpdate`와 항목 단위 강제 layout rebuild, 목록 rebuild 뒤의 `Canvas.ForceUpdateCanvases`를 제거했다. 중앙→목록 목적지 산정에 필요한 GuideList 단위의 즉시 rebuild만 유지한다.
+- 수정: 완료 안내는 페이드·축소를 시작하기 전에 `_items`와 GuideList에서 즉시 제외하고, 현재 화면 위치를 유지한 채 Center Presentation Root로 옮긴다. 같은 이벤트에서 새로 해금된 안내는 제거된 항목의 레이아웃 공간을 포함하지 않은 최종 위치를 목표로 중앙 연출을 시작한다.
+- 검증: Unity 6000.5.1f1 Editor 재컴파일 성공, ready/비컴파일 상태, 콘솔 오류 0개를 확인했다. TutorialGuides에는 목적지 산정용 GuideList `ForceRebuildLayoutImmediate` 하나만 남았다. `git diff --check`는 기존 사용자 `Assets/Scenes/Hub.unity`의 `m_Name:` trailing whitespace 3건으로 실패했으며 해당 변경은 보존했다. 실제 PlayMode에서 완료 항목 페이드와 신규 항목의 중앙→최종 목록 위치 연출은 수동 확인이 필요하다.
+
+### 2026-09-11 — 3A 보완: 목록 anchor/pivot 복원
+
+- 수정 파일: `Assets/Scripts/TutorialGuides/TutorialGuideTextUI.cs`, `Docs/Plans/2026-09-10-demo-revision-plan.md`.
+- 원인: `TutorialGuideText` 프리팹의 목록용 RectTransform은 우측 중앙 anchor/pivot `(1, 0.5)`지만, 중앙 연출이 이를 중앙 `(0.5, 0.5)`로 변경한 뒤 목록에 돌려보낼 때 복원하지 않았다. Tween은 이전 목록 상태에서 계산한 목적지로 이동하고, 종료 후 VerticalLayoutGroup은 변경된 anchor/pivot으로 다시 배치해 위치가 튀었다.
+- 수정: 인스턴스 초기화 시 목록용 anchorMin/anchorMax/pivot을 보존하고, 중앙 연출 시작 전·종료 후 및 즉시 목록 정착 경로에서 복원한다. 이제 이동 목적지 계산과 최종 LayoutGroup 배치가 같은 RectTransform 기준을 사용한다.
+- 검증: Unity 6000.5.1f1 Editor 재컴파일 성공, ready/비컴파일 상태, 콘솔 오류 0개를 확인했다. `TutorialGuideText.prefab`의 목록용 anchorMin/anchorMax/pivot이 모두 `(1, 0.5)`임을 Editor에서 확인했다. `git diff --check`는 기존 사용자 `Assets/Scenes/Hub.unity`의 `m_Name:` trailing whitespace 3건으로 실패했으며 해당 변경은 보존했다. 실제 PlayMode에서 중앙→목록 이동 종료 시 위치 연속성은 수동 확인이 필요하다.
+
+### 2026-09-11 — 3A 보완: 런타임 anchor 변경 제거
+
+- 수정 파일: `Assets/Prefabs/UI/TutorialGuides/TutorialGuideText.prefab`, `Assets/Scripts/TutorialGuides/TutorialGuideTextUI.cs`, `Docs/Plans/2026-09-10-demo-revision-plan.md`.
+- 수정: Unity Editor PrefabContents API로 `TutorialGuideText` 루트의 anchorMin/anchorMax/pivot을 모두 우측 상단 `(1, 1)`으로 설정했다. 이 값은 목록의 우측 상단 정렬만을 위한 값이며 중앙 연출에 맞춰 바꾸지 않는다.
+- 수정: 연출 중 RectTransform anchor/pivot을 변경·복원하던 코드를 제거했다. 중앙 배치는 현재 RectTransform의 pivot/크기를 고려해 월드 좌표로 계산하고, 중앙→목록 이동도 `Tween.Position`으로 최종 목록의 월드 pivot 위치까지 보간한다. 목록 복귀는 `SetParent(..., true)`로 목표 월드 위치를 유지한다.
+- 검증: Unity 6000.5.1f1 Editor 도메인 재로드 후 ready/비컴파일 상태와 콘솔 오류 0개를 확인했다. Editor 직렬화 확인으로 프리팹의 anchorMin/anchorMax/pivot이 모두 `(1, 1)`이며, TutorialGuideTextUI에는 runtime anchor/pivot 대입이 없고 `Tween.Position` 이동만 남았음을 확인했다. `git diff --check`는 기존 사용자 `Assets/Scenes/Hub.unity`의 `m_Name:` trailing whitespace 3건으로 실패했으며 해당 변경은 보존했다. 실제 PlayMode에서 중앙 표시 위치와 이동 시작 전 튐 제거는 수동 확인이 필요하다.
+
+### 2026-09-11 — 3A 보완: 가이드 텍스트 가독성 Material Preset
+
+- 수정 파일: `Assets/Arts/99_Fonts/PFStardust/TMP/PFStardust-ExtraBold TutorialGuide.mat`, `Assets/Prefabs/UI/TutorialGuides/TutorialGuideText.prefab`, `Docs/Plans/2026-09-10-demo-revision-plan.md`.
+- 수정: `PFStardust-ExtraBold SDF`의 기본 머터리얼을 복제한 전용 `PFStardust-ExtraBold TutorialGuide` Material Preset을 생성했다. 어두운 Outline과 Underlay를 활성화해 밝은 배경·복잡한 배경 모두에서 가이드 문구의 가장자리를 분리한다. 기본 폰트 에셋/기본 머터리얼은 변경하지 않았다.
+- 수정: `TutorialGuideText`의 `TextMeshProUGUI.fontSharedMaterial`에 이 전용 프리셋만 할당했다.
+- 검증: Editor에서 프리셋 생성과 프리팹의 `fontSharedMaterial` 참조를 확인했다. 프리셋은 `OUTLINE_ON`·`UNDERLAY_ON` 키워드를 모두 사용하며, Unity 재컴파일은 변경할 스크립트가 없어 up-to-date였다. 콘솔의 오류 1건은 TMP FontAsset에 컴포넌트 조회를 잘못 요청한 검증 명령 기록이며 런타임/컴파일 오류는 아니다. `git diff --check`는 기존 사용자 `Assets/Scenes/Hub.unity`의 `m_Name:` trailing whitespace 3건으로 실패했고, 기존 PFStardust 폰트 에셋 변경도 보존했다. 실제 PlayMode에서 Outline/Underlay 강도와 화면별 가독성은 수동 확인이 필요하다.
+
 ### 2026-09-11 — 2단계 재구현: 공통 인벤토리 정렬과 보조 잔탄 표시
 
 - 수정: `Assets/Prefabs/UI/HUD/InventoryHUD.prefab`의 Creature Inventory Bar와 Resource Fragment List를 좌하단 anchor/pivot으로 정렬했다. 슬롯 바는 `(32, 84)`, 자원 리스트는 그 위 `(32, 176)`을 기준으로 하며, GridLayoutGroup은 LowerLeft/가로 시작/한 줄로 고정했다. `SessionHUD`의 중첩 인스턴스와 `Hub` 씬 인스턴스에도 같은 설정을 Editor로 확인·적용했다.

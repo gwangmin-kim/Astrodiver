@@ -11,21 +11,26 @@ public sealed class TutorialGuideSystem : MonoBehaviour
     [Header("Prefab References")]
     [SerializeField] private GameObject _overlayRoot;
     [SerializeField] private RectTransform _guideListRoot;
-    [SerializeField] private TutorialGuideItemUI _itemPrefab;
+    [SerializeField] private RectTransform _centerPresentationRoot;
+    [SerializeField] private TutorialGuideTextUI _itemPrefab;
 
     [Header("Scene Visibility")]
     [SerializeField] private string _mainMenuSceneName = "MainMenu";
 
-    private readonly Dictionary<TutorialGuideDefinition, TutorialGuideItemUI> _items = new();
+    private readonly Dictionary<TutorialGuideDefinition, TutorialGuideTextUI> _items = new();
     private readonly HashSet<TutorialGuideDefinition> _completing = new();
+    private readonly Queue<TutorialGuideDefinition> _presentationQueue = new();
+    private readonly HashSet<TutorialGuideDefinition> _queuedGuides = new();
     private GameDataManager _gameData;
     private Coroutine _bindRoutine;
+    private Coroutine _presentationRoutine;
     private bool _isProcessing;
 
     private void Awake()
     {
         DontDestroyOnLoad(gameObject);
-        if (_overlayRoot == null || _guideListRoot == null || _itemPrefab == null)
+        if (_overlayRoot == null || _guideListRoot == null ||
+            _centerPresentationRoot == null || _itemPrefab == null)
         {
             Debug.LogError(
                 "Tutorial guide prefab references are not configured.",
@@ -60,7 +65,7 @@ public sealed class TutorialGuideSystem : MonoBehaviour
         _gameData = GameDataManager.Instance;
         _gameData.ProgressEventCompleted += HandleProgressEventCompleted;
         _gameData.DataLoaded += HandleDataLoaded;
-        RefreshVisibleGuides();
+        RefreshVisibleGuides(false);
     }
 
     private void Unbind()
@@ -77,7 +82,7 @@ public sealed class TutorialGuideSystem : MonoBehaviour
 
     private void HandleDataLoaded(GameSaveData _)
     {
-        RefreshVisibleGuides();
+        RefreshVisibleGuides(false);
     }
 
     private void HandleSceneLoaded(Scene scene, LoadSceneMode _)
@@ -104,7 +109,7 @@ public sealed class TutorialGuideSystem : MonoBehaviour
     {
         if (_isProcessing)
         {
-            RefreshVisibleGuides();
+            RefreshVisibleGuides(false);
             return;
         }
 
@@ -112,7 +117,7 @@ public sealed class TutorialGuideSystem : MonoBehaviour
         _overlayRoot.SetActive(true);
         if (_gameData != null)
         {
-            RefreshVisibleGuides();
+            RefreshVisibleGuides(false);
         }
         else
         {
@@ -129,8 +134,10 @@ public sealed class TutorialGuideSystem : MonoBehaviour
             _bindRoutine = null;
         }
 
+        StopPresentationQueue();
+
         Unbind();
-        foreach (TutorialGuideItemUI item in _items.Values)
+        foreach (TutorialGuideTextUI item in _items.Values)
         {
             if (item != null)
             {
@@ -156,20 +163,25 @@ public sealed class TutorialGuideSystem : MonoBehaviour
         foreach (TutorialGuideDefinition guide in _gameData.Definitions.TutorialGuides)
         {
             if (guide != null && guide.CompletionEvent == eventId &&
-                _items.TryGetValue(guide, out TutorialGuideItemUI item))
+                _items.TryGetValue(guide, out TutorialGuideTextUI item))
             {
                 StartCoroutine(CompleteGuide(guide, item));
             }
         }
 
-        RefreshVisibleGuides();
+        RefreshVisibleGuides(true);
     }
 
-    private void RefreshVisibleGuides()
+    private void RefreshVisibleGuides(bool animateNewGuides)
     {
         if (!_isProcessing || _gameData == null || !_gameData.IsInitialized)
         {
             return;
+        }
+
+        if (!animateNewGuides)
+        {
+            StopPresentationQueue();
         }
 
         List<TutorialGuideDefinition> visible = new();
@@ -178,7 +190,14 @@ public sealed class TutorialGuideSystem : MonoBehaviour
             if (guide != null && guide.IsVisibleFor(_gameData))
             {
                 visible.Add(guide);
-                EnsureItem(guide);
+                if (animateNewGuides)
+                {
+                    QueuePresentation(guide);
+                }
+                else
+                {
+                    EnsureItemImmediately(guide);
+                }
             }
         }
 
@@ -194,40 +213,121 @@ public sealed class TutorialGuideSystem : MonoBehaviour
         visible.Sort(CompareGuides);
         for (int index = 0; index < visible.Count; index++)
         {
-            if (_items.TryGetValue(visible[index], out TutorialGuideItemUI item))
+            if (_items.TryGetValue(visible[index], out TutorialGuideTextUI item))
             {
-                item.transform.SetSiblingIndex(index);
+                if (animateNewGuides)
+                {
+                    item.transform.SetSiblingIndex(index);
+                }
+                else
+                {
+                    item.PlaceInListImmediately(_guideListRoot, index);
+                }
             }
+        }
+
+        if (animateNewGuides)
+        {
+            StartPresentationQueue();
         }
     }
 
-    private void EnsureItem(TutorialGuideDefinition guide)
+    private void EnsureItemImmediately(TutorialGuideDefinition guide)
     {
         if (_items.ContainsKey(guide))
         {
             return;
         }
 
-        TutorialGuideItemUI item = Instantiate(_itemPrefab, _guideListRoot);
+        TutorialGuideTextUI item = Instantiate(_itemPrefab, _guideListRoot);
         item.name = $"Guide_{guide.Key}";
         item.Bind(guide.Text);
         _items.Add(guide, item);
     }
 
+    private void QueuePresentation(TutorialGuideDefinition guide)
+    {
+        if (_items.ContainsKey(guide) || !_queuedGuides.Add(guide))
+        {
+            return;
+        }
+
+        _presentationQueue.Enqueue(guide);
+    }
+
+    private void StartPresentationQueue()
+    {
+        if (_presentationRoutine == null && _presentationQueue.Count > 0)
+        {
+            _presentationRoutine = StartCoroutine(ProcessPresentationQueue());
+        }
+    }
+
+    private void StopPresentationQueue()
+    {
+        if (_presentationRoutine != null)
+        {
+            StopCoroutine(_presentationRoutine);
+            _presentationRoutine = null;
+        }
+
+        _presentationQueue.Clear();
+        _queuedGuides.Clear();
+    }
+
+    private IEnumerator ProcessPresentationQueue()
+    {
+        while (_isProcessing && _presentationQueue.Count > 0)
+        {
+            TutorialGuideDefinition guide = _presentationQueue.Dequeue();
+            _queuedGuides.Remove(guide);
+            if (guide == null || !guide.IsVisibleFor(_gameData) ||
+                _items.ContainsKey(guide))
+            {
+                continue;
+            }
+
+            TutorialGuideTextUI item = Instantiate(_itemPrefab, _guideListRoot);
+            int siblingIndex = GetSiblingIndex(guide);
+            item.name = $"Guide_{guide.Key}";
+            item.Bind(guide.Text);
+            _items.Add(guide, item);
+            yield return item.PlayPresentation(
+                _guideListRoot, _centerPresentationRoot, siblingIndex);
+        }
+
+        _presentationRoutine = null;
+        StartPresentationQueue();
+    }
+
+    private int GetSiblingIndex(TutorialGuideDefinition guide)
+    {
+        int index = 0;
+        foreach (TutorialGuideDefinition existing in _items.Keys)
+        {
+            if (CompareGuides(existing, guide) < 0)
+            {
+                index++;
+            }
+        }
+
+        return index;
+    }
+
     private IEnumerator CompleteGuide(
         TutorialGuideDefinition guide,
-        TutorialGuideItemUI item)
+        TutorialGuideTextUI item)
     {
         if (!_completing.Add(guide))
         {
             yield break;
         }
 
-        yield return item.PlayCompletionAnimation();
         _items.Remove(guide);
+        item.transform.SetParent(_centerPresentationRoot, true);
+        yield return item.PlayCompletionAnimation();
         _completing.Remove(guide);
         Destroy(item.gameObject);
-        RefreshVisibleGuides();
     }
 
     private static int CompareGuides(
