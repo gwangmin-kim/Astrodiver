@@ -21,6 +21,12 @@ public sealed class StageMapEditorWindow : EditorWindow
         Fill = 1
     }
 
+    private enum PlacementContent
+    {
+        CommonTerrain = 0,
+        Mining = 1
+    }
+
     private enum PlacementOperation
     {
         Paint = 0,
@@ -53,6 +59,9 @@ public sealed class StageMapEditorWindow : EditorWindow
         StageMapToolMode.Placement;
     [SerializeField] private PlacementEditMode _editMode =
         PlacementEditMode.Draw;
+    [SerializeField] private PlacementContent _placementContent =
+        PlacementContent.CommonTerrain;
+    [SerializeField] private MiningTileDefinition _selectedMiningTile;
     [SerializeField] private StageTileSet _selectedTileSet;
     [SerializeField] private StageTileSet[] _lastTileSetByLayer =
         new StageTileSet[3];
@@ -172,6 +181,48 @@ public sealed class StageMapEditorWindow : EditorWindow
             if (EditorGUI.EndChangeCheck())
             {
                 SetEditMode(nextEditMode);
+            }
+
+            EditorGUI.BeginChangeCheck();
+            PlacementContent nextContent =
+                (PlacementContent)EditorGUILayout.EnumPopup(
+                    "Paint Content",
+                    _placementContent);
+            if (EditorGUI.EndChangeCheck())
+            {
+                _placementContent = nextContent;
+                FinishStroke();
+            }
+
+            if (_placementContent == PlacementContent.Mining)
+            {
+                using (new EditorGUI.DisabledScope(
+                           _selectedLayer != StageMapLayer.Platform))
+                {
+                    _selectedMiningTile =
+                        (MiningTileDefinition)EditorGUILayout.ObjectField(
+                            "Mining Tile Definition",
+                            _selectedMiningTile,
+                            typeof(MiningTileDefinition),
+                            false);
+                }
+
+                if (_selectedLayer != StageMapLayer.Platform)
+                {
+                    EditorGUILayout.HelpBox(
+                        "Mining tiles can only be placed on Platform.",
+                        MessageType.Warning);
+                }
+                else if (_selectedMiningTile == null)
+                {
+                    EditorGUILayout.HelpBox(
+                        "Select a Mining Logical Tile to assign a mineral type.",
+                        MessageType.Warning);
+                }
+                else if (!_selectedMiningTile.TryValidate(out string miningError))
+                {
+                    EditorGUILayout.HelpBox(miningError, MessageType.Error);
+                }
             }
         }
         else
@@ -1012,7 +1063,9 @@ public sealed class StageMapEditorWindow : EditorWindow
         Tilemap logic = stageMap.GetLogicalTilemap(_selectedLayer);
         Tilemap visual = stageMap.GetVisualTilemap(_selectedLayer);
         bool occupied = logic.HasTile(cell);
-        if ((_strokeOperation == PlacementOperation.Paint && occupied) ||
+        bool paintingMining = IsMiningPlacementValid();
+        if ((_strokeOperation == PlacementOperation.Paint && occupied &&
+             !paintingMining) ||
             (_strokeOperation == PlacementOperation.Erase && !occupied))
         {
             _lastEditedCell = cell;
@@ -1026,10 +1079,15 @@ public sealed class StageMapEditorWindow : EditorWindow
         {
             logic.SetTile(
                 cell,
-                StageMapDefaultTiles.GetLogical(_selectedLayer));
-            visual.SetTile(
-                cell,
-                StageMapDefaultTiles.GetVisualDefault(_selectedLayer));
+                paintingMining
+                    ? _selectedMiningTile
+                    : StageMapDefaultTiles.GetLogical(_selectedLayer));
+            if (!occupied)
+            {
+                visual.SetTile(
+                    cell,
+                    StageMapDefaultTiles.GetVisualDefault(_selectedLayer));
+            }
         }
         else
         {
@@ -1048,6 +1106,12 @@ public sealed class StageMapEditorWindow : EditorWindow
 
     private void FillEmptyRegion(StageMap stageMap, Vector3Int start)
     {
+        if (IsMiningPlacementValid())
+        {
+            FillMiningRegion(stageMap, start);
+            return;
+        }
+
         WorldBounds2D stageBounds = FindStageBounds(stageMap.gameObject.scene);
         if (stageBounds == null)
         {
@@ -1094,6 +1158,33 @@ public sealed class StageMapEditorWindow : EditorWindow
 
         FinalizeTilemapEdit(logic);
         FinalizeTilemapEdit(visual);
+        Undo.CollapseUndoOperations(undoGroup);
+    }
+
+    private void FillMiningRegion(StageMap stageMap, Vector3Int start)
+    {
+        Tilemap logic = stageMap.PlatformLogic;
+        if (logic == null || !logic.HasTile(start))
+        {
+            return;
+        }
+
+        List<Vector3Int> region = CollectRegion(start, logic.HasTile);
+        if (region.Count == 0)
+        {
+            return;
+        }
+
+        Undo.IncrementCurrentGroup();
+        int undoGroup = Undo.GetCurrentGroup();
+        Undo.SetCurrentGroupName("Assign Mining Type");
+        Undo.RegisterCompleteObjectUndo(logic, "Assign Mining Type");
+        foreach (Vector3Int cell in region)
+        {
+            logic.SetTile(cell, _selectedMiningTile);
+        }
+
+        FinalizeTilemapEdit(logic);
         Undo.CollapseUndoOperations(undoGroup);
     }
 
@@ -1368,11 +1459,22 @@ public sealed class StageMapEditorWindow : EditorWindow
                    common;
         }
 
-        return "D: Draw Mode  |  F: Fill Mode\n" +
+        string mining = _placementContent == PlacementContent.Mining
+            ? "Mining mode replaces Platform Logic tiles without changing their visual.\n"
+            : string.Empty;
+        return mining + "D: Draw Mode  |  F: Fill Mode\n" +
                "Draw - Left/right-click + drag: Paint/erase cells\n" +
                "Fill - Left-click: Fill empty region  |  " +
                "Right-click: Erase selected Tilemap region\n" +
                common;
+    }
+
+    private bool IsMiningPlacementValid()
+    {
+        return _placementContent == PlacementContent.Mining &&
+               _selectedLayer == StageMapLayer.Platform &&
+               _selectedMiningTile != null &&
+               _selectedMiningTile.TryValidate(out _);
     }
 
     private void EnsureVisualStageMap(StageMap stageMap)

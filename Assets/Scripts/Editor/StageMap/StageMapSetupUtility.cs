@@ -152,12 +152,16 @@ internal static class StageMapSetupUtility
             {
                 visual.SetTile(
                     cell,
-                    StageMapDefaultTiles.IsLogicalTile(existing)
+                    StageMapDefaultTiles.IsLogicalTile(existing) ||
+                    existing is MiningTileDefinition
                         ? defaultVisual
                         : existing);
             }
 
-            logic.SetTile(cell, logicalTile);
+            if (existing is not MiningTileDefinition)
+            {
+                logic.SetTile(cell, logicalTile);
+            }
         }
 
         foreach (Vector3Int cell in visual.cellBounds.allPositionsWithin)
