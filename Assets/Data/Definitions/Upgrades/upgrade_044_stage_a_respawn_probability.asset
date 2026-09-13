@@ -29,8 +29,6 @@ MonoBehaviour:
     _amount: 20
   _effects:
   - rid: 8656187289957819540
-  - rid: 8656187289957819541
-  - rid: 8656187289957819542
   references:
     version: 2
     RefIds:
@@ -38,14 +36,4 @@ MonoBehaviour:
       type: {class: StageRespawnProbabilityBonusUpgradeEffect, ns: , asm: Assembly-CSharp}
       data:
         _stage: {fileID: 11400000, guid: aec72bcc1ecae462b83f726539e778d4, type: 2}
-        _bonus: 0.1
-    - rid: 8656187289957819541
-      type: {class: StageRespawnProbabilityBonusUpgradeEffect, ns: , asm: Assembly-CSharp}
-      data:
-        _stage: {fileID: 11400000, guid: 844dc0dbb0f794d79b1c5138f6da58ec, type: 2}
-        _bonus: 0.1
-    - rid: 8656187289957819542
-      type: {class: StageRespawnProbabilityBonusUpgradeEffect, ns: , asm: Assembly-CSharp}
-      data:
-        _stage: {fileID: 11400000, guid: 624cb5976bb1c4db2a93d20120ecc40c, type: 2}
         _bonus: 0.1

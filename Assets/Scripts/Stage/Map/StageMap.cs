@@ -3,9 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-// Transitional editor-only identifiers. 4R-B removes the old multi-layer UI.
-public enum StageMapLayer { Platform, DecorationBack, DecorationFront }
-
 [ExecuteAlways, DisallowMultipleComponent]
 public sealed class StageMap : MonoBehaviour
 {
@@ -16,19 +13,8 @@ public sealed class StageMap : MonoBehaviour
     public event Action<StageMapMiningCellDestroyed> MiningCellDestroyed;
     public Grid Grid => _grid;
     public Tilemap Tilemap => _tilemap;
-    public Tilemap PlatformLogic => _tilemap;
-    public Tilemap PlatformVisual => _tilemap;
-    public Tilemap DecorationBackLogic => null;
-    public Tilemap DecorationFrontLogic => null;
-    public Tilemap DecorationBackVisual => null;
-    public Tilemap DecorationFrontVisual => null;
-    public Tilemap GetTilemap(StageMapLayer layer) => layer == StageMapLayer.Platform ? _tilemap : null;
-    public Tilemap GetLogicalTilemap(StageMapLayer layer) => GetTilemap(layer);
-    public Tilemap GetVisualTilemap(StageMapLayer layer) => GetTilemap(layer);
     public void Configure(Grid grid, Tilemap tilemap) { _grid = grid; _tilemap = tilemap; EnforceTransformLock(); }
-    public void Configure(Grid grid, Tilemap platformLogic, Tilemap _, Tilemap __, Tilemap ___, Tilemap ____, Tilemap _____) => Configure(grid, platformLogic);
     public void EnforceTransformLock() { Pin(_grid != null ? _grid.transform : null); Pin(_tilemap != null ? _tilemap.transform : null); }
-    public bool TryValidate(StageMapLayer _, out string error) => TryValidate(out error);
     public bool TryValidate(out string error)
     {
         if (_grid == null || _tilemap == null) { error = "StageMap requires a Grid and one collision Tilemap."; return false; }

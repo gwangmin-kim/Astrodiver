@@ -185,6 +185,38 @@
 
 ## 7. 재구성 이후 작업 기록
 
+### 2026-09-13 — 4R-C 검증: 채굴 상태 통과, 물리 충돌 차단
+
+- 수정 파일: 이 기록 문서만 변경했다. PlayMode 검증용 임시 C# 스크립트는 `AgentScripts/`에서 실행 뒤 제거했으며, 게임 코드·정의 에셋·씬·프리팹은 변경하지 않았다.
+- 실제 PlayMode 검증: `StageMap.TryValidate()` 성공. 음수 좌표의 임시 셀에서 0/음수 피해, 이미 제거된 셀 피해, 파괴 불가 정의 피해를 모두 거부했다. 같은 정의의 인접 셀은 한 셀 제거 후에도 독립적으로 남았고, HP 2의 런타임 복제 정의는 첫 타격에 HP 1로 유지되고 두 번째 타격에만 제거됐다. 셀 제거 이벤트는 좌표·월드 위치·정의를 정확히 제공했다. stone/iron/obsidian/crystal의 임시 배치 모두 AutoTile 스프라이트를 생성했다. PlayMode에서 제거한 기존 셀은 종료 후 재진입 시 원래 정의와 HP 1로 복원됐다.
+- 실패/차단: 실제 배치 셀을 지나는 `Physics2D.Raycast`가 `CompositeCollider2D`를 한 번도 맞추지 못했다. Composite의 shape/path는 존재하지만 물리 쿼리에 응답하지 않아, 셀 제거 뒤 실제 통과 가능 여부를 판정할 수 없다. `TilemapCollider2D` 자체 shape 수 0은 Composite 병합 구성에서는 단독 결함으로 단정하지 않았지만, Composite까지 비응답인 현상은 완료 기준을 막는다.
+- 별도 환경 오류: PlayMode 시작 시 `GameDefinitionCatalog`의 stage respawn probability 효과가 stage definition을 요구한다는 기존 카탈로그 오류가 Console에 기록됐다. 채굴 호출은 실행됐지만 깨끗한 PlayMode Console 검증은 이 오류를 해소하거나 범위를 분리한 뒤 다시 해야 한다.
+- 필요한 후속 범위(이번 작업에서는 미수정): `Stage_a_1`과 `EmptyStageTemplate`의 Rigidbody2D/TilemapCollider2D/CompositeCollider2D 설정, 레이어 및 Physics2D 쿼리·충돌 설정을 조사해 실제 플레이어 물리 충돌과 레이캐스트가 Composite를 맞추도록 복구한다. 필요하면 `StageMap.TryValidate()`가 단순 컴포넌트 존재 여부뿐 아니라 그 유효 구성도 진단하도록 보완한다. 카탈로그 오류는 별도 데이터 정합성 범위로 분리한다.
+- 인계: 물리 충돌 결함이 해소되고 동일 PlayMode 검증에서 셀 제거 전 충돌·제거 후 통과가 확인되기 전에는 4R-C 완료 또는 5A 착수를 선언하지 않는다.
+
+### 2026-09-14 — PlayMode Catalog 정합성 복구
+
+- 현재 유지하는 `stage_000_a_1`의 리스폰 확률 효과는 보존하고, `upgrade_044_stage_a_respawn_probability`에서 삭제된 Stage를 가리켜 null이 된 효과 두 개만 제거했다. 이후 남은 Stage 효과는 `stage.a_1` 하나다.
+- 검증: `GameDefinitionCatalog.TryValidate()` 성공. Console을 비운 뒤 `Stage_a_1` PlayMode를 다시 시작했으며, 기존 stage definition 누락 오류는 재발하지 않았다(상호작용 대상 변경 일반 로그 1건만 확인).
+- 수정 파일: `Assets/Data/Definitions/Upgrades/upgrade_044_stage_a_respawn_probability.asset`, 이 계획 문서. 임시 Editor 실행 스크립트는 제거했다.
+- 인계: 이제 5A에서 `RaycastHit2D`의 접촉점으로 `StageMap + 셀`을 해석하고, Transform 기반 PlasmaGun 타격/레이저/파티클/연쇄 표현을 셀 단위 타격 결과로 전환한다. 드롭은 계속 5B 범위다.
+
+### 2026-09-12 — 4R-B 진행 중: 단일 miningTile 편집 구조
+
+- 수정: 기존 다계층 Stage Map Editor/Setup/Default Tile 코드를 제거하고 단일 `miningTile` 생성 유틸리티와 최소 편집 창으로 교체했다. 공통 Platform 셀 변환 정책은 모두 `mining_000_stone` 정의를 배치하는 것으로 확정했다. 보호벽 정의는 추가하지 않았다.
+- 수정: `StageMap`의 Logic/Visual·Decoration·레이어 호환 API와 `StageTileSet`을 제거했다. 새 Setup 유틸리티는 기존 `Platform` 셀만 stone으로 옮기고 나머지 구 타일맵은 제거한다.
+- 검증: Unity 6000.5.1f1 재컴파일 성공 및 `git diff --check` 통과.
+- 미검증/차단: 씬 일괄 변환 runner가 Editor 전용 Setup 유틸리티 reflection을 찾지 못해 실행되지 않았다. 따라서 대표 씬/전체 Stage/EmptyStageTemplate 변환·저장·재로드, 셀 수/충돌 경계, SmokeTest, Missing Script 검증은 아직 완료되지 않았다. 이 상태에서 4R-C/5A로 진행하지 않는다.
+
+### 2026-09-12 — 4R-B 보완: 유지 Stage와 빈 템플릿 변환
+
+- `Stage_a_1`과 `EmptyStageTemplate`에서 기존 `Platform` 점유 셀을 `mining_000_stone`으로 단일 `miningTile`에 옮기고, 이전 PlatformVisual·Decoration Tilemap 자식을 제거한 뒤 Editor로 저장했다. `miningTile`에는 TilemapRenderer, Static Rigidbody2D, TilemapCollider2D, CompositeCollider2D를 구성하고 StageMap이 참조하도록 했다.
+
+### 2026-09-12 — 4R-B 보완: AutoTile 규칙의 정의 통합
+
+- `MiningTileDefinition`이 `AutoTile`을 직접 상속하도록 바꾸고, 기존 iron/crystal AutoTile의 직렬화된 규칙·스프라이트 데이터를 4개 MiningTileDefinition 에셋으로 복사했다. stone/iron/obsidian은 iron 규칙, crystal은 crystal 규칙을 소유하며 Grid 충돌과 채굴 데이터도 같은 에셋에 남는다. 별도 AutoTile 원본은 아직 참조 검사 전이므로 제거하지 않았다.
+- 보완: AutoTile 전용 Inspector는 하위 타입에 자동 적용되지 않아 `MiningTileDefinitionEditor : AutoTileEditor`를 추가했다. 정의 에셋이 AutoTile을 상속한 뒤 규칙을 다시 복사해 Texture List와 템플릿 Load/Save UI가 표시되도록 했다.
+
 ### 2026-09-12 — 4R-A: 단일 충돌 Tilemap 전환
 
 - 보완: 별도 `MiningLogicalTile` 에셋을 제거했다. 기존 `MiningDefinition` 스크립트 GUID를 유지한 `MiningTileDefinition : TileBase`가 AutoTile 외형, Grid 충돌, HP, 파괴 가능 여부, 드롭 설정을 한 SO 에셋에서 함께 소유한다.
