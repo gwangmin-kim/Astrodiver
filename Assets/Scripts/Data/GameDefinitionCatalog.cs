@@ -10,6 +10,7 @@ public sealed class GameDefinitionCatalog : ScriptableObject
     [SerializeField] private ResourceDefinition[] _resources = Array.Empty<ResourceDefinition>();
     [SerializeField] private CreatureDefinition[] _creatures = Array.Empty<CreatureDefinition>();
     [SerializeField] private FloatageDefinition[] _floatages = Array.Empty<FloatageDefinition>();
+    [SerializeField] private MiningTileDefinition[] _miningTiles = Array.Empty<MiningTileDefinition>();
     [SerializeField] private UpgradeNodeDefinition[] _upgrades = Array.Empty<UpgradeNodeDefinition>();
     [SerializeField] private TutorialGuideDefinition[] _tutorialGuides =
         Array.Empty<TutorialGuideDefinition>();
@@ -18,6 +19,8 @@ public sealed class GameDefinitionCatalog : ScriptableObject
     public IReadOnlyList<CreatureDefinition> Creatures => _creatures;
     public IReadOnlyList<FloatageDefinition> Floatages =>
         _floatages ?? Array.Empty<FloatageDefinition>();
+    public IReadOnlyList<MiningTileDefinition> MiningTiles =>
+        _miningTiles ?? Array.Empty<MiningTileDefinition>();
     public IReadOnlyList<UpgradeNodeDefinition> Upgrades =>
         _upgrades ?? Array.Empty<UpgradeNodeDefinition>();
     public IReadOnlyList<TutorialGuideDefinition> TutorialGuides =>
@@ -33,6 +36,8 @@ public sealed class GameDefinitionCatalog : ScriptableObject
         _floatages ??= Array.Empty<FloatageDefinition>();
         ValidateDefinitions(_floatages, definition => definition.Id, errors);
         ValidateFloatages(errors);
+        _miningTiles ??= Array.Empty<MiningTileDefinition>();
+        ValidateMiningTiles(errors);
         _upgrades ??= Array.Empty<UpgradeNodeDefinition>();
         ValidateDefinitions(_upgrades, definition => definition.Id, errors);
         ValidateUpgradeTree(errors);
@@ -48,8 +53,10 @@ public sealed class GameDefinitionCatalog : ScriptableObject
         CreatureDefinition[] creatures,
         FloatageDefinition[] floatages,
         UpgradeNodeDefinition[] upgrades,
-        TutorialGuideDefinition[] tutorialGuides)
+        TutorialGuideDefinition[] tutorialGuides,
+        MiningTileDefinition[] miningTiles)
     {
+        _miningTiles = miningTiles ?? Array.Empty<MiningTileDefinition>();
         _resources = resources ?? Array.Empty<ResourceDefinition>();
         _creatures = creatures ?? Array.Empty<CreatureDefinition>();
         _floatages = floatages ?? Array.Empty<FloatageDefinition>();
@@ -93,7 +100,7 @@ public sealed class GameDefinitionCatalog : ScriptableObject
     {
         HashSet<UpgradeNodeDefinition> nodes = new(_upgrades);
         HashSet<ResourceDefinition> resources = new(_resources);
-        HashSet<FloatageDefinition> floatages = new(_floatages);
+        HashSet<MiningTileDefinition> miningTiles = new(_miningTiles);
         for (int i = 0; i < _upgrades.Length; i++)
         {
             UpgradeNodeDefinition node = _upgrades[i];
@@ -109,7 +116,7 @@ public sealed class GameDefinitionCatalog : ScriptableObject
 
             ValidateCostResources(node.BaseCosts, node, resources, errors);
             ValidateCostResources(node.CostIncreases, node, resources, errors);
-            ValidateFloatageEffects(node, floatages, errors);
+            ValidateMiningTileEffects(node, miningTiles, errors);
 
             if (node.Parent != null && !nodes.Contains(node.Parent))
             {
@@ -133,32 +140,51 @@ public sealed class GameDefinitionCatalog : ScriptableObject
         }
     }
 
-    private static void ValidateFloatageEffects(
+    private static void ValidateMiningTileEffects(
         UpgradeNodeDefinition node,
-        ISet<FloatageDefinition> catalogFloatages,
+        ISet<MiningTileDefinition> catalogMiningTiles,
         ICollection<string> errors)
     {
         for (int i = 0; i < node.Effects.Count; i++)
         {
-            if (node.Effects[i] is not FloatageDropMultiplierUpgradeEffect &&
-                node.Effects[i] is not FloatageDropBonusUpgradeEffect)
+            if (node.Effects[i] is not MiningTileDropMultiplierUpgradeEffect &&
+                node.Effects[i] is not MiningTileDropBonusUpgradeEffect)
             {
                 continue;
             }
 
-            FloatageDefinition floatage = node.Effects[i] switch
+            MiningTileDefinition miningTile = node.Effects[i] switch
             {
-                FloatageDropMultiplierUpgradeEffect multiplier => multiplier.Floatage,
-                FloatageDropBonusUpgradeEffect bonus => bonus.Floatage,
+                MiningTileDropMultiplierUpgradeEffect multiplier => multiplier.MiningTile,
+                MiningTileDropBonusUpgradeEffect bonus => bonus.MiningTile,
                 _ => null
             };
 
-            if (floatage != null && !catalogFloatages.Contains(floatage))
+            if (miningTile != null && !catalogMiningTiles.Contains(miningTile))
             {
                 errors.Add(
-                    $"Upgrade node '{node.Id}' references floatage " +
-                    $"'{floatage.Id}', but it is not in this catalog.");
+                    $"Upgrade node '{node.Id}' references miningTile " +
+                    $"'{miningTile.name}', but it is not in this catalog.");
             }
+        }
+    }
+
+    private void ValidateMiningTiles(ICollection<string> errors)
+    {
+        HashSet<MiningTileDefinition> seen = new();
+        HashSet<ResourceDefinition> resources = new(_resources);
+        for (int i = 0; i < _miningTiles.Length; i++)
+        {
+            MiningTileDefinition tile = _miningTiles[i];
+            if (tile == null)
+            {
+                errors.Add($"Mining tile entry at index {i} is null.");
+                continue;
+            }
+            if (!seen.Add(tile)) errors.Add($"Duplicate mining tile '{tile.name}'.");
+            if (!tile.TryValidate(out string error)) errors.Add(error);
+            if (tile.DropResource != null && !resources.Contains(tile.DropResource))
+                errors.Add($"Mining tile '{tile.name}' uses a resource outside this catalog.");
         }
     }
 

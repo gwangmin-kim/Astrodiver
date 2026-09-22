@@ -2,14 +2,14 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Holds derived, definition-specific floatage drop multipliers.
+/// Holds derived, definition-specific mining tile drop multipliers.
 /// This data is rebuilt from purchased upgrades and is never saved directly.
 /// </summary>
-public sealed class FloatageDropMultiplierRuntimeData
+public sealed class MiningTileDropMultiplierRuntimeData
 {
-    private readonly Dictionary<FloatageDefinition, float> _multipliers = new();
+    private readonly Dictionary<MiningTileDefinition, float> _multipliers = new();
 
-    public float GetMultiplier(FloatageDefinition definition)
+    public float GetMultiplier(MiningTileDefinition definition)
     {
         if (definition == null ||
             !_multipliers.TryGetValue(definition, out float multiplier))
@@ -20,7 +20,7 @@ public sealed class FloatageDropMultiplierRuntimeData
         return Mathf.Max(1f, multiplier);
     }
 
-    public void Multiply(FloatageDefinition definition, float multiplier)
+    public void Multiply(MiningTileDefinition definition, float multiplier)
     {
         if (definition == null)
         {
@@ -33,7 +33,7 @@ public sealed class FloatageDropMultiplierRuntimeData
             : current * multiplier;
     }
 
-    public void AddBonus(FloatageDefinition definition, float bonus)
+    public void AddBonus(MiningTileDefinition definition, float bonus)
     {
         if (definition == null || bonus <= 0f)
         {

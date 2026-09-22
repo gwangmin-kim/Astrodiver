@@ -36,20 +36,20 @@ public sealed class UpgradeNodeDefinitionEditor : Editor
                 new UnlockUpgradeEffect();
         }
 
-        if (GUILayout.Button("Add Floatage Drop Multiplier Effect"))
+        if (GUILayout.Button("Add Mining Tile Drop Multiplier Effect"))
         {
             int index = _effects.arraySize;
             _effects.arraySize++;
             _effects.GetArrayElementAtIndex(index).managedReferenceValue =
-                new FloatageDropMultiplierUpgradeEffect();
+                new MiningTileDropMultiplierUpgradeEffect();
         }
 
-        if (GUILayout.Button("Add Floatage Drop Bonus Effect"))
+        if (GUILayout.Button("Add Mining Tile Drop Bonus Effect"))
         {
             int index = _effects.arraySize;
             _effects.arraySize++;
             _effects.GetArrayElementAtIndex(index).managedReferenceValue =
-                new FloatageDropBonusUpgradeEffect();
+                new MiningTileDropBonusUpgradeEffect();
         }
 
         if (GUILayout.Button("Add Stage Respawn Probability Bonus Effect"))

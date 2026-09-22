@@ -28,7 +28,7 @@ public sealed class UpgradeTooltipDataBuilder
             0,
             definition.MaxLevel);
         bool isMaxLevel = clampedLevel >= definition.MaxLevel;
-        bool hasFloatageDropBonusPreview = false;
+        bool hasMiningDropPreview = false;
         bool hasStageRespawnProbabilityBonusPreview = false;
 
         IReadOnlyList<UpgradeEffect> effects = definition.Effects;
@@ -41,14 +41,14 @@ public sealed class UpgradeTooltipDataBuilder
                 continue;
             }
 
-            if (effect is FloatageDropBonusUpgradeEffect)
+            if (effect is MiningTileDropBonusUpgradeEffect || effect is MiningTileDropMultiplierUpgradeEffect)
             {
-                if (hasFloatageDropBonusPreview)
+                if (!hasMiningDropPreview)
                 {
-                    continue;
+                    AddMiningPreviews(effects, runtimeData, isMaxLevel);
+                    hasMiningDropPreview = true;
                 }
-
-                hasFloatageDropBonusPreview = true;
+                continue;
             }
 
             if (effect is StageRespawnProbabilityBonusUpgradeEffect)
@@ -84,6 +84,50 @@ public sealed class UpgradeTooltipDataBuilder
         }
 
         return CreateModel(displayName, definition.Description, isMaxLevel);
+    }
+
+    private void AddMiningPreviews(
+        IReadOnlyList<UpgradeEffect> effects, GameRuntimeData runtimeData, bool isMaxLevel)
+    {
+        // Simulate the whole node in its actual effect order, including repeated targets.
+        var nextMultipliers = new MiningTileDropMultiplierRuntimeData();
+        var tiles = new List<MiningTileDefinition>();
+        foreach (var effect in effects)
+        {
+            MiningTileDefinition tile = effect switch
+            {
+                MiningTileDropBonusUpgradeEffect bonus => bonus.MiningTile,
+                MiningTileDropMultiplierUpgradeEffect multiplier => multiplier.MiningTile,
+                _ => null
+            };
+            if (tile == null || !effect.TryValidate(out _)) continue;
+            if (!tiles.Contains(tile))
+            {
+                tiles.Add(tile);
+                nextMultipliers.Multiply(tile, runtimeData.MiningTileDropMultipliers.GetMultiplier(tile));
+            }
+            if (effect is MiningTileDropBonusUpgradeEffect bonusEffect)
+                nextMultipliers.AddBonus(tile, bonusEffect.Bonus);
+            else if (effect is MiningTileDropMultiplierUpgradeEffect multiplierEffect)
+                nextMultipliers.Multiply(tile, multiplierEffect.Multiplier);
+        }
+        var groups = new List<(float current, float next, string names)>();
+        foreach (var tile in tiles)
+        {
+            float current = runtimeData.MiningTileDropMultipliers.GetMultiplier(tile);
+            float next = nextMultipliers.GetMultiplier(tile);
+            string label = tile.DropResource != null ? tile.DropResource.DisplayName : tile.name;
+            int index = groups.FindIndex(group => group.current == current && group.next == next);
+            if (index < 0) groups.Add((current, next, label));
+            else
+            {
+                var group = groups[index];
+                groups[index] = (current, next, group.names + ", " + label);
+            }
+        }
+        foreach (var group in groups)
+            _effectLines.Add(FormatPreview(UpgradeEffectPreview.Numeric(
+                group.current, group.next, false, group.names + " 드롭 배율"), isMaxLevel));
     }
 
     private UpgradeTooltipViewModel CreateModel(

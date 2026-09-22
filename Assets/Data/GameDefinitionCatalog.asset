@@ -39,6 +39,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 53d26ba39be7f3249883dc0e39a0d449, type: 2}
   - {fileID: 11400000, guid: 5e23ec5ec25758c4fa4d779610152833, type: 2}
   - {fileID: 11400000, guid: 22ba1af3d0a60ef4fa792fdc7703d5eb, type: 2}
+  _miningTiles:
+  - {fileID: 11400000, guid: c2a0b5412feec0d43965a16d24e04162, type: 2}
+  - {fileID: 11400000, guid: e8f7efbf4f3ea3a45b031d464ec9c5db, type: 2}
+  - {fileID: 11400000, guid: be37e99f82204e9499f21d7b4a2c8f5e, type: 2}
+  - {fileID: 11400000, guid: 874b9b18bb45e5c40acfe8b0c5fe5d4c, type: 2}
   _upgrades:
   - {fileID: 11400000, guid: 113959368ffda2f48bc3ded1f6a8c16e, type: 2}
   - {fileID: 11400000, guid: de02d7f8d6df8c24198505f9653b568f, type: 2}

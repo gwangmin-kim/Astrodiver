@@ -48,21 +48,22 @@ public sealed class GameDefinitionCatalogEditor : Editor
         ResourceDefinition[] resources = FindAll<ResourceDefinition>();
         CreatureDefinition[] creatures = FindAll<CreatureDefinition>();
         FloatageDefinition[] floatages = FindAll<FloatageDefinition>();
+        MiningTileDefinition[] miningTiles = FindAll<MiningTileDefinition>();
         UpgradeNodeDefinition[] upgrades = FindAll<UpgradeNodeDefinition>();
         TutorialGuideDefinition[] tutorialGuides = FindAll<TutorialGuideDefinition>();
 
         Undo.RecordObject(catalog, "Refresh Game Definition Catalog");
         catalog.SetDefinitionsForEditor(
-            resources, creatures, floatages, upgrades, tutorialGuides);
+            resources, creatures, floatages, upgrades, tutorialGuides, miningTiles);
         EditorUtility.SetDirty(catalog);
-        AssetDatabase.SaveAssets();
+        AssetDatabase.SaveAssetIfDirty(catalog);
 
         if (catalog.TryValidate(out string error))
         {
             Debug.Log(
                 $"Refreshed '{catalog.name}': " +
                 $"{resources.Length} resources, {creatures.Length} creatures, " +
-                $"{floatages.Length} floatages, {upgrades.Length} upgrades, " +
+                $"{miningTiles.Length} mining tiles, {floatages.Length} floatages, {upgrades.Length} upgrades, " +
                 $"{tutorialGuides.Length} tutorial guides.",
                 catalog);
         }

@@ -2,35 +2,35 @@ using System;
 using UnityEngine;
 
 [Serializable]
-public sealed class FloatageDropBonusUpgradeEffect : UpgradeEffect
+public sealed class MiningTileDropBonusUpgradeEffect : UpgradeEffect
 {
-    [SerializeField] private FloatageDefinition _floatage;
+    [SerializeField] private MiningTileDefinition _miningTile;
     [SerializeField, Min(0f)] private float _bonus;
 
-    public FloatageDropBonusUpgradeEffect()
+    public MiningTileDropBonusUpgradeEffect()
     {
     }
 
-    public FloatageDropBonusUpgradeEffect(FloatageDefinition floatage, float bonus)
+    public MiningTileDropBonusUpgradeEffect(MiningTileDefinition miningTile, float bonus)
     {
-        _floatage = floatage;
+        _miningTile = miningTile;
         _bonus = bonus;
     }
 
-    public FloatageDefinition Floatage => _floatage;
+    public MiningTileDefinition MiningTile => _miningTile;
     public float Bonus => _bonus;
 
     public override bool TryValidate(out string error)
     {
-        if (_floatage == null)
+        if (_miningTile == null)
         {
-            error = "A floatage drop bonus effect requires a floatage definition.";
+            error = "A mining tile drop bonus effect requires a mining tile definition.";
             return false;
         }
 
         if (float.IsNaN(_bonus) || float.IsInfinity(_bonus) || _bonus < 0f)
         {
-            error = "A floatage drop bonus must be a finite non-negative value.";
+            error = "A mining tile drop bonus must be a finite non-negative value.";
             return false;
         }
 
@@ -51,7 +51,7 @@ public sealed class FloatageDropBonusUpgradeEffect : UpgradeEffect
             return false;
         }
 
-        context.RuntimeData.FloatageDropMultipliers.AddBonus(_floatage, _bonus);
+        context.RuntimeData.MiningTileDropMultipliers.AddBonus(_miningTile, _bonus);
         error = null;
         return true;
     }
@@ -66,14 +66,15 @@ public sealed class FloatageDropBonusUpgradeEffect : UpgradeEffect
             return false;
         }
 
-        float current = runtimeData.FloatageDropMultipliers.GetMultiplier(_floatage);
+        float current = runtimeData.MiningTileDropMultipliers.GetMultiplier(_miningTile);
         float next = current > float.MaxValue - _bonus
             ? float.MaxValue
             : current + _bonus;
         preview = UpgradeEffectPreview.Numeric(
             current,
             next,
-            false);
+            false,
+            $"{(_miningTile.DropResource != null ? _miningTile.DropResource.DisplayName : _miningTile.name)} 드롭 배율");
         return true;
     }
 }

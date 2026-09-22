@@ -29,7 +29,27 @@ public sealed class MiningFragmentDrops : MonoBehaviour
             return;
         }
 
+        float multiplier = GameDataManager.Instance?.RuntimeData?.MiningTileDropMultipliers
+            .GetMultiplier(destroyed.Definition) ?? 1f;
+        int count = CalculateDropCount(destroyed.Definition.BaseDropAmount, multiplier);
         fragments.DropFragment(destroyed.WorldPosition, destroyed.Definition.DropResource,
-            DropRadius, destroyed.Definition.BaseDropAmount);
+            DropRadius, count);
     }
+
+    public static int CalculateDropCount(int baseCount, float multiplier)
+    {
+        int normalizedBaseCount = Mathf.Max(1, baseCount);
+        float normalizedMultiplier =
+            float.IsNaN(multiplier) || float.IsInfinity(multiplier)
+                ? 1f
+                : Mathf.Max(1f, multiplier);
+        double scaled = normalizedBaseCount * (double)normalizedMultiplier;
+        if (scaled >= int.MaxValue)
+        {
+            return int.MaxValue;
+        }
+
+        return Mathf.Max(1, Mathf.RoundToInt((float)scaled));
+    }
+
 }

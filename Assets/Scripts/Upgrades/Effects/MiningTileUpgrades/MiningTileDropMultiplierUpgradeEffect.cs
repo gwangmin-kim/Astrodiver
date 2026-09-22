@@ -2,38 +2,38 @@ using System;
 using UnityEngine;
 
 [Serializable]
-public sealed class FloatageDropMultiplierUpgradeEffect : UpgradeEffect
+public sealed class MiningTileDropMultiplierUpgradeEffect : UpgradeEffect
 {
-    [SerializeField] private FloatageDefinition _floatage;
+    [SerializeField] private MiningTileDefinition _miningTile;
     [SerializeField, Min(1f)] private float _multiplier = 1f;
 
-    public FloatageDropMultiplierUpgradeEffect()
+    public MiningTileDropMultiplierUpgradeEffect()
     {
     }
 
-    public FloatageDropMultiplierUpgradeEffect(
-        FloatageDefinition floatage,
+    public MiningTileDropMultiplierUpgradeEffect(
+        MiningTileDefinition miningTile,
         float multiplier)
     {
-        _floatage = floatage;
+        _miningTile = miningTile;
         _multiplier = multiplier;
     }
 
-    public FloatageDefinition Floatage => _floatage;
+    public MiningTileDefinition MiningTile => _miningTile;
     public float Multiplier => _multiplier;
 
     public override bool TryValidate(out string error)
     {
-        if (_floatage == null)
+        if (_miningTile == null)
         {
-            error = "A floatage drop multiplier effect requires a floatage definition.";
+            error = "A mining tile drop multiplier effect requires a mining tile definition.";
             return false;
         }
 
         if (float.IsNaN(_multiplier) || float.IsInfinity(_multiplier) ||
             _multiplier < 1f)
         {
-            error = "A floatage drop multiplier must be a finite value of at least 1.";
+            error = "A mining tile drop multiplier must be a finite value of at least 1.";
             return false;
         }
 
@@ -54,7 +54,7 @@ public sealed class FloatageDropMultiplierUpgradeEffect : UpgradeEffect
             return false;
         }
 
-        context.RuntimeData.FloatageDropMultipliers.Multiply(_floatage, _multiplier);
+        context.RuntimeData.MiningTileDropMultipliers.Multiply(_miningTile, _multiplier);
         error = null;
         return true;
     }
@@ -69,7 +69,7 @@ public sealed class FloatageDropMultiplierUpgradeEffect : UpgradeEffect
             return false;
         }
 
-        float current = runtimeData.FloatageDropMultipliers.GetMultiplier(_floatage);
+        float current = runtimeData.MiningTileDropMultipliers.GetMultiplier(_miningTile);
         float next = current > float.MaxValue / _multiplier
             ? float.MaxValue
             : current * _multiplier;
@@ -77,7 +77,7 @@ public sealed class FloatageDropMultiplierUpgradeEffect : UpgradeEffect
             current,
             next,
             false,
-            $"{_floatage.name} 드롭 배율");
+            $"{(_miningTile.DropResource != null ? _miningTile.DropResource.DisplayName : _miningTile.name)} 드롭 배율");
         return true;
     }
 }

@@ -369,33 +369,33 @@ public static class GameDataSaveSystemSmokeTest
             Require(
                 runtimeData.Facilities.WorktableSlotCapacity == 3,
                 "The worktable slot capacity upgrade was not applied.");
-            FloatageDefinition floatageDefinition = catalog.Floatages[0];
-            UpgradeEffect floatageDropEffect =
-                new FloatageDropMultiplierUpgradeEffect(floatageDefinition, 1.5f);
+            MiningTileDefinition miningTileDefinition = catalog.MiningTiles[0];
+            UpgradeEffect miningTileDropEffect =
+                new MiningTileDropMultiplierUpgradeEffect(miningTileDefinition, 1.5f);
             Require(
-                floatageDropEffect.TryApply(
+                miningTileDropEffect.TryApply(
                     effectContext,
-                    out string floatageDropEffectError),
-                floatageDropEffectError);
+                    out string miningTileDropEffectError),
+                miningTileDropEffectError);
             Require(
                 Mathf.Approximately(
-                    runtimeData.FloatageDropMultipliers.GetMultiplier(floatageDefinition),
+                    runtimeData.MiningTileDropMultipliers.GetMultiplier(miningTileDefinition),
                     1.5f) &&
-                FloatageController.CalculateDropCount(5, 1.5f) == 8,
-                "The floatage drop multiplier upgrade was not applied.");
+                MiningFragmentDrops.CalculateDropCount(5, 1.5f) == 8,
+                "The mining tile drop multiplier upgrade was not applied.");
             Require(
-                floatageDropEffect.TryApply(
+                miningTileDropEffect.TryApply(
                     effectContext,
-                    out floatageDropEffectError) &&
+                    out miningTileDropEffectError) &&
                 Mathf.Approximately(
-                    runtimeData.FloatageDropMultipliers.GetMultiplier(floatageDefinition),
+                    runtimeData.MiningTileDropMultipliers.GetMultiplier(miningTileDefinition),
                     2.25f),
-                "Floatage drop multipliers did not stack multiplicatively.");
-            UpgradeEffect invalidFloatageDropEffect =
-                new FloatageDropMultiplierUpgradeEffect(floatageDefinition, 0.5f);
+                "Mining tile drop multipliers did not stack multiplicatively.");
+            UpgradeEffect invalidMiningTileDropEffect =
+                new MiningTileDropMultiplierUpgradeEffect(miningTileDefinition, 0.5f);
             Require(
-                !invalidFloatageDropEffect.TryValidate(out _),
-                "A floatage drop multiplier below one was accepted.");
+                !invalidMiningTileDropEffect.TryValidate(out _),
+                "A mining tile drop multiplier below one was accepted.");
             Require(
                 !Mathf.Approximately(
                     runtimeData.PlayerStats.movement.moveSpeedRatio,
