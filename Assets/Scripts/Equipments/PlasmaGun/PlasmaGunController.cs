@@ -20,13 +20,8 @@ public class PlasmaGunController : MonoBehaviour
     [Header("Charge UI")]
     [SerializeField] private PlasmaGunChargeUI _chargeUI;
 
-    private ContactFilter2D _targetFilter;
-    private readonly List<Collider2D> _overlapBuffer = new(10);
-
-    // 중복 검색 방지
-    // 공격 대상의 순서가 필요한 로직이 존재
-    // 크기가 작은 컨테이너이므로 List 사용
-    private readonly List<Transform> _currentTargetList = new();
+    private readonly PlasmaMiningTargeting _targeting = new();
+    private readonly List<MiningHit> _currentTargetList = new();
     private readonly List<PlasmaGunLaserVisual> _chainLaserVisuals = new();
 
     private float _attackTickTimer;
@@ -49,22 +44,17 @@ public class PlasmaGunController : MonoBehaviour
     public bool HasAmmo => _remainingAmmo > 0;
     public event Action<int, int> AmmoChanged;
 
-    private void Awake()
-    {
-        // 대상 탐색용 필터 초기화
-        _targetFilter = new ContactFilter2D();
-        _targetFilter.SetLayerMask(_targetLayer);
-        _targetFilter.useTriggers = false;
-    }
-
     private void Start()
     {
         _data = GameDataManager.Instance.GetPlasmaGun();
         _remainingAmmo = TotalAmmo;
+
         CreateChainLaserVisuals();
-        _visualPalette?.ApplyTo(_laserVisual);
-        _chargeParticles?.ApplyPalette(_visualPalette);
-        _particleEffects?.Initialize(_visualPalette, _data.chainCount + 1);
+
+        if (_visualPalette != null) _visualPalette.ApplyTo(_laserVisual);
+        if (_chargeParticles != null) _chargeParticles.ApplyPalette(_visualPalette);
+        if (_particleEffects != null) _particleEffects.Initialize(_visualPalette, _data.chainCount + 1);
+
         PublishAmmoChanged();
     }
 
@@ -73,7 +63,7 @@ public class PlasmaGunController : MonoBehaviour
         if (_chargeState != ChargeState.Charged || !isAttacking || !HasAmmo)
         {
             HideAttackEffects();
-            _particleEffects?.HideAll();
+            if (_particleEffects != null) _particleEffects.HideAll();
         }
 
         switch (_chargeState)
@@ -103,9 +93,17 @@ public class PlasmaGunController : MonoBehaviour
             case ChargeState.Charged:
                 if (isAttacking && HasAmmo)
                 {
+                    // 타격 대상 설정
+                    SetTarget();
+
+                    // 시각 효과 설정
                     DrawAttackEffect();
-                    _particleEffects?.SetMuzzleFiring(true, _shootOrigin);
-                    _particleEffects?.SetImpactTargets(_currentTargetList);
+                    if (_particleEffects != null)
+                    {
+                        _particleEffects.SetMuzzleFiring(true, _shootOrigin);
+                        _particleEffects.SetImpactTargets(_currentTargetList);
+                    }
+
                     _chargedRetentionTimer = _data.chargedRetentionTime;
                     _attackTickTimer -= Time.deltaTime * _data.TickSpeedMultiplier;
 
@@ -144,8 +142,8 @@ public class PlasmaGunController : MonoBehaviour
             ? 1f
             : 1f - Mathf.Clamp01(_chargeTimer / _data.ChargeTime);
 
-        _chargeParticles?.SetCharging(isCharging, progress);
-        _chargeUI?.SetCharging(isCharging, progress);
+        if (_chargeParticles != null) _chargeParticles.SetCharging(isCharging, progress);
+        if (_chargeUI != null) _chargeUI.SetCharging(isCharging, progress);
     }
 
     private void PublishAmmoChanged()
@@ -155,10 +153,12 @@ public class PlasmaGunController : MonoBehaviour
 
     private void ResolveAttack()
     {
-        SetTarget();
         AttackTarget();
-        _particleEffects?.SetImpactTargets(_currentTargetList);
-        _particleEffects?.EmitImpactBursts(_currentTargetList);
+        if (_particleEffects != null)
+        {
+            _particleEffects.SetImpactTargets(_currentTargetList);
+            _particleEffects.EmitImpactBursts(_currentTargetList);
+        }
         DrawAttackEffect();
     }
 
@@ -167,71 +167,40 @@ public class PlasmaGunController : MonoBehaviour
     /// </summary>
     private void SetTarget()
     {
-        // 집합 초기화
         _currentTargetList.Clear();
+        if (_shootOrigin == null || !_targeting.TryFindFirstTarget(
+                _shootOrigin.position, _shootOrigin.up, _initialCastRadius,
+                _data.AttackRange, _targetLayer, out MiningHit first)) return;
 
-        // 첫 번째 대상은 CircleCast로 직선 검색
-        RaycastHit2D hit = Physics2D.CircleCast(
-            _shootOrigin.position,
-            _initialCastRadius,
-            _shootOrigin.up,
-            _data.AttackRange,
-            _targetLayer);
-
-        // 아무것도 감지가 안됐다면 그대로 종료
-        if (!hit)
-        {
-            return;
-        }
-
-        _currentTargetList.Add(hit.transform);
-
-        // 연쇄 공격이 해금되었다면, 추가 타격 대상 검색
-        if (_data.chainCount <= 0) return;
-
-        Vector2 chainOrigin = hit.transform.position;
+        _currentTargetList.Add(first);
         for (int i = 0; i < _data.chainCount; i++)
         {
-            Transform target = GetNearestTarget(chainOrigin, _data.ChainDetectRange);
-            if (target == null) break;
-
-            _currentTargetList.Add(target);
-            chainOrigin = target.position;
+            if (!_targeting.TryFindNextMiningTarget(_currentTargetList[^1],
+                    _data.ChainDetectRange, _targetLayer, _currentTargetList, out MiningHit next)) break;
+            _currentTargetList.Add(next);
         }
     }
 
-    /// <summary>
-    /// 탐색한 공격 대상에게 실제 피해를 입힘
-    /// </summary>
     private void AttackTarget()
     {
+        // The full chain is selected before damage changes any cell/collider.
         for (int i = 0; i < _currentTargetList.Count; i++)
         {
-            Transform target = _currentTargetList[i];
-
-            if (target == null || !target.TryGetComponent<IDamagable>(out var damagable)) continue;
-
+            MiningHit target = _currentTargetList[i];
+            if (target.Map == null) continue;
             float damageRate = Mathf.Pow(_data.ChainedDamageRate, i);
             int currentDamage = Mathf.RoundToInt(_data.tickDamage * damageRate);
-
-            AttackData attackData = new()
-            {
-                damage = currentDamage,
-                source = DamageSource.Player
-            };
-
-            damagable.ApplyDamage(attackData);
+            target.Map.TryApplyMiningDamage(target.Cell, currentDamage, out _);
         }
     }
-
     private void DrawAttackEffect()
     {
         if (_laserVisual == null || _shootOrigin == null) return;
 
         Vector2 origin = _shootOrigin.position;
         Vector2 fallbackEnd = origin + (Vector2)_shootOrigin.up * _data.AttackRange;
-        Vector2 firstEnd = _currentTargetList.Count > 0 && _currentTargetList[0] != null
-            ? _currentTargetList[0].position
+        Vector2 firstEnd = _currentTargetList.Count > 0
+            ? _currentTargetList[0].Position
             : fallbackEnd;
         _laserVisual.Show(origin, firstEnd);
 
@@ -240,16 +209,8 @@ public class PlasmaGunController : MonoBehaviour
             Mathf.Max(0, _currentTargetList.Count - 1));
         for (int i = 0; i < chainSegmentCount; i++)
         {
-            Transform segmentStart = _currentTargetList[i];
-            Transform segmentEnd = _currentTargetList[i + 1];
-            if (segmentStart != null && segmentEnd != null)
-            {
-                _chainLaserVisuals[i].Show(segmentStart.position, segmentEnd.position);
-            }
-            else
-            {
-                _chainLaserVisuals[i].Hide();
-            }
+            _chainLaserVisuals[i].Show(
+                _currentTargetList[i].Position, _currentTargetList[i + 1].Position);
         }
 
         for (int i = chainSegmentCount; i < _chainLaserVisuals.Count; i++)
@@ -271,7 +232,7 @@ public class PlasmaGunController : MonoBehaviour
         {
             PlasmaGunLaserVisual chainLaser = Instantiate(_laserVisual, transform);
             chainLaser.name = $"Chain Laser {i + 1}";
-            _visualPalette?.ApplyTo(chainLaser);
+            if (_visualPalette != null) _visualPalette.ApplyTo(chainLaser);
             chainLaser.Hide();
             _chainLaserVisuals.Add(chainLaser);
         }
@@ -279,45 +240,22 @@ public class PlasmaGunController : MonoBehaviour
 
     private void HideAttackEffects()
     {
-        _laserVisual?.Hide();
+        if (_laserVisual != null) _laserVisual.Hide();
         for (int i = 0; i < _chainLaserVisuals.Count; i++)
         {
             _chainLaserVisuals[i].Hide();
         }
     }
 
-    private Transform GetNearestTarget(Vector2 point, float radius)
+    private void OnDisable()
     {
-        float minSqrDistance = Mathf.Infinity;
-        Transform nearestTarget = null;
-
-        int count = Physics2D.OverlapCircle(
-            point, radius, _targetFilter, _overlapBuffer);
-
-        for (int i = 0; i < count; i++)
-        {
-            Transform candidate = _overlapBuffer[i].transform;
-
-            if (_currentTargetList.Contains(candidate))
-            {
-                continue;
-            }
-
-            float sqrDistance = Vector2.SqrMagnitude((Vector2)candidate.position - point);
-
-            if (minSqrDistance > sqrDistance)
-            {
-                minSqrDistance = sqrDistance;
-                nearestTarget = candidate;
-            }
-        }
-
-        return nearestTarget;
+        _currentTargetList.Clear();
+        HideAttackEffects();
+        if (_particleEffects != null) _particleEffects.HideAll();
     }
-
 }
 
-[System.Serializable]
+[Serializable]
 public struct PlasmaGunData
 {
     [Header("Ammo Settings")]

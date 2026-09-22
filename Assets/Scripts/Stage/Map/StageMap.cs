@@ -7,6 +7,8 @@ using UnityEngine.Tilemaps;
 public sealed class StageMap : MonoBehaviour
 {
     public static readonly Vector3 cellSize = Vector3.one;
+    private static readonly List<StageMap> _activeMaps = new();
+    public static IReadOnlyList<StageMap> ActiveMaps => _activeMaps;
     [SerializeField] private Grid _grid;
     [SerializeField] private Tilemap _tilemap;
     private readonly Dictionary<Vector3Int, int> _miningHitPoints = new();
@@ -24,7 +26,7 @@ public sealed class StageMap : MonoBehaviour
     }
     public bool TryGetMiningCell(Vector3Int cell, out MiningTileDefinition definition, out int currentHitPoints)
     {
-        definition = GetDefinition(cell);
+        definition = GetMiningDefinition(cell);
         if (definition == null) { currentHitPoints = 0; return false; }
         if (!_miningHitPoints.TryGetValue(cell, out currentHitPoints)) { currentHitPoints = definition.MaxHp; _miningHitPoints.Add(cell, currentHitPoints); }
         return true;
@@ -40,14 +42,22 @@ public sealed class StageMap : MonoBehaviour
         _tilemap.SetTile(cell, null);
         for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) _tilemap.RefreshTile(cell + new Vector3Int(x, y, 0));
         if (_tilemap.TryGetComponent(out TilemapCollider2D collider)) collider.ProcessTilemapChanges();
+        if (_tilemap.TryGetComponent(out CompositeCollider2D composite) &&
+            composite.generationType == CompositeCollider2D.GenerationType.Manual)
+            composite.GenerateGeometry();
         Physics2D.SyncTransforms();
         MiningCellDestroyed?.Invoke(new StageMapMiningCellDestroyed(cell, worldPosition, definition));
         return true;
     }
-    private void OnEnable() => EnforceTransformLock();
+    private void OnEnable()
+    {
+        EnforceTransformLock();
+        if (!_activeMaps.Contains(this)) _activeMaps.Add(this);
+    }
+    private void OnDisable() => _activeMaps.Remove(this);
     private void OnValidate() => EnforceTransformLock();
     private void LateUpdate() => EnforceTransformLock();
-    private MiningTileDefinition GetDefinition(Vector3Int cell) => _tilemap != null ? _tilemap.GetTile<MiningTileDefinition>(cell) : null;
+    public MiningTileDefinition GetMiningDefinition(Vector3Int cell) => _tilemap != null ? _tilemap.GetTile<MiningTileDefinition>(cell) : null;
     private static void Pin(Transform target) { if (target == null) return; target.SetPositionAndRotation(Vector3.zero, Quaternion.identity); target.localScale = Vector3.one; }
 }
 public readonly struct StageMapMiningCellDestroyed

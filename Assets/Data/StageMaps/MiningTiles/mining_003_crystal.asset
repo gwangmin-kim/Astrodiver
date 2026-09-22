@@ -213,7 +213,7 @@ MonoBehaviour:
   - {fileID: 2800000, guid: c04749263edd54c4987873d76aca7cf9, type: 3}
   m_TextureScaleList:
   - 2.5
-  _maxHp: 1
+  _maxHp: 20
   _dropResource: {fileID: 11400000, guid: 6cae5ba7d51ba5d4b838ba85ce2ded9e, type: 2}
-  _baseDropAmount: 1
+  _baseDropAmount: 10
   _isDestructible: 1

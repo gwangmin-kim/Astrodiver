@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>Owns the pooled muzzle and impact particle effects for one gun.</summary>
+/// <summary>
+/// Owns the pooled muzzle and impact particle effects for one gun.
+/// </summary>
 public sealed class PlasmaGunParticleEffects : MonoBehaviour
 {
     [SerializeField] private ParticleSystem _muzzleParticles;
@@ -44,15 +46,15 @@ public sealed class PlasmaGunParticleEffects : MonoBehaviour
         }
     }
 
-    public void SetImpactTargets(IReadOnlyList<Transform> targets)
+    public void SetImpactTargets(IReadOnlyList<MiningHit> targets)
     {
         int activeCount = Mathf.Min(targets.Count, _impactParticles.Count);
         for (int i = 0; i < activeCount; i++)
         {
             ParticleSystem impact = _impactParticles[i];
-            Transform target = targets[i];
-            if (target == null) { impact.gameObject.SetActive(false); continue; }
-            impact.transform.position = target.position;
+            MiningHit target = targets[i];
+            if (target.Map == null) { impact.gameObject.SetActive(false); continue; }
+            impact.transform.position = target.Position;
             if (!impact.gameObject.activeSelf) impact.gameObject.SetActive(true);
             if (!impact.isPlaying) impact.Play(true);
         }
@@ -65,15 +67,15 @@ public sealed class PlasmaGunParticleEffects : MonoBehaviour
         }
     }
 
-    public void EmitImpactBursts(IReadOnlyList<Transform> targets)
+    public void EmitImpactBursts(IReadOnlyList<MiningHit> targets)
     {
         int burstCount = Mathf.Min(targets.Count, _impactParticles.Count);
         for (int i = 0; i < burstCount; i++)
         {
-            if (targets[i] == null) continue;
+            if (targets[i].Map == null) continue;
 
             ParticleSystem impact = _impactParticles[i];
-            Vector3 centre = targets[i].position;
+            Vector3 centre = targets[i].Position;
             for (int particleIndex = 0; particleIndex < _hitBurstCount; particleIndex++)
             {
                 Vector2 direction = Random.insideUnitCircle.normalized;
@@ -90,9 +92,12 @@ public sealed class PlasmaGunParticleEffects : MonoBehaviour
     public void HideAll()
     {
         SetMuzzleFiring(false, null);
-        SetImpactTargets(System.Array.Empty<Transform>());
+        SetImpactTargets(System.Array.Empty<MiningHit>());
     }
 
-    private void ApplyPalette(ParticleSystem particles) => _palette?.ApplyTo(particles);
+    private void ApplyPalette(ParticleSystem particles)
+    {
+        if (_palette != null) _palette.ApplyTo(particles);
+    }
 
 }

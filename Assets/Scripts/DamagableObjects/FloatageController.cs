@@ -12,7 +12,7 @@ public enum FloatageLifecycleState
 
 [RequireComponent(typeof(FloatageAnimationController))]
 
-public class FloatageController : MonoBehaviour, IDamagable
+public class FloatageController : MonoBehaviour
 {
     [SerializeField] private FloatageDefinition _definition;
     [SerializeField, Min(1)] private int _maxHp = 100;
@@ -106,46 +106,6 @@ public class FloatageController : MonoBehaviour, IDamagable
         _lifecycleState = FloatageLifecycleState.Active;
         SetCollidersEnabled(true);
         Activated?.Invoke();
-    }
-
-    public void ApplyDamage(AttackData data)
-    {
-        if (_definition == null ||
-            _lifecycleState != FloatageLifecycleState.Active)
-        {
-            return;
-        }
-
-        _hp = Mathf.Clamp(_hp - data.damage, 0, _maxHp);
-        Damaged?.Invoke();
-        HealthChanged?.Invoke(_hp, _maxHp);
-        if (_hp <= 0)
-        {
-            ResolveDestroy();
-        }
-    }
-
-    private void ResolveDestroy()
-    {
-        _lifecycleState = FloatageLifecycleState.Destroyed;
-
-        if (FragmentParticleManager.Instance != null)
-        {
-            FragmentParticleManager.Instance.DropFragment(
-                transform.position,
-                _definition.DropResource,
-                _dropRadius,
-                CalculateDropCount(
-                    _dropCount,
-                    GameDataManager.Instance != null
-                        ? GameDataManager.Instance.RuntimeData
-                            ?.FloatageDropMultipliers
-                            .GetMultiplier(_definition) ?? 1f
-                        : 1f));
-        }
-
-        GetComponent<StageSpawnedObject>()?.NotifyRemovedFromStage();
-        Destroy(gameObject);
     }
 
     private void SetCollidersEnabled(bool isEnabled)

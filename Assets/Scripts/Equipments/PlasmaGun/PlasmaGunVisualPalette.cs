@@ -1,6 +1,9 @@
 using UnityEngine;
 
-/// <summary>Single colour source for every plasma-gun visual.</summary>
+/// <summary>
+/// 플라즈마 건 레이저의 색상을 결정
+/// 내부 색상은 흰색 고정, 외부 색상을 결정하면 자연스럽게 중간 색상을 결정함
+/// </summary>
 public sealed class PlasmaGunVisualPalette : MonoBehaviour
 {
     [SerializeField] private Color _outlineColor = Color.cyan;

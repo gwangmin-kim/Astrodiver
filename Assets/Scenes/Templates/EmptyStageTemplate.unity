@@ -923,6 +923,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1530818366}
   - component: {fileID: 1530818367}
+  - component: {fileID: 1530818368}
   m_Layer: 0
   m_Name: Map
   m_TagString: Untagged
@@ -961,6 +962,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StageMap
   _grid: {fileID: 1389910903}
   _tilemap: {fileID: 633106818}
+--- !u!114 &1530818368
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1530818365}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dde48d2bb891ca74b9fdce3adc1c40f3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MiningFragmentDrops
 --- !u!114 &1743776474 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2736211216521836210, guid: 93e602bf39f61564bb4585ced48d8c42, type: 3}
