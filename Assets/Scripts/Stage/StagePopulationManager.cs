@@ -14,7 +14,6 @@ public sealed class StagePopulationManager : MonoBehaviour
 
     [Header("Runtime Hierarchy")]
     [SerializeField] private Transform _creatureRuntimeRoot;
-    [SerializeField] private Transform _resourceRuntimeRoot;
 
     [Header("Initialization")]
     [SerializeField] private bool _spawnOnStart = true;
@@ -24,23 +23,20 @@ public sealed class StagePopulationManager : MonoBehaviour
     private readonly List<float> _areaWeights = new();
     private readonly List<float> _entryWeights = new();
     private readonly HashSet<StageSpawnedObject> _creatures = new();
-    private readonly HashSet<StageSpawnedObject> _resourceFloatages = new();
 
     private StageRuntimeConfig _runtimeConfig;
     private GameDataManager _gameDataManager;
     private System.Random _random;
     private Coroutine _respawnRoutine;
     private int _creatureSequence;
-    private int _resourceSequence;
     private bool _hasSpawned;
 
     public StageDefinition Definition => _definition;
     public StageSpawnAreaCollection SpawnAreas => _spawnAreas;
     public StageRuntimeConfig RuntimeConfig => _runtimeConfig;
     public bool HasSpawned => _hasSpawned;
-    public int CreatureCount => GetAliveCount(StageSpawnCategory.Creature);
-    public int ResourceFloatageCount =>
-        GetAliveCount(StageSpawnCategory.ResourceFloatage);
+    public int CreatureCount => GetAliveCount();
+
     public event Action InitialSpawnCompleted;
     public event Action RespawnTickCompleted;
 
@@ -94,17 +90,9 @@ public sealed class StagePopulationManager : MonoBehaviour
         SpawnBatch(
             _runtimeConfig.StageId,
             _runtimeConfig.Creatures,
-            StageSpawnCategory.Creature,
             _spawnAreas.CreatureAreas,
             _creatureRuntimeRoot,
             _runtimeConfig.Creatures.MaxCount);
-        SpawnBatch(
-            _runtimeConfig.StageId,
-            _runtimeConfig.ResourceFloatages,
-            StageSpawnCategory.ResourceFloatage,
-            _spawnAreas.ResourceAreas,
-            _resourceRuntimeRoot,
-            _runtimeConfig.ResourceFloatages.MaxCount);
 
         _hasSpawned = true;
         InitialSpawnCompleted?.Invoke();
@@ -120,14 +108,9 @@ public sealed class StagePopulationManager : MonoBehaviour
 
         ProcessPopulationRespawn(
             _runtimeConfig.Creatures,
-            StageSpawnCategory.Creature,
             _spawnAreas.CreatureAreas,
             _creatureRuntimeRoot);
-        ProcessPopulationRespawn(
-            _runtimeConfig.ResourceFloatages,
-            StageSpawnCategory.ResourceFloatage,
-            _spawnAreas.ResourceAreas,
-            _resourceRuntimeRoot);
+
         RespawnTickCompleted?.Invoke();
     }
 
@@ -138,7 +121,7 @@ public sealed class StagePopulationManager : MonoBehaviour
             return;
         }
 
-        GetRegistry(spawnedObject.Category).Add(spawnedObject);
+        _creatures.Add(spawnedObject);
     }
 
     internal void Unregister(StageSpawnedObject spawnedObject)
@@ -148,7 +131,7 @@ public sealed class StagePopulationManager : MonoBehaviour
             return;
         }
 
-        GetRegistry(spawnedObject.Category).Remove(spawnedObject);
+        _creatures.Remove(spawnedObject);
     }
 
     private bool TryPrepare(out StageRuntimeConfig runtimeConfig)
@@ -191,15 +174,6 @@ public sealed class StagePopulationManager : MonoBehaviour
         {
             Debug.LogError(
                 "StagePopulationManager: No valid creature spawn areas found.",
-                this);
-            return false;
-        }
-
-        if (_definition.ResourceFloatages.MaxCount > 0 &&
-            _spawnAreas.ResourceAreas.Count == 0)
-        {
-            Debug.LogError(
-                "StagePopulationManager: No valid resource spawn areas found.",
                 this);
             return false;
         }
@@ -251,11 +225,10 @@ public sealed class StagePopulationManager : MonoBehaviour
 
     private void ProcessPopulationRespawn(
         StageRuntimePopulationConfig population,
-        StageSpawnCategory category,
         IReadOnlyList<StageSpawnRect> areas,
         Transform runtimeRoot)
     {
-        int missingCount = population.MaxCount - GetAliveCount(category);
+        int missingCount = population.MaxCount - GetAliveCount();
         if (missingCount <= 0)
         {
             return;
@@ -276,7 +249,6 @@ public sealed class StagePopulationManager : MonoBehaviour
         SpawnBatch(
             _runtimeConfig.StageId,
             population,
-            category,
             areas,
             runtimeRoot,
             respawnCount);
@@ -285,7 +257,6 @@ public sealed class StagePopulationManager : MonoBehaviour
     private void SpawnBatch(
         string stageId,
         StageRuntimePopulationConfig population,
-        StageSpawnCategory category,
         IReadOnlyList<StageSpawnRect> areas,
         Transform runtimeRoot,
         int count)
@@ -308,7 +279,7 @@ public sealed class StagePopulationManager : MonoBehaviour
         if (totalEntryWeight <= Mathf.Epsilon)
         {
             Debug.LogWarning(
-                $"StagePopulationManager: {category} has no positive " +
+                $"StagePopulationManager: Creature has no positive " +
                 "runtime spawn weight.",
                 this);
             return;
@@ -345,7 +316,6 @@ public sealed class StagePopulationManager : MonoBehaviour
                 SpawnOne(
                     stageId,
                     entry,
-                    category,
                     areas[areaIndex],
                     areaIndex,
                     runtimeRoot);
@@ -356,7 +326,6 @@ public sealed class StagePopulationManager : MonoBehaviour
     private void SpawnOne(
         string stageId,
         StageRuntimeSpawnEntry entry,
-        StageSpawnCategory category,
         StageSpawnRect area,
         int areaIndex,
         Transform runtimeRoot)
@@ -366,7 +335,7 @@ public sealed class StagePopulationManager : MonoBehaviour
             transform.TransformPoint(area.GetRandomLocalPoint(_random)),
             entry.Prefab.transform.rotation,
             runtimeRoot);
-        instance.name = $"{entry.Prefab.name}_{NextSequence(category):000}";
+        instance.name = $"{entry.Prefab.name}_{++_creatureSequence:000}";
 
         StageSpawnedObject spawnedObject =
             instance.GetComponent<StageSpawnedObject>() ??
@@ -375,34 +344,15 @@ public sealed class StagePopulationManager : MonoBehaviour
             this,
             stageId,
             entry.EntryId,
-            category,
             areaIndex);
     }
 
-    private int GetAliveCount(StageSpawnCategory category)
+    private int GetAliveCount()
     {
-        HashSet<StageSpawnedObject> registry = GetRegistry(category);
+        HashSet<StageSpawnedObject> registry = _creatures;
         registry.RemoveWhere(
             item => item == null || item.IsRemovedFromStage);
         return registry.Count;
-    }
-
-    private HashSet<StageSpawnedObject> GetRegistry(
-        StageSpawnCategory category)
-    {
-        return category == StageSpawnCategory.Creature
-            ? _creatures
-            : _resourceFloatages;
-    }
-
-    private int NextSequence(StageSpawnCategory category)
-    {
-        if (category == StageSpawnCategory.Creature)
-        {
-            return ++_creatureSequence;
-        }
-
-        return ++_resourceSequence;
     }
 
     private void StartRespawnLoop()

@@ -42,7 +42,6 @@ public sealed class StageDefinition : GameDefinition
     [Header("Population")]
     [SerializeField, Min(0.1f)] private float _respawnIntervalSeconds = 5f;
     [SerializeField] private StagePopulationDefinition _creatures = new();
-    [SerializeField] private StagePopulationDefinition _resourceFloatages = new();
 
     public string StageId => Id;
     public SpaceBackgroundProfile SpaceBackgroundProfile =>
@@ -50,15 +49,13 @@ public sealed class StageDefinition : GameDefinition
     public float RespawnIntervalSeconds =>
         Mathf.Max(0.1f, _respawnIntervalSeconds);
     public StagePopulationDefinition Creatures => _creatures;
-    public StagePopulationDefinition ResourceFloatages => _resourceFloatages;
 
     public StageRuntimeConfig CreateRuntimeConfig()
     {
         return new StageRuntimeConfig(
             Id,
             RespawnIntervalSeconds,
-            _creatures?.CreateRuntimeCopy(),
-            _resourceFloatages?.CreateRuntimeCopy());
+            _creatures?.CreateRuntimeCopy());
     }
 
     public bool TryValidate(out string error)
@@ -77,12 +74,6 @@ public sealed class StageDefinition : GameDefinition
         HashSet<string> entryIds = new(StringComparer.Ordinal);
         ValidatePopulation(
             _creatures,
-            StageSpawnCategory.Creature,
-            entryIds,
-            errors);
-        ValidatePopulation(
-            _resourceFloatages,
-            StageSpawnCategory.ResourceFloatage,
             entryIds,
             errors);
 
@@ -92,13 +83,12 @@ public sealed class StageDefinition : GameDefinition
 
     private static void ValidatePopulation(
         StagePopulationDefinition population,
-        StageSpawnCategory category,
         ISet<string> entryIds,
         ICollection<string> errors)
     {
         if (population == null)
         {
-            errors.Add($"{category} population is not assigned.");
+            errors.Add($"Creature population is not assigned.");
             return;
         }
 
@@ -107,7 +97,7 @@ public sealed class StageDefinition : GameDefinition
         for (int i = 0; i < entries.Count; i++)
         {
             StageSpawnEntry entry = entries[i];
-            string label = $"{category} entry {i}";
+            string label = $"Creature entry {i}";
             if (entry == null)
             {
                 errors.Add($"{label} is null.");
@@ -131,30 +121,22 @@ public sealed class StageDefinition : GameDefinition
                 continue;
             }
 
-            if (category == StageSpawnCategory.Creature &&
-                entry.Prefab.GetComponent<CreatureController>() == null)
+            if (entry.Prefab.GetComponent<CreatureController>() == null)
             {
                 errors.Add(
                     $"Creature entry '{entryId}' prefab '{entry.Prefab.name}' " +
                     "does not contain CreatureController.");
             }
 
-            if (category == StageSpawnCategory.ResourceFloatage &&
-                entry.Prefab.GetComponent<FloatageController>() == null)
-            {
-                errors.Add(
-                    $"Resource entry '{entryId}' prefab '{entry.Prefab.name}' " +
-                    "does not contain FloatageController.");
-            }
         }
 
         if (population.MaxCount > 0 && entries.Count == 0)
         {
-            errors.Add($"{category} population has no spawn entries.");
+            errors.Add($"Creature population has no spawn entries.");
         }
         else if (population.MaxCount > 0 && totalWeight <= Mathf.Epsilon)
         {
-            errors.Add($"{category} population has no positive spawn weight.");
+            errors.Add($"Creature population has no positive spawn weight.");
         }
     }
 }
@@ -164,25 +146,21 @@ public sealed class StageRuntimeConfig
     public StageRuntimeConfig(
         string stageId,
         float respawnIntervalSeconds,
-        StageRuntimePopulationConfig creatures,
-        StageRuntimePopulationConfig resourceFloatages)
+        StageRuntimePopulationConfig creatures)
     {
         StageId = stageId;
         RespawnIntervalSeconds = Mathf.Max(0.1f, respawnIntervalSeconds);
         Creatures = creatures ?? StageRuntimePopulationConfig.Empty();
-        ResourceFloatages =
-            resourceFloatages ?? StageRuntimePopulationConfig.Empty();
+
     }
 
     public string StageId { get; }
     public float RespawnIntervalSeconds { get; }
     public StageRuntimePopulationConfig Creatures { get; }
-    public StageRuntimePopulationConfig ResourceFloatages { get; }
 
     public void SetRespawnProbabilityBonus(float bonus)
     {
         Creatures.SetRespawnProbabilityBonus(bonus);
-        ResourceFloatages.SetRespawnProbabilityBonus(bonus);
     }
 }
 

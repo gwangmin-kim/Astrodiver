@@ -30,7 +30,7 @@
 | 5A — 무기 | 구현 완료: MiningHit/PlasmaMiningTargeting, 타일 전용 피해, 거리 연쇄, IDamagable 제거 | Editor/PlayMode Smoke 및 프리팹 검증 통과. 수동 입력/화면·성능 검증은 후속 |
 | 5B — 타일/드롭 | 구현 완료: MiningFragmentDrops를 Stage_a_1/EmptyStageTemplate에 연결 | PlayMode 생성/회수/귀환 저장 검증 통과. 전체 플레이 동선은 후속 |
 | 6 — 업그레이드 이전 | 2026-09-22 구현·전용 Editor/PlayMode 검증 완료 | 수동 구매 화면 확인은 8단계 |
-| 7 — 부유물 제거 | 스폰·정의·프리팹·전용 표현이 남아 있음 | 공유 기능을 보존하며 제거 |
+| 7 — 부유물 제거 | 2026-09-23 제거·전용 Editor/PlayMode 검증 완료 | 공유 이미지 1개와 저장 식별자 보존. 전체 수동 검증은 8단계 |
 | 8 — 통합 검증 | 전체 시연 검증 미완료 | 구조/무기/드롭/맵 전환 후 수행 |
 
 ### UI의 최신 기준
@@ -67,7 +67,7 @@
 
 잠정 유지 정책: 재입장 시 원본 맵 복원, 세션 중 파괴 유지, 영구 파괴 저장/재성장/지역 중력/생물 발견 조건/펫·합성·인벤토리 통합은 후속 범위다. 꾸밈 시스템도 이번에는 구현하지 않는다.
 
-## 4. 변경 계획 — 5A/5B/6 구현 완료, 후속 7/8
+## 4. 변경 계획 — 5A/5B/6/7 구현 완료, 후속 8
 
 4R-A/B/C는 기존 구조 전환의 범위와 검증 기준으로 남긴다. 현재 단일 맵 구조를 다시 구현하거나 전체 씬 변환을 반복하지 않는다. 아래 확정된 5A/5B는 2026-09-15 구현했으며 단계별 실제 검증과 미검증은 작업 기록을 따른다.
 
@@ -175,7 +175,7 @@
 
 완료 기준: 효과/직렬화 참조 정상, 보너스 중첩·정의별 독립성·툴팁, 구매/저장 재로드, 보정된 드롭/회수/귀환 저장 확인. 실제 통과 범위와 전체 저장 SmokeTest의 기존 기대값 불일치는 아래 기록을 따른다.
 
-### 7 — 부유물 시스템 완전 제거
+### 7 — 부유물 시스템 완전 제거 (2026-09-23 완료)
 
 - 남은 부유물 정의·프리팹·생성/리스폰/수동 배치·이동·체력바·애니메이션과 전용 에셋을 참조 확인 후 제거한다.
 - StageDefinition/StagePopulationManager/스폰 영역·카테고리, 전용 편집기, 카탈로그/데이터 작업창/테스트, 씬/템플릿의 코드 및 직렬화 참조를 함께 정리한다.
@@ -200,7 +200,7 @@
 
 ## 6. 실행 순서와 새 채팅 요청
 
-구현 완료: **5A → 5B → 6**. 이번 채굴 전환의 후속 순서: **7 → 8**. 3B 안내 세분화는 별도 범위이며 채굴 전환의 선행 조건으로 두지 않는다. 4R의 현 구조를 재사용하고 5A/5B의 남은 수동 검증은 통합 검증에서 확인한다.
+구현 완료: **5A → 5B → 6 → 7**. 이번 채굴 전환의 후속 단계: **8**. 3B 안내 세분화는 별도 범위이며 채굴 전환의 선행 조건으로 두지 않는다. 4R의 현 구조를 재사용하고 5A/5B의 남은 수동 검증은 통합 검증에서 확인한다.
 
 아래는 완료한 5A/5B의 범위 참고용 요청문이다. 다음 작업에서 반복 구현 지시로 사용하지 않는다:
 
@@ -328,3 +328,19 @@
 - 미검증: 사람이 실제 UI로 구매/발사하는 화면 확인, 실제 귀환 문/Hub 전환, 전체 플레이 동선·성능. 8단계에서 확인한다. 이번 검증은 Pipeline run_script SmokeTest이며 등록 Test Runner 전체 통과를 의미하지 않는다.
 - 재현: `AgentScripts/MiningUpgradeSmoke.cs`의 `RunEditor`(Editor), `RunPurchase`(Stage_a_1 PlayMode), `AgentScripts/MiningUpgradeDropSmoke.cs`의 `Run6`(Stage_a_1 PlayMode, 기존 파편이 없는 테스트 세션). 호출은 `unity command run_script --file <파일> --entry <타입.메서드> --json`. `MigrateMiningUpgrades.cs / Run`은 일회성 Editor 이전 기록이며 기존 대상은 이미 이전되어 재실행 시 효과 0개다.
 - 인계: 다음은 7단계 부유물 전체 제거다. 현재 부유물 스폰·정의·프리팹·체력바·표현·관련 Editor/Stage 참조는 의도적으로 남아 있다. 새 채굴 정의 제작, 동적 맵 생성, 셀 상태 영구 저장은 추가하지 않는다.
+
+### 2026-09-23 — 7 구현: 부유물 시스템 제거
+
+- 제거: 부유물 프리팹 14개, FloatageHealthBar 프리팹, 부유물 정의 8개, floatage_sheet, 전용 이미지 13개(에셋 총 37개), FloatageDefinition/FloatageController/FloatageAnimationController/FloatageHealthBar/MineralFloatageMovement 스크립트 5개와 meta, 빈 부유물 정의/프리팹 폴더 2개. 완료된 일회성 `AgentScripts/MigrateMiningUpgrades.cs`도 제거했다.
+- 공유 자산: `Assets/Arts/01_Sprites/02_ResourceBlocks/floatage_02_iron_2.png`는 Hub 씬이 참조하므로 유지했다. HealthBar가 사용하던 공유 white_leftpivot 이미지와 자원 정의·아이콘·파편 생성/회수·채굴 업그레이드/저장 식별자는 유지했다. 파일명에 floatage가 남는 공유 이미지와 저장 ID는 제거된 런타임 시스템과 구분한다.
+- 씬/데이터: Editor API로 Stage_a_1/EmptyStageTemplate의 빈 ResourceFloatages 루트 2개와 부유물 영역/루트 참조를 제거했다. GameDefinitionCatalog의 부유물 목록, stage_000_a_1의 부유물 생성 설정을 제거하고 코드 변경 후 해당 4개 자산을 재직렬화했다. 기존 Stage 52셀·템플릿 0셀, 전체 Tilemap 직렬화 블록, 생물 생성 영역은 변경 전과 동일함을 확인했다.
+- 런타임: StageDefinition/StageRuntimeConfig, StagePopulationManager, StageSpawnAreaCollection, StageSpawnedObject에서 부유물 데이터/집합/카운트/생성/리스폰과 StageSpawnCategory 및 관련 인자를 제거했다. 생물 초기 생성·빈 슬롯 기준 리스폰·등록 해제·최대 개체 수·시드·영역 가중치와 스테이지 리스폰 확률 보너스 적용은 유지했다.
+- Editor: StagePopulationManagerEditor의 부유물 영역/Gizmo/생물↔부유물 복사 UI, GameDefinitionCatalog와 전용 Editor의 부유물 수집/검증, GameDataWorkspaceWindow의 부유물 분기를 제거했다. GameDataSaveSystemSmokeTest는 생물 리스폰 검사만 남기고 생성자 호출을 현재 API에 맞췄다.
+- 실제 검증: Unity 6000.5.1f1 재컴파일 failed=false/errors=[]; Editor 검사에서 씬 5개·프리팹 45개 Missing Script 0, 부유물 컴포넌트 0, Stage/Catalog 유효성 통과. 삭제된 에셋·스크립트·폴더 GUID 44개의 Assets 잔여 참조 0. Assets 소스/씬/정의에서 부유물 타입·카테고리·필드 잔여 참조 0. `git diff --check` 통과.
+- PlayMode: 실제 생물 프리팹으로 임시 생성 관리자에서 초기 3개 생성/재호출 중복 없음, 포획 코드가 호출하는 NotifyRemovedFromStage의 반복 호출·이후 Destroy 중복 차감 없음, 확률 0에서 미생성, 업그레이드 보너스로 확률 1 적용 후 빈 슬롯 재생성, 최대 3개 유지, 재활성화 중복 없음, 정의 원본 불변을 확인했다. 실제 네트 입력/포획 애니메이션 전체를 실행한 것은 아니다.
+- 채굴 회귀: MiningUpgradeSmoke.RunPurchase에서 실제 0→1→2 구매·기존 ID 저장 재로드·1→1.35→1.7 배율과 중복 복원 없음 확인. MiningUpgradeDropSmoke.Run6에서 셀 파괴당 보정 수량 4개, 총 8개 회수·최초 자원 이벤트·귀환 처리·저장 재로드 통과. 세이브 본문/bak/tmp와 런타임은 finally로 복원했다. PlayMode 진입 중 일시적 도메인 재로드 통신 오류는 상태 확인 후 재실행해 성공 결과를 확인했다.
+- 재현: `AgentScripts/Stage7Smoke.cs`의 `RunEditor`(Editor), `RunPopulation`(Stage_a_1 PlayMode); 채굴 검증은 기존 MiningSceneValidation/MiningUpgradeSmoke/MiningUpgradeDropSmoke를 사용한다. 제거 작업은 `RemoveFloatageAssets.cs`와 stage7-deleted-guids/retained-art/reserialize 보고서에 남긴다. 등록 Test Runner 전체 통과를 주장하지 않는다.
+- 보존/미검증: 사용자 기존 TMP 폰트 3개와 기존 AgentScripts(완료된 부유물 이전 도구 제외)를 보존했다. 이전 단계에서 확인한 전체 저장 SmokeTest의 생물 중첩 수 기대값 10/현재 기본값 4 불일치는 수정하거나 전체 테스트를 재실행하지 않았다. 실제 입력·포획 화면·귀환 문/Hub 전환·전체 동선·성능은 8단계에 남긴다.
+- 인계: 다음은 구현 추가 없는 8단계 통합 점검이다. 동적 타일맵 생성·세션별 랜덤 생성·타일 HP/파괴 상태 영구 저장·새 자원 배치는 추가하지 않는다.
+
+- 최종 Console 확인: 일괄 삭제 도중 HealthBar가 먼저 제거되어 아직 삭제 전이던 부유물 프리팹 3개에 임시 nested-prefab import 오류가 기록됐다. 해당 프리팹도 모두 제거된 뒤 전체 씬/프리팹 재로드·삭제 GUID 참조 검증은 통과했으며 이후 검사/PlayMode에서 새 오류는 없었다. 재현용 제거 도구는 에셋 편집 배치로 묶어 중간 import를 방지하도록 보완했다.

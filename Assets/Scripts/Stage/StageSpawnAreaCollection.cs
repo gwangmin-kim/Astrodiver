@@ -2,12 +2,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum StageSpawnCategory
-{
-    Creature = 0,
-    ResourceFloatage = 1
-}
-
 [Serializable]
 public struct StageSpawnRect
 {
@@ -49,35 +43,16 @@ public struct StageSpawnRect
 public sealed class StageSpawnAreaCollection
 {
     [SerializeField] private List<StageSpawnRect> _creatureAreas = new();
-    [SerializeField] private List<StageSpawnRect> _resourceAreas = new();
 
     public IReadOnlyList<StageSpawnRect> CreatureAreas =>
         _creatureAreas != null
             ? _creatureAreas
             : Array.Empty<StageSpawnRect>();
-    public IReadOnlyList<StageSpawnRect> ResourceAreas =>
-        _resourceAreas != null
-            ? _resourceAreas
-            : Array.Empty<StageSpawnRect>();
-
-    public IReadOnlyList<StageSpawnRect> GetAreas(StageSpawnCategory category)
-    {
-        return category switch
-        {
-            StageSpawnCategory.Creature => CreatureAreas,
-            StageSpawnCategory.ResourceFloatage => ResourceAreas,
-            _ => Array.Empty<StageSpawnRect>()
-        };
-    }
 
     public bool TryValidate(out string error)
     {
         List<string> errors = new();
-        ValidateAreas(CreatureAreas, StageSpawnCategory.Creature, errors);
-        ValidateAreas(
-            ResourceAreas,
-            StageSpawnCategory.ResourceFloatage,
-            errors);
+        ValidateAreas(CreatureAreas, errors);
 
         error = string.Join(Environment.NewLine, errors);
         return errors.Count == 0;
@@ -85,14 +60,13 @@ public sealed class StageSpawnAreaCollection
 
     private static void ValidateAreas(
         IReadOnlyList<StageSpawnRect> areas,
-        StageSpawnCategory category,
         ICollection<string> errors)
     {
         for (int i = 0; i < areas.Count; i++)
         {
             if (!areas[i].IsValid)
             {
-                errors.Add($"{category} spawn area [{i}] has no area.");
+                errors.Add($"Creature spawn area [{i}] has no area.");
             }
         }
     }

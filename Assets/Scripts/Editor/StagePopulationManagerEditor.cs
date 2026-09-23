@@ -7,13 +7,9 @@ public sealed class StagePopulationManagerEditor : Editor
 {
     private static readonly Color _creatureColor =
         new(0.2f, 0.95f, 0.45f, 1f);
-    private static readonly Color _resourceColor =
-        new(1f, 0.72f, 0.18f, 1f);
 
     private readonly BoxBoundsHandle _boundsHandle = new();
     private SerializedProperty _creatureAreas;
-    private SerializedProperty _resourceAreas;
-    private StageSpawnCategory _selectedCategory;
     private int _selectedIndex = -1;
 
     private void OnEnable()
@@ -21,7 +17,6 @@ public sealed class StagePopulationManagerEditor : Editor
         SerializedProperty collection =
             serializedObject.FindProperty("_spawnAreas");
         _creatureAreas = collection.FindPropertyRelative("_creatureAreas");
-        _resourceAreas = collection.FindPropertyRelative("_resourceAreas");
         _boundsHandle.axes =
             PrimitiveBoundsHandle.Axes.X | PrimitiveBoundsHandle.Axes.Y;
     }
@@ -45,15 +40,8 @@ public sealed class StagePopulationManagerEditor : Editor
         EditorGUILayout.LabelField("Scene-owned Spawn Areas", EditorStyles.boldLabel);
         DrawAreaList(
             "Creature Areas",
-            StageSpawnCategory.Creature,
             _creatureAreas,
             _creatureColor);
-        DrawAreaList(
-            "Resource Floatage Areas",
-            StageSpawnCategory.ResourceFloatage,
-            _resourceAreas,
-            _resourceColor);
-        DrawAreaCopyButtons();
 
         if (serializedObject.ApplyModifiedProperties())
         {
@@ -63,7 +51,6 @@ public sealed class StagePopulationManagerEditor : Editor
 
     private void DrawAreaList(
         string title,
-        StageSpawnCategory category,
         SerializedProperty areas,
         Color color)
     {
@@ -76,7 +63,7 @@ public sealed class StagePopulationManagerEditor : Editor
             SerializedProperty min = area.FindPropertyRelative("_min");
             SerializedProperty max = area.FindPropertyRelative("_max");
             bool selected =
-                _selectedCategory == category && _selectedIndex == i;
+                _selectedIndex == i;
 
             using (new EditorGUILayout.HorizontalScope())
             {
@@ -84,7 +71,7 @@ public sealed class StagePopulationManagerEditor : Editor
                 GUI.backgroundColor = selected ? color : previousColor;
                 if (GUILayout.Toggle(selected, $"[{i}]", "Button", GUILayout.Width(42f)))
                 {
-                    SelectArea(category, i);
+                    SelectArea(i);
                 }
                 GUI.backgroundColor = previousColor;
 
@@ -99,7 +86,7 @@ public sealed class StagePopulationManagerEditor : Editor
                     {
                         _selectedIndex = -1;
                     }
-                    else if (_selectedCategory == category && _selectedIndex > i)
+                    else if (_selectedIndex > i)
                     {
                         _selectedIndex--;
                     }
@@ -120,11 +107,10 @@ public sealed class StagePopulationManagerEditor : Editor
                     center - new Vector2(2f, 2f);
                 area.FindPropertyRelative("_max").vector2Value =
                     center + new Vector2(2f, 2f);
-                SelectArea(category, index);
+                SelectArea(index);
             }
 
             using (new EditorGUI.DisabledScope(
-                       _selectedCategory != category ||
                        _selectedIndex < 0 ||
                        _selectedIndex >= areas.arraySize))
             {
@@ -142,72 +128,10 @@ public sealed class StagePopulationManagerEditor : Editor
                         source.FindPropertyRelative("_min").vector2Value + offset;
                     duplicate.FindPropertyRelative("_max").vector2Value =
                         source.FindPropertyRelative("_max").vector2Value + offset;
-                    SelectArea(category, newIndex);
+                    SelectArea(newIndex);
                 }
             }
         }
-    }
-
-    private void DrawAreaCopyButtons()
-    {
-        EditorGUILayout.Space(6f);
-        EditorGUILayout.LabelField(
-            "Copy & Overwrite Areas",
-            EditorStyles.boldLabel);
-
-        using (new EditorGUILayout.HorizontalScope())
-        {
-            GUIContent creatureToResource = new(
-                "Creature -> Floatage",
-                "Replace every resource floatage area with the creature areas.");
-            if (GUILayout.Button(creatureToResource))
-            {
-                CopyAreas(
-                    _creatureAreas,
-                    _resourceAreas,
-                    StageSpawnCategory.ResourceFloatage);
-            }
-
-            GUIContent resourceToCreature = new(
-                "Floatage -> Creature",
-                "Replace every creature area with the resource floatage areas.");
-            if (GUILayout.Button(resourceToCreature))
-            {
-                CopyAreas(
-                    _resourceAreas,
-                    _creatureAreas,
-                    StageSpawnCategory.Creature);
-            }
-        }
-    }
-
-    private void CopyAreas(
-        SerializedProperty source,
-        SerializedProperty destination,
-        StageSpawnCategory destinationCategory)
-    {
-        Undo.RecordObject(target, "Copy Stage Spawn Areas");
-
-        destination.arraySize = source.arraySize;
-        for (int i = 0; i < source.arraySize; i++)
-        {
-            SerializedProperty sourceArea = source.GetArrayElementAtIndex(i);
-            SerializedProperty destinationArea =
-                destination.GetArrayElementAtIndex(i);
-            destinationArea.FindPropertyRelative("_min").vector2Value =
-                sourceArea.FindPropertyRelative("_min").vector2Value;
-            destinationArea.FindPropertyRelative("_max").vector2Value =
-                sourceArea.FindPropertyRelative("_max").vector2Value;
-        }
-
-        if (_selectedCategory != destinationCategory || _selectedIndex < 0)
-        {
-            return;
-        }
-
-        _selectedIndex = destination.arraySize == 0
-            ? -1
-            : Mathf.Min(_selectedIndex, destination.arraySize - 1);
     }
 
     private Vector2 GetDefaultLocalCenter()
@@ -227,19 +151,14 @@ public sealed class StagePopulationManagerEditor : Editor
     {
         serializedObject.Update();
         DrawAreas(
-            StageSpawnCategory.Creature,
             _creatureAreas,
             _creatureColor);
-        DrawAreas(
-            StageSpawnCategory.ResourceFloatage,
-            _resourceAreas,
-            _resourceColor);
+
         DrawSelectedHandle();
         serializedObject.ApplyModifiedProperties();
     }
 
     private void DrawAreas(
-        StageSpawnCategory category,
         SerializedProperty areas,
         Color color)
     {
@@ -258,7 +177,7 @@ public sealed class StagePopulationManagerEditor : Editor
                 manager.transform.TransformPoint(new Vector3(max.x, min.y))
             };
             bool selected =
-                _selectedCategory == category && _selectedIndex == i;
+                _selectedIndex == i;
             Color fill = new(color.r, color.g, color.b, selected ? 0.2f : 0.08f);
             Color outline = new(color.r, color.g, color.b, selected ? 1f : 0.65f);
             Handles.DrawSolidRectangleWithOutline(corners, fill, outline);
@@ -272,19 +191,19 @@ public sealed class StagePopulationManagerEditor : Editor
                     handleSize,
                     Handles.RectangleHandleCap))
             {
-                SelectArea(category, i);
+                SelectArea(i);
                 Repaint();
             }
 
             Handles.Label(
                 center + Vector3.up * handleSize * 1.5f,
-                $"{GetCategoryLabel(category)} [{i}]");
+                $"Creature [{i}]");
         }
     }
 
     private void DrawSelectedHandle()
     {
-        SerializedProperty areas = GetSelectedAreas();
+        SerializedProperty areas = _creatureAreas;
         if (areas == null || _selectedIndex < 0 ||
             _selectedIndex >= areas.arraySize)
         {
@@ -298,9 +217,7 @@ public sealed class StagePopulationManagerEditor : Editor
 
         _boundsHandle.center = new Vector3(center.x, center.y, 0f);
         _boundsHandle.size = new Vector3(size.x, size.y, 0f);
-        Color color = _selectedCategory == StageSpawnCategory.Creature
-            ? _creatureColor
-            : _resourceColor;
+        Color color = _creatureColor;
         _boundsHandle.SetColor(color);
 
         Matrix4x4 previousMatrix = Handles.matrix;
@@ -340,16 +257,8 @@ public sealed class StagePopulationManagerEditor : Editor
         EditorUtility.SetDirty(target);
     }
 
-    private SerializedProperty GetSelectedAreas()
+    private void SelectArea(int index)
     {
-        return _selectedCategory == StageSpawnCategory.Creature
-            ? _creatureAreas
-            : _resourceAreas;
-    }
-
-    private void SelectArea(StageSpawnCategory category, int index)
-    {
-        _selectedCategory = category;
         _selectedIndex = index;
         SceneView.RepaintAll();
     }
@@ -365,10 +274,4 @@ public sealed class StagePopulationManagerEditor : Editor
         max = Vector2.Max(first, second);
     }
 
-    private static string GetCategoryLabel(StageSpawnCategory category)
-    {
-        return category == StageSpawnCategory.Creature
-            ? "Creature"
-            : "Resource";
-    }
 }

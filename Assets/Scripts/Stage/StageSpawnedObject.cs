@@ -7,7 +7,6 @@ public sealed class StageSpawnedObject : MonoBehaviour
 
     public string StageId { get; private set; }
     public string EntryId { get; private set; }
-    public StageSpawnCategory Category { get; private set; }
     public int AreaIndex { get; private set; }
     public bool IsRemovedFromStage { get; private set; }
 
@@ -15,7 +14,6 @@ public sealed class StageSpawnedObject : MonoBehaviour
         StagePopulationManager owner,
         string stageId,
         string entryId,
-        StageSpawnCategory category,
         int areaIndex)
     {
         if (_owner != null && !IsRemovedFromStage)
@@ -26,7 +24,6 @@ public sealed class StageSpawnedObject : MonoBehaviour
         _owner = owner;
         StageId = stageId;
         EntryId = entryId;
-        Category = category;
         AreaIndex = areaIndex;
         IsRemovedFromStage = false;
         _owner?.Register(this);

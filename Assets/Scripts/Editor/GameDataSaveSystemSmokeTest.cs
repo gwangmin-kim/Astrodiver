@@ -222,19 +222,15 @@ public static class GameDataSaveSystemSmokeTest
             StageRuntimeConfig stageRuntimeConfig = new(
                 "test.stage",
                 1f,
-                new StageRuntimePopulationConfig(10, 0.5f, null),
-                new StageRuntimePopulationConfig(10, 0.25f, null));
+                new StageRuntimePopulationConfig(10, 0.5f, null));
             stageRuntimeConfig.SetRespawnProbabilityBonus(
                 runtimeData.StageRespawnProbabilityBonuses
                     .GetBonus(temporaryStage));
             Require(
                 Mathf.Approximately(
                     stageRuntimeConfig.Creatures.RespawnProbability,
-                    0.7f) &&
-                Mathf.Approximately(
-                    stageRuntimeConfig.ResourceFloatages.RespawnProbability,
-                    0.45f),
-                "Stage respawn probability bonuses were not added to both populations.");
+                    0.7f),
+                "Stage respawn probability bonuses were not added to the creature population.");
 
             float plasmaChargeTimeBeforeEffect =
                 runtimeData.Equipment.plasmaGun.baseChargeTime;

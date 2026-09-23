@@ -30,15 +30,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: ea640806d4db64454b271caa530f2bef, type: 2}
   - {fileID: 11400000, guid: 5f34f37b180fd4b91809f6740b387847, type: 2}
   - {fileID: 11400000, guid: bd83bdcc849e2478fa43b3259d72762a, type: 2}
-  _floatages:
-  - {fileID: 11400000, guid: 91c96fb7709d44ac8559ef086ef06e74, type: 2}
-  - {fileID: 11400000, guid: 0e3e1d9b650248e59cd4f0354b003ec8, type: 2}
-  - {fileID: 11400000, guid: f9331b428cca63a45a78f7fca5ee87e9, type: 2}
-  - {fileID: 11400000, guid: 80ddb02205ab98b4bb94c807c28fdfb9, type: 2}
-  - {fileID: 11400000, guid: 57ec8fd87e6b7af4b814bc31acf36006, type: 2}
-  - {fileID: 11400000, guid: 53d26ba39be7f3249883dc0e39a0d449, type: 2}
-  - {fileID: 11400000, guid: 5e23ec5ec25758c4fa4d779610152833, type: 2}
-  - {fileID: 11400000, guid: 22ba1af3d0a60ef4fa792fdc7703d5eb, type: 2}
   _miningTiles:
   - {fileID: 11400000, guid: c2a0b5412feec0d43965a16d24e04162, type: 2}
   - {fileID: 11400000, guid: e8f7efbf4f3ea3a45b031d464ec9c5db, type: 2}

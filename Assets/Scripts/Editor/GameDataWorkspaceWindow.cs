@@ -352,10 +352,7 @@ public sealed class GameDataWorkspaceWindow : EditorWindow
         {
             GUILayout.Label("Icon", GUILayout.Width(75f));
         }
-        else if (type == typeof(FloatageDefinition))
-        {
-            GUILayout.Label("Drop Resource", GUILayout.Width(110f));
-        }
+
         else if (type == typeof(UpgradeNodeDefinition))
         {
             GUILayout.Label("Icon", GUILayout.Width(75f));
@@ -380,10 +377,7 @@ public sealed class GameDataWorkspaceWindow : EditorWindow
         {
             DrawProperty(serialized, "_icon", 75f);
         }
-        else if (entry is FloatageDefinition)
-        {
-            DrawProperty(serialized, "_dropResource", 110f);
-        }
+
         else if (entry is UpgradeNodeDefinition)
         {
             DrawProperty(serialized, "_icon", 75f);
@@ -1039,11 +1033,7 @@ public sealed class GameDataWorkspaceWindow : EditorWindow
             {
                 messages.Add($"{label}: {upgradeError}");
             }
-            else if (entry is FloatageDefinition floatage &&
-                     !floatage.TryValidate(out string floatageError))
-            {
-                messages.Add($"{label}: {floatageError}");
-            }
+
             else if (entry is StageDefinition stage &&
                      !stage.TryValidate(out string stageError))
             {
