@@ -55,7 +55,7 @@ public sealed class PauseMenuController : MonoBehaviour
     private void Start()
     {
         _uiInput = FindAnyObjectByType<UIInputHandler>();
-        _playerInput.CancelPressed += HandleGameplayCancelPressed;
+        _playerInput.CancelStarted += HandleGameplayCancelPressed;
         if (_uiInput != null)
         {
             _uiInput.CancelPressed += HandleUiCancelPressed;
@@ -69,7 +69,7 @@ public sealed class PauseMenuController : MonoBehaviour
     {
         if (_playerInput != null)
         {
-            _playerInput.CancelPressed -= HandleGameplayCancelPressed;
+            _playerInput.CancelStarted -= HandleGameplayCancelPressed;
         }
 
         if (_uiInput != null)

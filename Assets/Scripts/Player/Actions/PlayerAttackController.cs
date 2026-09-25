@@ -38,20 +38,20 @@ public class PlayerAttackController : MonoBehaviour
 
     private void OnEnable()
     {
-        _inputHandler.pressCaptureEvent += OnPressCapture;
-        _inputHandler.releaseCaptureEvent += OnReleaseCapture;
+        _inputHandler.CaptureStarted += OnPressCapture;
+        _inputHandler.CaptureEnded += OnReleaseCapture;
 
-        _inputHandler.pressAttackEvent += OnPressAttack;
-        _inputHandler.releaseAttackEvent += OnReleaseAttack;
+        _inputHandler.AttackStarted += OnPressAttack;
+        _inputHandler.AttackEnded += OnReleaseAttack;
     }
 
     private void OnDisable()
     {
-        _inputHandler.pressCaptureEvent -= OnPressCapture;
-        _inputHandler.releaseCaptureEvent -= OnReleaseCapture;
+        _inputHandler.CaptureStarted -= OnPressCapture;
+        _inputHandler.CaptureEnded -= OnReleaseCapture;
 
-        _inputHandler.pressAttackEvent -= OnPressAttack;
-        _inputHandler.releaseAttackEvent -= OnReleaseAttack;
+        _inputHandler.AttackStarted -= OnPressAttack;
+        _inputHandler.AttackEnded -= OnReleaseAttack;
     }
 
     private bool SwitchEquipment(PlayerEquipmentType equipment)

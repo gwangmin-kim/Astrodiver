@@ -41,28 +41,37 @@ public class PlayerInteractionController : MonoBehaviour
     private void Update()
     {
         UpdateCurrentTarget();
-
-        bool pressed = _inputHandler.ConsumeInteractInput();
-        if (pressed)
+        if (_inputHandler.InteractHeld)
         {
-            if (CurrentTarget != null)
-            {
-                CurrentTarget.Interact();
-                BeginRepeat(CurrentTarget);
-            }
+            UpdateRepeat();
+        }
+    }
+
+    private void OnEnable()
+    {
+        if (_inputHandler == null)
+        {
+            _inputHandler = GetComponent<PlayerInputHandler>();
         }
 
-        if (!_inputHandler.InteractHeld)
-        {
-            if (!pressed)
-            {
-                StopRepeat();
-            }
+        _inputHandler.InteractStarted += OnInteractStarted;
+        _inputHandler.InteractEnded += StopRepeat;
+    }
 
-            return;
-        }
+    private void OnDisable()
+    {
+        if (_inputHandler == null) return;
+        _inputHandler.InteractStarted -= OnInteractStarted;
+        _inputHandler.InteractEnded -= StopRepeat;
+        StopRepeat();
+    }
 
-        UpdateRepeat();
+    private void OnInteractStarted()
+    {
+        UpdateCurrentTarget();
+        if (CurrentTarget == null) return;
+        CurrentTarget.Interact();
+        BeginRepeat(CurrentTarget);
     }
 
     private void OnTriggerEnter2D(Collider2D other)
