@@ -12,7 +12,6 @@ public class HubPlayerMovementController : MonoBehaviour
     [SerializeField] private HubPlayerMovementData _data;
     [SerializeField][Min(0f)] private float _inputThreshold;
     [SerializeField][Range(0.1f, 1f)] private float _groundNormalThreshold;
-    [SerializeField][Min(0f)] private float _coyoteTime;
 
     // 관성
     private float _currentHorizontalVelocity;
@@ -20,7 +19,6 @@ public class HubPlayerMovementController : MonoBehaviour
 
     // 점프 판정
     private bool _isGrounded = true;
-    private float _ungroundedTime = -1f;
 
     [Header("Body Orientation Settings")]
     [SerializeField] private Transform _bodyTransform;
@@ -33,23 +31,39 @@ public class HubPlayerMovementController : MonoBehaviour
 
     private void OnDisable()
     {
-        _ungroundedTime = -1f;
+        _isGrounded = false;
+    }
+
+    private void OnEnable()
+    {
+        if (_inputHandler == null) _inputHandler = GetComponent<PlayerInputHandler>();
+        _inputHandler.JumpStarted += OnJumpStarted;
+    }
+
+    private void OnDestroy()
+    {
+        if (_inputHandler != null)
+        {
+            _inputHandler.JumpStarted -= OnJumpStarted;
+        }
     }
 
     private void Update()
     {
-        UpdateGroundedState();
-
         Vector2 moveInput = _inputHandler.MoveInput;
         Move(moveInput, Time.deltaTime);
         SetHeadingDirection(moveInput);
+    }
 
-        bool jumpInput = _inputHandler.DashInput;
-        if (jumpInput && _isGrounded)
+    private void OnJumpStarted()
+    {
+        if (!_isGrounded)
         {
-            _inputHandler.ConsumeDashInput();
-            Jump();
+            return;
         }
+
+        _isGrounded = false;
+        Jump();
     }
 
     private void Move(Vector2 moveInput, float deltaTime)
@@ -74,10 +88,16 @@ public class HubPlayerMovementController : MonoBehaviour
     private void Jump()
     {
         float gravity = Physics2D.gravity.y * _rigidbody.gravityScale;
+        if (gravity >= 0f)
+        {
+            Debug.LogError(
+                "HubPlayerMovementController: Jump requires downward gravity.",
+                this);
+            return;
+        }
+
         float verticalVelocity = Mathf.Sqrt(-2 * gravity * _data.jumpHeight);
         _rigidbody.linearVelocityY = verticalVelocity;
-        _isGrounded = false;
-        _ungroundedTime = -1f;
     }
 
     private void SetHeadingDirection(Vector2 moveInput)
@@ -89,33 +109,18 @@ public class HubPlayerMovementController : MonoBehaviour
         _bodyTransform.localScale = nextScale;
     }
 
-    private void UpdateGroundedState()
-    {
-        if (_ungroundedTime < 0f || Time.time < _ungroundedTime) return;
-
-        _isGrounded = false;
-        _ungroundedTime = -1f;
-    }
-
-    private void OnCollisionStay2D(Collision2D collision)
+    private void OnCollisionEnter2D(Collision2D collision)
     {
         foreach (ContactPoint2D contact in collision.contacts)
         {
             if (contact.normal.y > _groundNormalThreshold)
             {
                 _isGrounded = true;
-                _ungroundedTime = -1f;
                 return;
             }
         }
     }
 
-    private void OnCollisionExit2D(Collision2D collision)
-    {
-        if (!_isGrounded) return;
-
-        _ungroundedTime = Time.time + _coyoteTime;
-    }
 }
 
 [System.Serializable]
