@@ -16,6 +16,7 @@ MonoBehaviour:
   _key: a_1
   _sortOrder: 0
   _spaceBackgroundProfile: {fileID: 0}
+  _gravityScale: 1
   _respawnIntervalSeconds: 5
   _creatures:
     _maxCount: 6

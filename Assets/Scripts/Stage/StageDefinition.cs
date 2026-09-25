@@ -7,7 +7,8 @@ public sealed class StagePopulationDefinition
 {
     [SerializeField, Min(0)] private int _maxCount;
     [SerializeField, Range(0f, 1f)] private float _respawnProbability = 0.5f;
-    [SerializeField] private StageSpawnEntry[] _entries =
+    [SerializeField]
+    private StageSpawnEntry[] _entries =
         Array.Empty<StageSpawnEntry>();
 
     public int MaxCount => Mathf.Max(0, _maxCount);
@@ -39,6 +40,9 @@ public sealed class StageDefinition : GameDefinition
     [Header("Presentation")]
     [SerializeField] private SpaceBackgroundProfile _spaceBackgroundProfile;
 
+    [Header("Physics")]
+    [SerializeField] private float _gravityScale = 1f;
+
     [Header("Population")]
     [SerializeField, Min(0.1f)] private float _respawnIntervalSeconds = 5f;
     [SerializeField] private StagePopulationDefinition _creatures = new();
@@ -46,6 +50,7 @@ public sealed class StageDefinition : GameDefinition
     public string StageId => Id;
     public SpaceBackgroundProfile SpaceBackgroundProfile =>
         _spaceBackgroundProfile;
+    public float GravityScale => _gravityScale;
     public float RespawnIntervalSeconds =>
         Mathf.Max(0.1f, _respawnIntervalSeconds);
     public StagePopulationDefinition Creatures => _creatures;
@@ -54,6 +59,7 @@ public sealed class StageDefinition : GameDefinition
     {
         return new StageRuntimeConfig(
             Id,
+            _gravityScale,
             RespawnIntervalSeconds,
             _creatures?.CreateRuntimeCopy());
     }
@@ -69,6 +75,13 @@ public sealed class StageDefinition : GameDefinition
         if (_respawnIntervalSeconds < 0.1f)
         {
             errors.Add("Respawn interval must be at least 0.1 seconds.");
+        }
+
+        if (float.IsNaN(_gravityScale) ||
+            float.IsInfinity(_gravityScale) ||
+            _gravityScale <= 0f)
+        {
+            errors.Add("Gravity scale must be a finite value greater than zero.");
         }
 
         HashSet<string> entryIds = new(StringComparer.Ordinal);
@@ -145,16 +158,19 @@ public sealed class StageRuntimeConfig
 {
     public StageRuntimeConfig(
         string stageId,
+        float gravityScale,
         float respawnIntervalSeconds,
         StageRuntimePopulationConfig creatures)
     {
         StageId = stageId;
+        GravityScale = gravityScale;
         RespawnIntervalSeconds = Mathf.Max(0.1f, respawnIntervalSeconds);
         Creatures = creatures ?? StageRuntimePopulationConfig.Empty();
 
     }
 
     public string StageId { get; }
+    public float GravityScale { get; }
     public float RespawnIntervalSeconds { get; }
     public StageRuntimePopulationConfig Creatures { get; }
 
