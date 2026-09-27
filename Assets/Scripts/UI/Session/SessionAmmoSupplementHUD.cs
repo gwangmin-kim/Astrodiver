@@ -11,7 +11,6 @@ public sealed class SessionAmmoSupplementHUD : MonoBehaviour
         [SerializeField] private GameObject _root;
         [SerializeField] private RectTransform _iconRoot;
         [SerializeField] private GameObject _iconTemplate;
-        [SerializeField, Min(0f)] private float _iconSpacing = 4f;
 
         private readonly List<GameObject> _icons = new();
 
