@@ -183,7 +183,7 @@ Transform:
   m_GameObject: {fileID: 5651017727153553605}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.03, z: 0}
+  m_LocalPosition: {x: 0, y: -0.11, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -614,7 +614,7 @@ CapsuleCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_Size: {x: 0.8, y: 1.3}
+  m_Size: {x: 0.8, y: 1.12}
   m_Direction: 0
 --- !u!50 &2519992166632233461
 Rigidbody2D:
@@ -631,7 +631,7 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDamping: 0
   m_AngularDamping: 0.05
-  m_GravityScale: 0
+  m_GravityScale: 1
   m_Material: {fileID: 6200000, guid: cf25f60435ff0424eb61807afc55b60b, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
@@ -671,12 +671,11 @@ MonoBehaviour:
   _moveActionName: Move
   _aimActionName: Aim
   _interactActionName: Interact
-  _dashActionName: Dash
+  _jumpActionName: Jump
   _captureActionName: Capture
   _attackActionName: Attack
   _cancelActionName: Cancel
   _mouseAimThreshold: 5
-  _inputBufferTime: 0.15
 --- !u!114 &8686139265353281528
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -691,6 +690,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
   _rigidbody: {fileID: 2519992166632233461}
   _inputHandler: {fileID: 2112401720433368642}
+  _maximumFallSpeed: 12
   _movementBounds: {fileID: 0}
   _playerBoundsMin: {x: -0.6, y: -0.55}
   _playerBoundsMax: {x: 0.6, y: 0.6}

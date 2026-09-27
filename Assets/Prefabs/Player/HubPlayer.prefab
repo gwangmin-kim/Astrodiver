@@ -76,8 +76,8 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0.6}
-  m_Size: {x: 0.8, y: 1.2}
+  m_Offset: {x: 0, y: 0.56}
+  m_Size: {x: 0.8, y: 1.12}
   m_Direction: 0
 --- !u!50 &7852614355243644505
 Rigidbody2D:
@@ -122,12 +122,11 @@ MonoBehaviour:
   _moveActionName: Move
   _aimActionName: Aim
   _interactActionName: Interact
-  _dashActionName: Dash
+  _jumpActionName: Jump
   _captureActionName: Capture
   _attackActionName: Attack
   _cancelActionName: Cancel
   _mouseAimThreshold: 5
-  _inputBufferTime: 0.15
 --- !u!114 &5061502554070924193
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -148,7 +147,6 @@ MonoBehaviour:
     jumpHeight: 1
   _inputThreshold: 0.1
   _groundNormalThreshold: 0.7
-  _coyoteTime: 0.15
   _bodyTransform: {fileID: 6356417324507540861}
 --- !u!114 &7264986152765376962
 MonoBehaviour:

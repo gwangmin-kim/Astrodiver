@@ -33,8 +33,12 @@ MonoBehaviour:
     movement:
       baseMoveSpeed: 3.5
       moveSpeedRatio: 1
-      moveDampingTime: 0.3
-      stopDampingTime: 0.8
+      baseRiseSpeed: 4
+      riseSpeedRatio: 1
+      baseRiseAcceleration: 30
+      riseAccelerationRatio: 1
+      moveDampingTime: 0.08
+      stopDampingTime: 0.1
     battery:
       amount: 0
     magnet:

@@ -576,6 +576,7 @@ MonoBehaviour:
   _playerPrefab: {fileID: 8562921575549458465, guid: b718b1fa85d7a0a4aa0fd4403b943c13, type: 3}
   _playerSpawnPoint: {fileID: 475039348711322185}
   _runtimeRoot: {fileID: 212685586}
+  _stageSettings: {fileID: 1865215448}
   _sessionEndPanel: {fileID: 1930779838}
   _returnButton: {fileID: 1743776474}
   _retryButton: {fileID: 1783029263}
@@ -1783,6 +1784,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1865215446}
   - component: {fileID: 1865215445}
+  - component: {fileID: 1865215448}
   m_Layer: 0
   m_Name: StageRoot
   m_TagString: Untagged
@@ -1802,7 +1804,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c61b1bd1a57244f9cba143108ae41925, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StagePopulationManager
-  _definition: {fileID: 11400000, guid: aec72bcc1ecae462b83f726539e778d4, type: 2}
+  _stageSettings: {fileID: 1865215448}
   _spawnAreas:
     _creatureAreas:
     - _min: {x: -17, y: -10}
@@ -1817,6 +1819,19 @@ MonoBehaviour:
   _spawnOnStart: 1
   _useFixedSeed: 0
   _fixedSeed: 12345
+--- !u!114 &1865215448
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1865215444}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6028f64e84a4f2fbd60d56a8f26edb8, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::StageSceneSettings
+  _definition: {fileID: 11400000, guid: aec72bcc1ecae462b83f726539e778d4, type: 2}
 --- !u!4 &1865215446
 Transform:
   m_ObjectHideFlags: 0
