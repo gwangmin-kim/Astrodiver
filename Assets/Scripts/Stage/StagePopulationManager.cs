@@ -6,8 +6,8 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public sealed class StagePopulationManager : MonoBehaviour
 {
-    [Header("Definition")]
-    [SerializeField] private StageDefinition _definition;
+    [Header("Stage Settings")]
+    [SerializeField] private StageSceneSettings _stageSettings;
 
     [Header("Scene-owned Spawn Areas")]
     [SerializeField] private StageSpawnAreaCollection _spawnAreas = new();
@@ -31,7 +31,6 @@ public sealed class StagePopulationManager : MonoBehaviour
     private int _creatureSequence;
     private bool _hasSpawned;
 
-    public StageDefinition Definition => _definition;
     public StageSpawnAreaCollection SpawnAreas => _spawnAreas;
     public StageRuntimeConfig RuntimeConfig => _runtimeConfig;
     public bool HasSpawned => _hasSpawned;
@@ -137,7 +136,16 @@ public sealed class StagePopulationManager : MonoBehaviour
     private bool TryPrepare(out StageRuntimeConfig runtimeConfig)
     {
         runtimeConfig = null;
-        if (_definition == null)
+        if (_stageSettings == null)
+        {
+            Debug.LogError(
+                "StagePopulationManager: StageSceneSettings is not assigned.",
+                this);
+            return false;
+        }
+
+        StageDefinition definition = _stageSettings.Definition;
+        if (definition == null)
         {
             Debug.LogError(
                 "StagePopulationManager: StageDefinition is not assigned.",
@@ -145,11 +153,11 @@ public sealed class StagePopulationManager : MonoBehaviour
             return false;
         }
 
-        if (!_definition.TryValidate(out string definitionError))
+        if (!definition.TryValidate(out string definitionError))
         {
             Debug.LogError(
                 $"StagePopulationManager: Invalid definition.\n{definitionError}",
-                _definition);
+                definition);
             return false;
         }
 
@@ -169,7 +177,7 @@ public sealed class StagePopulationManager : MonoBehaviour
             return false;
         }
 
-        if (_definition.Creatures.MaxCount > 0 &&
+        if (definition.Creatures.MaxCount > 0 &&
             _spawnAreas.CreatureAreas.Count == 0)
         {
             Debug.LogError(
@@ -178,10 +186,10 @@ public sealed class StagePopulationManager : MonoBehaviour
             return false;
         }
 
-        runtimeConfig = _definition.CreateRuntimeConfig();
+        runtimeConfig = definition.CreateRuntimeConfig();
         runtimeConfig.SetRespawnProbabilityBonus(
             _gameDataManager?.RuntimeData?.StageRespawnProbabilityBonuses
-                .GetBonus(_definition) ?? 0f);
+                .GetBonus(definition) ?? 0f);
         return true;
     }
 
@@ -213,13 +221,14 @@ public sealed class StagePopulationManager : MonoBehaviour
 
     private void HandleRuntimeDataChanged(GameRuntimeData runtimeData)
     {
-        if (_runtimeConfig == null || _definition == null)
+        if (_runtimeConfig == null || _stageSettings == null ||
+            _stageSettings.Definition == null)
         {
             return;
         }
 
         _runtimeConfig.SetRespawnProbabilityBonus(
-            runtimeData?.StageRespawnProbabilityBonuses.GetBonus(_definition) ??
+            runtimeData?.StageRespawnProbabilityBonuses.GetBonus(_stageSettings.Definition) ??
             0f);
     }
 

@@ -13,6 +13,7 @@ public class SessionManager : MonoBehaviour
     [SerializeField] private GameObject _playerPrefab;
     [SerializeField] private Transform _playerSpawnPoint;
     [SerializeField] private Transform _runtimeRoot;
+    [SerializeField] private StageSceneSettings _stageSettings;
 
     [Header("Session End UI (Optional)")]
     [SerializeField] private GameObject _sessionEndPanel;
@@ -35,11 +36,13 @@ public class SessionManager : MonoBehaviour
 
         Instance = this;
 
-        SpawnPlayer();
+        SpawnedPlayer = SpawnPlayer();
         if (SpawnedPlayer != null)
         {
-            GameDataManager.Instance?.CompleteEventAndSave(
-                GameProgressEventId.ExploreFirstTime);
+            InitializeStageGravity();
+            if (GameDataManager.Instance != null)
+                GameDataManager.Instance.CompleteEventAndSave(
+                    GameProgressEventId.ExploreFirstTime);
         }
 
         _timeoutInventoryLossMessage = _sessionEndPanel.transform
@@ -55,12 +58,15 @@ public class SessionManager : MonoBehaviour
         _retryButton.onClick.AddListener(RetryExploration);
     }
 
-    private void SpawnPlayer()
+    private PlayerContext SpawnPlayer()
     {
-        if (PlayerContext.Instance != null)
+        PlayerContext existingPlayer = PlayerContext.Instance;
+        if (existingPlayer != null)
         {
-            SpawnedPlayer = PlayerContext.Instance;
-            return;
+            Debug.LogWarning(
+                "SessionManager: A PlayerContext already exists; reusing that player.",
+                existingPlayer);
+            return existingPlayer;
         }
 
         if (_playerPrefab == null || _playerSpawnPoint == null || _runtimeRoot == null)
@@ -68,7 +74,15 @@ public class SessionManager : MonoBehaviour
             Debug.LogError(
                 "SessionManager: Player prefab, SpaceShip spawn point, and Runtime root must be assigned.",
                 this);
-            return;
+            return null;
+        }
+
+        if (_playerPrefab.GetComponent<PlayerContext>() == null)
+        {
+            Debug.LogError(
+                "SessionManager: The player prefab does not contain PlayerContext.",
+                _playerPrefab);
+            return null;
         }
 
         GameObject playerObject = Instantiate(
@@ -77,18 +91,46 @@ public class SessionManager : MonoBehaviour
             _playerSpawnPoint.rotation,
             _runtimeRoot);
         playerObject.name = _playerPrefab.name;
-        SpawnedPlayer = playerObject.GetComponent<PlayerContext>();
+        return playerObject.GetComponent<PlayerContext>();
+    }
 
-        if (SpawnedPlayer == null)
+    private void InitializeStageGravity()
+    {
+        if (_stageSettings == null)
         {
             Debug.LogError(
-                "SessionManager: The player prefab does not contain PlayerContext.",
-                playerObject);
+                "SessionManager: StageSceneSettings reference is missing; player gravity was not initialized.",
+                this);
+            return;
         }
+
+        StageDefinition definition = _stageSettings.Definition;
+        if (definition == null)
+        {
+            Debug.LogError(
+                "SessionManager: StageDefinition reference is missing; player gravity was not initialized.",
+                _stageSettings);
+            return;
+        }
+
+        if (!SpawnedPlayer.TryGetComponent<PlayerMovementController>(out var movement))
+        {
+            Debug.LogError(
+                "SessionManager: SessionPlayer is missing PlayerMovementController; player gravity was not initialized.",
+                SpawnedPlayer);
+            return;
+        }
+
+        movement.InitializeForStage(definition.GravityScale);
     }
 
     private void Start()
     {
+        if (SpawnedPlayer == null)
+        {
+            return;
+        }
+
         PlayerInventoryController inventory = PlayerInventoryController.Instance;
         if (inventory == null)
         {

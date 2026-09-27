@@ -67,15 +67,15 @@ public sealed class SpaceBackgroundController : MonoBehaviour
             }
         }
 
-        StagePopulationManager[] stageManagers =
-            FindObjectsByType<StagePopulationManager>(
+        StageSceneSettings[] stageSettings =
+            FindObjectsByType<StageSceneSettings>(
                 FindObjectsInactive.Include);
 
-        for (int i = 0; i < stageManagers.Length; i++)
+        for (int i = 0; i < stageSettings.Length; i++)
         {
-            StagePopulationManager stageManager = stageManagers[i];
-            StageDefinition definition = stageManager.Definition;
-            if (stageManager.gameObject.scene == gameObject.scene &&
+            StageSceneSettings stageSetting = stageSettings[i];
+            StageDefinition definition = stageSetting.Definition;
+            if (stageSetting.gameObject.scene == gameObject.scene &&
                 definition != null &&
                 definition.SpaceBackgroundProfile != null)
             {
