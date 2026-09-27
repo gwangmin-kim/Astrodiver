@@ -108,9 +108,24 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
         switch (_target)
         {
             case NumericUpgradeTarget.MovementSpeedRatio:
+            case NumericUpgradeTarget.RiseSpeedRatio:
+            case NumericUpgradeTarget.RiseAccelerationRatio:
                 {
                     PlayerMovementData value = player.movement;
-                    value.moveSpeedRatio = ApplyFloat(value.moveSpeedRatio, 0f);
+                    switch (_target)
+                    {
+                        case NumericUpgradeTarget.MovementSpeedRatio:
+                            value.moveSpeedRatio = ApplyFloat(value.moveSpeedRatio, 0f);
+                            break;
+                        case NumericUpgradeTarget.RiseSpeedRatio:
+                            value.riseSpeedRatio = ApplyFloat(value.riseSpeedRatio, 0f);
+                            break;
+                        case NumericUpgradeTarget.RiseAccelerationRatio:
+                            value.riseAccelerationRatio =
+                                ApplyFloat(value.riseAccelerationRatio, 0f);
+                            break;
+                    }
+
                     player.movement = value;
                     break;
                 }
@@ -298,6 +313,12 @@ public sealed class NumericUpgradeEffect : UpgradeEffect
         {
             case NumericUpgradeTarget.MovementSpeedRatio:
                 value = data.PlayerStats.movement.moveSpeedRatio;
+                return true;
+            case NumericUpgradeTarget.RiseSpeedRatio:
+                value = data.PlayerStats.movement.riseSpeedRatio;
+                return true;
+            case NumericUpgradeTarget.RiseAccelerationRatio:
+                value = data.PlayerStats.movement.riseAccelerationRatio;
                 return true;
             case NumericUpgradeTarget.BatteryCapacity:
                 value = data.PlayerStats.battery.amount;

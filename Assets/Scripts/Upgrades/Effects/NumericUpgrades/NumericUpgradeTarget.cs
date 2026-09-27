@@ -2,6 +2,8 @@ public enum NumericUpgradeTarget
 {
     // Player movement: 1000-1099
     MovementSpeedRatio = 1000,
+    RiseSpeedRatio = 1001,
+    RiseAccelerationRatio = 1002,
 
     // Battery: 1100-1199
     BatteryCapacity = 1100,
