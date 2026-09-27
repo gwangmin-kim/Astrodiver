@@ -16,6 +16,19 @@ public sealed class StageMap : MonoBehaviour
     public Grid Grid => _grid;
     public Tilemap Tilemap => _tilemap;
     public void Configure(Grid grid, Tilemap tilemap) { _grid = grid; _tilemap = tilemap; EnforceTransformLock(); }
+    public void ApplyGeneratedTiles(BoundsInt bounds, TileBase[] tiles)
+    {
+        _tilemap.ClearAllTiles();
+        _miningHitPoints.Clear();
+        _tilemap.SetTilesBlock(bounds, tiles);
+        _tilemap.RefreshAllTiles();
+        TilemapCollider2D tilemapCollider = _tilemap.GetComponent<TilemapCollider2D>();
+        tilemapCollider.ProcessTilemapChanges();
+        CompositeCollider2D composite = _tilemap.GetComponent<CompositeCollider2D>();
+        if (composite.generationType == CompositeCollider2D.GenerationType.Manual)
+            composite.GenerateGeometry();
+        Physics2D.SyncTransforms();
+    }
     public void EnforceTransformLock() { Pin(_grid != null ? _grid.transform : null); Pin(_tilemap != null ? _tilemap.transform : null); }
     public bool TryValidate(out string error)
     {
