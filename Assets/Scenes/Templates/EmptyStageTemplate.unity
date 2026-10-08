@@ -944,6 +944,41 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dde48d2bb891ca74b9fdce3adc1c40f3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MiningFragmentDrops
+--- !u!114 &1530818369
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1530818365}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97c1768f940b769489edaa511b3d51e3, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::StageGenerator
+  _worldBounds: {fileID: 2097397227}
+  _terrainTile: {fileID: 11400000, guid: c2a0b5412feec0d43965a16d24e04162, type: 2}
+  _horizontalScale: 12
+  _verticalScale: 12
+  _density: 0.5
+  _broadLayer:
+    _enabled: 1
+    _horizontalScale: 24
+    _verticalScale: 16
+    _amplitude: 0
+  _detailLayer:
+    _enabled: 1
+    _horizontalScale: 4
+    _verticalScale: 3
+    _amplitude: 0
+  _useFixedSeed: 0
+  _fixedSeed: 12345
+  _returnArea: {fileID: 475039348711322186}
+  _airTransitionCells: 3
+  _guaranteeFloor: 1
+  _floorWidthCells: 8
+  _floorThicknessCells: 2
+  _floorTransitionCells: 3
 --- !u!114 &1743776474 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2736211216521836210, guid: 93e602bf39f61564bb4585ced48d8c42, type: 3}
@@ -1199,6 +1234,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2999851483686464841, guid: ca275f1c3faaffe46866850ef7514dfe, type: 3}
   m_PrefabInstance: {fileID: 475039348711322184}
   m_PrefabAsset: {fileID: 0}
+--- !u!61 &475039348711322186 stripped
+BoxCollider2D:
+  m_CorrespondingSourceObject: {fileID: 8243100741897527167, guid: ca275f1c3faaffe46866850ef7514dfe, type: 3}
+  m_PrefabInstance: {fileID: 475039348711322184}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1250701872009592866
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1349,35 +1389,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FragmentParticleManager
   _fragmentParticleSystemPrefab: {fileID: 5093053517247149796, guid: adb0a8c4142515447881cd80610f6b88, type: 3}
---- !u!114 &1530818369
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1530818365}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 97c1768f940b769489edaa511b3d51e3, type: 3}
-  m_Name:
-  m_EditorClassIdentifier: Assembly-CSharp::PerlinStageGenerator
-  _worldBounds: {fileID: 2097397227}
-  _terrainTile: {fileID: 11400000, guid: c2a0b5412feec0d43965a16d24e04162, type: 2}
-  _horizontalScale: 12
-  _verticalScale: 12
-  _density: 0.5
-  _broadLayer:
-    _enabled: 1
-    _horizontalScale: 24
-    _verticalScale: 16
-    _amplitude: 0
-  _detailLayer:
-    _enabled: 1
-    _horizontalScale: 4
-    _verticalScale: 3
-    _amplitude: 0
-  _useFixedSeed: 0
-  _fixedSeed: 12345
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

@@ -222,6 +222,7 @@ public static class GameDataSaveSystemSmokeTest
             StageRuntimeConfig stageRuntimeConfig = new(
                 "test.stage",
                 1f,
+                1f,
                 new StageRuntimePopulationConfig(10, 0.5f, null));
             stageRuntimeConfig.SetRespawnProbabilityBonus(
                 runtimeData.StageRespawnProbabilityBonuses
