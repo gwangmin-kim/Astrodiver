@@ -92,6 +92,15 @@ public sealed class PlayerOutline : MonoBehaviour
         _spriteRenderers = GetComponentsInChildren<SpriteRenderer>(true);
     }
 
+    public void RefreshSpriteBounds(SpriteRenderer spriteRenderer)
+    {
+        if (spriteRenderer == null) return;
+        _propertyBlock ??= new MaterialPropertyBlock();
+        spriteRenderer.GetPropertyBlock(_propertyBlock);
+        ApplySpriteBounds(spriteRenderer);
+        spriteRenderer.SetPropertyBlock(_propertyBlock);
+    }
+
     private void ApplySpriteBounds(SpriteRenderer spriteRenderer)
     {
         Sprite sprite = spriteRenderer.sprite;

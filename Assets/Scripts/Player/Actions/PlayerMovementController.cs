@@ -18,9 +18,9 @@ public class PlayerMovementController : MonoBehaviour
 
     [Header("Player Local Bounds")]
     [Tooltip("플레이어 피벗 기준 로컬 AABB의 좌하단 점입니다.")]
-    [SerializeField] private Vector2 _playerBoundsMin = new(-0.4f, -0.9f);
+    [SerializeField] private Vector2 _playerBoundsMin = new(-0.4f, -0.45f);
     [Tooltip("플레이어 피벗 기준 로컬 AABB의 우상단 점입니다.")]
-    [SerializeField] private Vector2 _playerBoundsMax = new(0.4f, 0.9f);
+    [SerializeField] private Vector2 _playerBoundsMax = new(0.4f, 0.45f);
 
     private Vector2 _dampingVelocity;
     private PlayerMovementData _data;
