@@ -1,9 +1,12 @@
-using UnityEngine;
-
-[DisallowMultipleComponent]
-public sealed class SpaceBackgroundSceneSettings : MonoBehaviour
+namespace Astrodiver.Rendering
 {
-    [SerializeField] private SpaceBackgroundProfile _profile;
+    using UnityEngine;
 
-    public SpaceBackgroundProfile Profile => _profile;
+    [DisallowMultipleComponent]
+    public sealed class SpaceBackgroundSceneSettings : MonoBehaviour
+    {
+        [SerializeField] private SpaceBackgroundProfile _profile;
+
+        public SpaceBackgroundProfile Profile => _profile;
+    }
 }

@@ -1,11 +1,16 @@
-using System;
+using Astrodiver.Persistence.GameData;
 
-public sealed class UpgradeEffectContext
+namespace Astrodiver.Upgrades
 {
-    public UpgradeEffectContext(GameRuntimeData runtimeData)
-    {
-        RuntimeData = runtimeData ?? throw new ArgumentNullException(nameof(runtimeData));
-    }
+    using System;
 
-    public GameRuntimeData RuntimeData { get; }
+    public sealed class UpgradeEffectContext
+    {
+        public UpgradeEffectContext(GameRuntimeData runtimeData)
+        {
+            RuntimeData = runtimeData ?? throw new ArgumentNullException(nameof(runtimeData));
+        }
+
+        public GameRuntimeData RuntimeData { get; }
+    }
 }

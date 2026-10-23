@@ -1,84 +1,92 @@
-using System;
-using System.Linq;
-using UnityEditor;
-using UnityEngine;
+using Astrodiver.Definitions;
+using Astrodiver.Stages.Map;
+using Astrodiver.Tutorials;
+using Astrodiver.Upgrades;
 
-[CustomEditor(typeof(GameDefinitionCatalog))]
-public sealed class GameDefinitionCatalogEditor : Editor
+namespace Astrodiver.Editor
 {
-    private const string CatalogPath = "Assets/Data/GameDefinitionCatalog.asset";
-    private const string RefreshMenuPath =
-        "Astrodiver/Data/Refresh Game Definition Catalog";
+    using System;
+    using System.Linq;
+    using UnityEditor;
+    using UnityEngine;
 
-    public override void OnInspectorGUI()
+    [CustomEditor(typeof(GameDefinitionCatalog))]
+    public sealed class GameDefinitionCatalogEditor : UnityEditor.Editor
     {
-        DrawDefaultInspector();
-        EditorGUILayout.Space();
+        private const string CatalogPath = "Assets/Data/GameDefinitionCatalog.asset";
+        private const string RefreshMenuPath =
+            "Astrodiver/Data/Refresh Game Definition Catalog";
 
-        if (GUILayout.Button("Refresh Definitions From Project"))
+        public override void OnInspectorGUI()
         {
-            RefreshCatalog((GameDefinitionCatalog)target);
+            DrawDefaultInspector();
+            EditorGUILayout.Space();
+
+            if (GUILayout.Button("Refresh Definitions From Project"))
+            {
+                RefreshCatalog((GameDefinitionCatalog)target);
+            }
+
+            GameDefinitionCatalog catalog = (GameDefinitionCatalog)target;
+            if (!catalog.TryValidate(out string error))
+            {
+                EditorGUILayout.HelpBox(error, MessageType.Error);
+            }
         }
 
-        GameDefinitionCatalog catalog = (GameDefinitionCatalog)target;
-        if (!catalog.TryValidate(out string error))
+        [MenuItem(RefreshMenuPath)]
+        public static void RefreshDefaultCatalog()
         {
-            EditorGUILayout.HelpBox(error, MessageType.Error);
-        }
-    }
+            GameDefinitionCatalog catalog =
+                AssetDatabase.LoadAssetAtPath<GameDefinitionCatalog>(CatalogPath);
 
-    [MenuItem(RefreshMenuPath)]
-    public static void RefreshDefaultCatalog()
-    {
-        GameDefinitionCatalog catalog =
-            AssetDatabase.LoadAssetAtPath<GameDefinitionCatalog>(CatalogPath);
+            if (catalog == null)
+            {
+                catalog = CreateInstance<GameDefinitionCatalog>();
+                AssetDatabase.CreateAsset(catalog, CatalogPath);
+            }
 
-        if (catalog == null)
-        {
-            catalog = CreateInstance<GameDefinitionCatalog>();
-            AssetDatabase.CreateAsset(catalog, CatalogPath);
+            RefreshCatalog(catalog);
+            Selection.activeObject = catalog;
         }
 
-        RefreshCatalog(catalog);
-        Selection.activeObject = catalog;
-    }
-
-    private static void RefreshCatalog(GameDefinitionCatalog catalog)
-    {
-        ResourceDefinition[] resources = FindAll<ResourceDefinition>();
-        CreatureDefinition[] creatures = FindAll<CreatureDefinition>();
-        MiningTileDefinition[] miningTiles = FindAll<MiningTileDefinition>();
-        UpgradeNodeDefinition[] upgrades = FindAll<UpgradeNodeDefinition>();
-        TutorialGuideDefinition[] tutorialGuides = FindAll<TutorialGuideDefinition>();
-
-        Undo.RecordObject(catalog, "Refresh Game Definition Catalog");
-        catalog.SetDefinitionsForEditor(
-            resources, creatures, upgrades, tutorialGuides, miningTiles);
-        EditorUtility.SetDirty(catalog);
-        AssetDatabase.SaveAssetIfDirty(catalog);
-
-        if (catalog.TryValidate(out string error))
+        private static void RefreshCatalog(GameDefinitionCatalog catalog)
         {
-            Debug.Log(
-                $"Refreshed '{catalog.name}': " +
-                $"{resources.Length} resources, {creatures.Length} creatures, " +
-                $"{miningTiles.Length} mining tiles, {upgrades.Length} upgrades, " +
-                $"{tutorialGuides.Length} tutorial guides.",
-                catalog);
-        }
-        else
-        {
-            Debug.LogError($"Definition catalog refresh failed validation.\n{error}", catalog);
-        }
-    }
+            ResourceDefinition[] resources = FindAll<ResourceDefinition>();
+            CreatureDefinition[] creatures = FindAll<CreatureDefinition>();
+            MiningTileDefinition[] miningTiles = FindAll<MiningTileDefinition>();
+            UpgradeNodeDefinition[] upgrades = FindAll<UpgradeNodeDefinition>();
+            TutorialGuideDefinition[] tutorialGuides = FindAll<TutorialGuideDefinition>();
 
-    private static T[] FindAll<T>() where T : ScriptableObject
-    {
-        return AssetDatabase.FindAssets($"t:{typeof(T).Name}")
-            .Select(AssetDatabase.GUIDToAssetPath)
-            .Select(AssetDatabase.LoadAssetAtPath<T>)
-            .Where(asset => asset != null)
-            .OrderBy(asset => asset.name, StringComparer.Ordinal)
-            .ToArray();
+            Undo.RecordObject(catalog, "Refresh Game Definition Catalog");
+            catalog.SetDefinitionsForEditor(
+                resources, creatures, upgrades, tutorialGuides, miningTiles);
+            EditorUtility.SetDirty(catalog);
+            AssetDatabase.SaveAssetIfDirty(catalog);
+
+            if (catalog.TryValidate(out string error))
+            {
+                Debug.Log(
+                    $"Refreshed '{catalog.name}': " +
+                    $"{resources.Length} resources, {creatures.Length} creatures, " +
+                    $"{miningTiles.Length} mining tiles, {upgrades.Length} upgrades, " +
+                    $"{tutorialGuides.Length} tutorial guides.",
+                    catalog);
+            }
+            else
+            {
+                Debug.LogError($"Definition catalog refresh failed validation.\n{error}", catalog);
+            }
+        }
+
+        private static T[] FindAll<T>() where T : ScriptableObject
+        {
+            return AssetDatabase.FindAssets($"t:{typeof(T).Name}")
+                .Select(AssetDatabase.GUIDToAssetPath)
+                .Select(AssetDatabase.LoadAssetAtPath<T>)
+                .Where(asset => asset != null)
+                .OrderBy(asset => asset.name, StringComparer.Ordinal)
+                .ToArray();
+        }
     }
 }

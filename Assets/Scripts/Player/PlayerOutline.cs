@@ -1,131 +1,134 @@
-using UnityEngine;
-
-/// <summary>
-/// Keeps an outline visible on the player sprites using the project's
-/// Sprite Lit 8-Direction Outline material.
-/// </summary>
-[DisallowMultipleComponent]
-public sealed class PlayerOutline : MonoBehaviour
+namespace Astrodiver.Player
 {
-    private static readonly int _outlineColorId = Shader.PropertyToID("_OutlineColor");
-    private static readonly int _outlineWidthId = Shader.PropertyToID("_OutlineWidth");
-    private static readonly int _outlineEnabledId = Shader.PropertyToID("_OutlineEnabled");
-    private static readonly int _spriteUvMinMaxId = Shader.PropertyToID("_SpriteUVMinMax");
-    private static readonly int _spriteLocalSizeId = Shader.PropertyToID("_SpriteLocalSize");
-
-    [Header("Outline Appearance")]
-    [SerializeField] private Color _outlineColor = Color.white;
-    [SerializeField, Min(0f)] private float _outlineWidth = 2f;
-
-    [Header("Rendering")]
-    [Tooltip("Must use the Astrodiver/2D/Sprite Lit 8-Direction Outline shader.")]
-    [SerializeField] private Material _outlineMaterial;
-    [SerializeField] private SpriteRenderer[] _spriteRenderers;
-
-    private MaterialPropertyBlock _propertyBlock;
-
-    // private void Reset()
-    // {
-    //     CollectSpriteRenderers();
-    // }
-
-    private void OnValidate()
-    {
-        if (_spriteRenderers == null || _spriteRenderers.Length == 0)
-        {
-            CollectSpriteRenderers();
-        }
-    }
-
-    private void Awake()
-    {
-        if (_spriteRenderers == null || _spriteRenderers.Length == 0)
-        {
-            CollectSpriteRenderers();
-        }
-
-        _propertyBlock = new MaterialPropertyBlock();
-        ApplyOutline();
-    }
-
-    private void OnEnable()
-    {
-        ApplyOutline();
-    }
+    using UnityEngine;
 
     /// <summary>
-    /// Reapplies the current inspector settings. Call this after changing the
-    /// appearance at runtime.
+    /// Keeps an outline visible on the player sprites using the project's
+    /// Sprite Lit 8-Direction Outline material.
     /// </summary>
-    public void ApplyOutline()
+    [DisallowMultipleComponent]
+    public sealed class PlayerOutline : MonoBehaviour
     {
-        if (_spriteRenderers == null)
+        private static readonly int _outlineColorId = Shader.PropertyToID("_OutlineColor");
+        private static readonly int _outlineWidthId = Shader.PropertyToID("_OutlineWidth");
+        private static readonly int _outlineEnabledId = Shader.PropertyToID("_OutlineEnabled");
+        private static readonly int _spriteUvMinMaxId = Shader.PropertyToID("_SpriteUVMinMax");
+        private static readonly int _spriteLocalSizeId = Shader.PropertyToID("_SpriteLocalSize");
+
+        [Header("Outline Appearance")]
+        [SerializeField] private Color _outlineColor = Color.white;
+        [SerializeField, Min(0f)] private float _outlineWidth = 2f;
+
+        [Header("Rendering")]
+        [Tooltip("Must use the Astrodiver/2D/Sprite Lit 8-Direction Outline shader.")]
+        [SerializeField] private Material _outlineMaterial;
+        [SerializeField] private SpriteRenderer[] _spriteRenderers;
+
+        private MaterialPropertyBlock _propertyBlock;
+
+        // private void Reset()
+        // {
+        //     CollectSpriteRenderers();
+        // }
+
+        private void OnValidate()
         {
-            return;
+            if (_spriteRenderers == null || _spriteRenderers.Length == 0)
+            {
+                CollectSpriteRenderers();
+            }
         }
 
-        _propertyBlock ??= new MaterialPropertyBlock();
-
-        foreach (SpriteRenderer spriteRenderer in _spriteRenderers)
+        private void Awake()
         {
-            if (spriteRenderer == null)
+            if (_spriteRenderers == null || _spriteRenderers.Length == 0)
             {
-                continue;
+                CollectSpriteRenderers();
             }
 
-            if (_outlineMaterial != null)
+            _propertyBlock = new MaterialPropertyBlock();
+            ApplyOutline();
+        }
+
+        private void OnEnable()
+        {
+            ApplyOutline();
+        }
+
+        /// <summary>
+        /// Reapplies the current inspector settings. Call this after changing the
+        /// appearance at runtime.
+        /// </summary>
+        public void ApplyOutline()
+        {
+            if (_spriteRenderers == null)
             {
-                spriteRenderer.sharedMaterial = _outlineMaterial;
+                return;
             }
 
+            _propertyBlock ??= new MaterialPropertyBlock();
+
+            foreach (SpriteRenderer spriteRenderer in _spriteRenderers)
+            {
+                if (spriteRenderer == null)
+                {
+                    continue;
+                }
+
+                if (_outlineMaterial != null)
+                {
+                    spriteRenderer.sharedMaterial = _outlineMaterial;
+                }
+
+                spriteRenderer.GetPropertyBlock(_propertyBlock);
+                _propertyBlock.SetColor(_outlineColorId, _outlineColor);
+                _propertyBlock.SetFloat(_outlineWidthId, _outlineWidth);
+                _propertyBlock.SetFloat(_outlineEnabledId, 1f);
+                ApplySpriteBounds(spriteRenderer);
+                spriteRenderer.SetPropertyBlock(_propertyBlock);
+            }
+        }
+
+        private void CollectSpriteRenderers()
+        {
+            _spriteRenderers = GetComponentsInChildren<SpriteRenderer>(true);
+        }
+
+        public void RefreshSpriteBounds(SpriteRenderer spriteRenderer)
+        {
+            if (spriteRenderer == null) return;
+            _propertyBlock ??= new MaterialPropertyBlock();
             spriteRenderer.GetPropertyBlock(_propertyBlock);
-            _propertyBlock.SetColor(_outlineColorId, _outlineColor);
-            _propertyBlock.SetFloat(_outlineWidthId, _outlineWidth);
-            _propertyBlock.SetFloat(_outlineEnabledId, 1f);
             ApplySpriteBounds(spriteRenderer);
             spriteRenderer.SetPropertyBlock(_propertyBlock);
         }
-    }
 
-    private void CollectSpriteRenderers()
-    {
-        _spriteRenderers = GetComponentsInChildren<SpriteRenderer>(true);
-    }
-
-    public void RefreshSpriteBounds(SpriteRenderer spriteRenderer)
-    {
-        if (spriteRenderer == null) return;
-        _propertyBlock ??= new MaterialPropertyBlock();
-        spriteRenderer.GetPropertyBlock(_propertyBlock);
-        ApplySpriteBounds(spriteRenderer);
-        spriteRenderer.SetPropertyBlock(_propertyBlock);
-    }
-
-    private void ApplySpriteBounds(SpriteRenderer spriteRenderer)
-    {
-        Sprite sprite = spriteRenderer.sprite;
-        if (sprite == null)
+        private void ApplySpriteBounds(SpriteRenderer spriteRenderer)
         {
-            _propertyBlock.SetVector(_spriteUvMinMaxId, new Vector4(0f, 0f, 1f, 1f));
-            _propertyBlock.SetVector(_spriteLocalSizeId, Vector4.one);
-            return;
-        }
+            Sprite sprite = spriteRenderer.sprite;
+            if (sprite == null)
+            {
+                _propertyBlock.SetVector(_spriteUvMinMaxId, new Vector4(0f, 0f, 1f, 1f));
+                _propertyBlock.SetVector(_spriteLocalSizeId, Vector4.one);
+                return;
+            }
 
-        Vector2[] uv = sprite.uv;
-        Vector2 uvMin = uv[0];
-        Vector2 uvMax = uv[0];
-        for (int i = 1; i < uv.Length; i++)
-        {
-            uvMin = Vector2.Min(uvMin, uv[i]);
-            uvMax = Vector2.Max(uvMax, uv[i]);
-        }
+            Vector2[] uv = sprite.uv;
+            Vector2 uvMin = uv[0];
+            Vector2 uvMax = uv[0];
+            for (int i = 1; i < uv.Length; i++)
+            {
+                uvMin = Vector2.Min(uvMin, uv[i]);
+                uvMax = Vector2.Max(uvMax, uv[i]);
+            }
 
-        Vector3 localSize = spriteRenderer.localBounds.size;
-        _propertyBlock.SetVector(_spriteUvMinMaxId, new Vector4(uvMin.x, uvMin.y, uvMax.x, uvMax.y));
-        _propertyBlock.SetVector(_spriteLocalSizeId, new Vector4(
-            Mathf.Max(localSize.x, 0.0001f),
-            Mathf.Max(localSize.y, 0.0001f),
-            0f,
-            0f));
+            Vector3 localSize = spriteRenderer.localBounds.size;
+            _propertyBlock.SetVector(_spriteUvMinMaxId, new Vector4(uvMin.x, uvMin.y, uvMax.x, uvMax.y));
+            _propertyBlock.SetVector(_spriteLocalSizeId, new Vector4(
+                Mathf.Max(localSize.x, 0.0001f),
+                Mathf.Max(localSize.y, 0.0001f),
+                0f,
+                0f));
+        }
     }
 }

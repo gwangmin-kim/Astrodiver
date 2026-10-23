@@ -1,123 +1,131 @@
-using System.Collections.Generic;
-using UnityEngine;
+using Astrodiver.Definitions;
+using Astrodiver.Persistence;
+using Astrodiver.Player.Inventory;
+using Astrodiver.UI.Inventory;
 
-[DisallowMultipleComponent]
-public sealed class UpgradeResourceListUI : MonoBehaviour
+namespace Astrodiver.UI.Upgrades
 {
-    [SerializeField] private GameObject _listRoot;
-    [SerializeField] private Transform _entryContainer;
-    [SerializeField] private ResourceFragmentEntryUI _entryPrefab;
+    using System.Collections.Generic;
+    using UnityEngine;
 
-    private PlayerInventoryController _playerInventory;
-
-    private void OnEnable()
+    [DisallowMultipleComponent]
+    public sealed class UpgradeResourceListUI : MonoBehaviour
     {
-        BindInventory();
-        RefreshEntries();
-    }
+        [SerializeField] private GameObject _listRoot;
+        [SerializeField] private Transform _entryContainer;
+        [SerializeField] private ResourceFragmentEntryUI _entryPrefab;
 
-    private void OnDisable()
-    {
-        Unsubscribe();
-    }
+        private PlayerInventoryController _playerInventory;
 
-    private void BindInventory()
-    {
-        PlayerInventoryController inventory = PlayerInventoryController.Instance;
-        if (_playerInventory != inventory)
+        private void OnEnable()
+        {
+            BindInventory();
+            RefreshEntries();
+        }
+
+        private void OnDisable()
         {
             Unsubscribe();
-            _playerInventory = inventory;
         }
 
-        if (_playerInventory != null)
+        private void BindInventory()
         {
-            _playerInventory.Changed -= RefreshEntries;
-            _playerInventory.Changed += RefreshEntries;
-        }
-    }
-
-    private void Unsubscribe()
-    {
-        if (_playerInventory != null)
-        {
-            _playerInventory.Changed -= RefreshEntries;
-            _playerInventory = null;
-        }
-    }
-
-    private void RefreshEntries()
-    {
-        ClearEntries();
-
-        if (_playerInventory == null || _entryContainer == null || _entryPrefab == null)
-        {
-            SetListVisible(false);
-            return;
-        }
-
-        IReadOnlyList<ResourceDefinition> definitions =
-            GameDataManager.Instance?.Definitions?.OrderedResources;
-        if (definitions == null)
-        {
-            SetListVisible(false);
-            return;
-        }
-
-        bool hasEntries = false;
-        foreach (ResourceDefinition definition in definitions)
-        {
-            int amount = _playerInventory.IsResourceChestUnlocked
-                ? _playerInventory.GetChestResourceAmount(definition)
-                : _playerInventory.GetResourceAmount(definition);
-            if (amount <= 0)
+            PlayerInventoryController inventory = PlayerInventoryController.Instance;
+            if (_playerInventory != inventory)
             {
-                continue;
+                Unsubscribe();
+                _playerInventory = inventory;
             }
 
-            ResourceFragmentEntryUI entry = Instantiate(
-                _entryPrefab,
-                _entryContainer,
-                false);
-            entry.name = $"Upgrade Resource {definition.Id}";
-            entry.SetResource(definition, amount);
-            hasEntries = true;
+            if (_playerInventory != null)
+            {
+                _playerInventory.Changed -= RefreshEntries;
+                _playerInventory.Changed += RefreshEntries;
+            }
         }
 
-        SetListVisible(hasEntries);
-    }
-
-    private void ClearEntries()
-    {
-        if (_entryContainer == null)
+        private void Unsubscribe()
         {
-            return;
+            if (_playerInventory != null)
+            {
+                _playerInventory.Changed -= RefreshEntries;
+                _playerInventory = null;
+            }
         }
 
-        for (int i = _entryContainer.childCount - 1; i >= 0; i--)
+        private void RefreshEntries()
         {
-            Destroy(_entryContainer.GetChild(i).gameObject);
-        }
-    }
+            ClearEntries();
 
-    private void SetListVisible(bool visible)
-    {
-        if (_listRoot == null)
+            if (_playerInventory == null || _entryContainer == null || _entryPrefab == null)
+            {
+                SetListVisible(false);
+                return;
+            }
+
+            IReadOnlyList<ResourceDefinition> definitions =
+                GameDataManager.Instance?.Definitions?.OrderedResources;
+            if (definitions == null)
+            {
+                SetListVisible(false);
+                return;
+            }
+
+            bool hasEntries = false;
+            foreach (ResourceDefinition definition in definitions)
+            {
+                int amount = _playerInventory.IsResourceChestUnlocked
+                    ? _playerInventory.GetChestResourceAmount(definition)
+                    : _playerInventory.GetResourceAmount(definition);
+                if (amount <= 0)
+                {
+                    continue;
+                }
+
+                ResourceFragmentEntryUI entry = Instantiate(
+                    _entryPrefab,
+                    _entryContainer,
+                    false);
+                entry.name = $"Upgrade Resource {definition.Id}";
+                entry.SetResource(definition, amount);
+                hasEntries = true;
+            }
+
+            SetListVisible(hasEntries);
+        }
+
+        private void ClearEntries()
         {
-            return;
+            if (_entryContainer == null)
+            {
+                return;
+            }
+
+            for (int i = _entryContainer.childCount - 1; i >= 0; i--)
+            {
+                Destroy(_entryContainer.GetChild(i).gameObject);
+            }
         }
 
-        CanvasGroup canvasGroup = _listRoot.GetComponent<CanvasGroup>();
-        if (canvasGroup == null)
+        private void SetListVisible(bool visible)
         {
-            Debug.LogWarning(
-                "Upgrade resource list requires a CanvasGroup on its list root.",
-                this);
-            return;
-        }
+            if (_listRoot == null)
+            {
+                return;
+            }
 
-        canvasGroup.alpha = visible ? 1f : 0f;
-        canvasGroup.blocksRaycasts = false;
-        canvasGroup.interactable = false;
+            CanvasGroup canvasGroup = _listRoot.GetComponent<CanvasGroup>();
+            if (canvasGroup == null)
+            {
+                Debug.LogWarning(
+                    "Upgrade resource list requires a CanvasGroup on its list root.",
+                    this);
+                return;
+            }
+
+            canvasGroup.alpha = visible ? 1f : 0f;
+            canvasGroup.blocksRaycasts = false;
+            canvasGroup.interactable = false;
+        }
     }
 }

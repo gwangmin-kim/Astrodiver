@@ -1,234 +1,241 @@
-using System;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.SceneManagement;
+using Astrodiver.Interaction;
+using Astrodiver.Persistence;
+using Astrodiver.Player;
 
-[RequireComponent(typeof(PlayerInputHandler))]
-public class PlayerInteractionController : MonoBehaviour
+namespace Astrodiver.Player.Actions
 {
-    private const string HubSceneName = "Hub";
-    [SerializeField] private PlayerInputHandler _inputHandler;
-    [SerializeField] private LayerMask _interactableLayer;
-    [SerializeField] private InteractionPromptSprite _interactionPrompt;
+    using System;
+    using System.Collections.Generic;
+    using UnityEngine;
+    using UnityEngine.SceneManagement;
 
-    private readonly List<InteractableObject> _overlappingInteractables = new();
-    private InteractableObject _repeatTarget;
-    private float _repeatTimer;
-
-    public InteractableObject CurrentTarget { get; private set; }
-    public event Action<InteractableObject> CurrentTargetChanged;
-
-    private void Awake()
+    [RequireComponent(typeof(PlayerInputHandler))]
+    public class PlayerInteractionController : MonoBehaviour
     {
-        if (_inputHandler == null)
+        private const string HubSceneName = "Hub";
+        [SerializeField] private PlayerInputHandler _inputHandler;
+        [SerializeField] private LayerMask _interactableLayer;
+        [SerializeField] private InteractionPromptSprite _interactionPrompt;
+
+        private readonly List<InteractableObject> _overlappingInteractables = new();
+        private InteractableObject _repeatTarget;
+        private float _repeatTimer;
+
+        public InteractableObject CurrentTarget { get; private set; }
+        public event Action<InteractableObject> CurrentTargetChanged;
+
+        private void Awake()
         {
-            _inputHandler = GetComponent<PlayerInputHandler>();
-        }
-
-        if (_interactableLayer.value == 0)
-        {
-            _interactableLayer = LayerMask.GetMask("Interactable");
-        }
-
-        if (_interactionPrompt == null)
-        {
-            _interactionPrompt = GetComponentInChildren<InteractionPromptSprite>(true);
-        }
-
-        if (_interactionPrompt != null) _interactionPrompt.Hide();
-    }
-
-    private void Update()
-    {
-        UpdateCurrentTarget();
-        if (_inputHandler.InteractHeld)
-        {
-            UpdateRepeat();
-        }
-    }
-
-    private void OnEnable()
-    {
-        if (_inputHandler == null)
-        {
-            _inputHandler = GetComponent<PlayerInputHandler>();
-        }
-
-        _inputHandler.InteractStarted += OnInteractStarted;
-        _inputHandler.InteractEnded += StopRepeat;
-    }
-
-    private void OnDisable()
-    {
-        if (_inputHandler == null) return;
-        _inputHandler.InteractStarted -= OnInteractStarted;
-        _inputHandler.InteractEnded -= StopRepeat;
-        StopRepeat();
-    }
-
-    private void OnInteractStarted()
-    {
-        UpdateCurrentTarget();
-        if (CurrentTarget == null) return;
-        CurrentTarget.Interact();
-        BeginRepeat(CurrentTarget);
-    }
-
-    private void OnTriggerEnter2D(Collider2D other)
-    {
-        if ((_interactableLayer.value & (1 << other.gameObject.layer)) == 0)
-        {
-            return;
-        }
-
-        if (!other.TryGetComponent<InteractableObject>(out var interactable))
-        {
-            return;
-        }
-
-        _overlappingInteractables.Add(interactable);
-    }
-
-    private void OnTriggerExit2D(Collider2D other)
-    {
-        if (!other.TryGetComponent<InteractableObject>(out var interactable))
-        {
-            return;
-        }
-
-        _overlappingInteractables.Remove(interactable);
-    }
-
-    private void UpdateCurrentTarget()
-    {
-        InteractableObject nextTarget = FindClosestInteractable();
-        if (CurrentTarget == nextTarget)
-        {
-            return;
-        }
-
-        Debug.Log($"InteractionController: interact target changed by {nextTarget}");
-
-        CurrentTarget = nextTarget;
-        StopRepeat();
-
-        if (_interactionPrompt != null)
-        {
-            if (CurrentTarget == null)
+            if (_inputHandler == null)
             {
-                _interactionPrompt.Hide();
+                _inputHandler = GetComponent<PlayerInputHandler>();
             }
-            else
+
+            if (_interactableLayer.value == 0)
             {
-                _interactionPrompt.Show();
+                _interactableLayer = LayerMask.GetMask("Interactable");
+            }
+
+            if (_interactionPrompt == null)
+            {
+                _interactionPrompt = GetComponentInChildren<InteractionPromptSprite>(true);
+            }
+
+            if (_interactionPrompt != null) _interactionPrompt.Hide();
+        }
+
+        private void Update()
+        {
+            UpdateCurrentTarget();
+            if (_inputHandler.InteractHeld)
+            {
+                UpdateRepeat();
             }
         }
 
-        CurrentTargetChanged?.Invoke(CurrentTarget);
-    }
-
-    private void BeginRepeat(InteractableObject target)
-    {
-        _repeatTarget = target != null && target.IsRepeatable
-            ? target
-            : null;
-        _repeatTimer = _repeatTarget != null
-            ? _repeatTarget.RepeatInterval
-            : 0f;
-    }
-
-    private void UpdateRepeat()
-    {
-        if (_repeatTarget == null ||
-            !ReferenceEquals(_repeatTarget, CurrentTarget) ||
-            !_repeatTarget.CanRepeatInteract)
+        private void OnEnable()
         {
-            return;
-        }
-
-        _repeatTimer -= Time.deltaTime;
-        int repeatCount = 0;
-        while (_repeatTimer <= 0f &&
-               _repeatTarget.CanRepeatInteract &&
-               repeatCount < 10)
-        {
-            _repeatTarget.Interact();
-            _repeatTimer += Mathf.Max(0.01f, _repeatTarget.RepeatInterval);
-            repeatCount++;
-        }
-    }
-
-    private void StopRepeat()
-    {
-        _repeatTarget = null;
-        _repeatTimer = 0f;
-    }
-
-    private InteractableObject FindClosestInteractable()
-    {
-        if (_overlappingInteractables.Count == 0)
-        {
-            return null;
-        }
-
-        if (_overlappingInteractables.Count == 1)
-        {
-            InteractableObject onlyTarget = _overlappingInteractables[0];
-            if (IsAvailable(onlyTarget))
+            if (_inputHandler == null)
             {
-                return onlyTarget;
+                _inputHandler = GetComponent<PlayerInputHandler>();
             }
 
-            _overlappingInteractables.Clear();
-            return null;
+            _inputHandler.InteractStarted += OnInteractStarted;
+            _inputHandler.InteractEnded += StopRepeat;
         }
 
-        InteractableObject closest = null;
-        float closestSqrDistance = float.PositiveInfinity;
-
-        for (int i = _overlappingInteractables.Count - 1; i >= 0; i--)
+        private void OnDisable()
         {
-            InteractableObject interactable = _overlappingInteractables[i];
-            if (!IsAvailable(interactable))
+            if (_inputHandler == null) return;
+            _inputHandler.InteractStarted -= OnInteractStarted;
+            _inputHandler.InteractEnded -= StopRepeat;
+            StopRepeat();
+        }
+
+        private void OnInteractStarted()
+        {
+            UpdateCurrentTarget();
+            if (CurrentTarget == null) return;
+            CurrentTarget.Interact();
+            BeginRepeat(CurrentTarget);
+        }
+
+        private void OnTriggerEnter2D(Collider2D other)
+        {
+            if ((_interactableLayer.value & (1 << other.gameObject.layer)) == 0)
             {
-                _overlappingInteractables.RemoveAt(i);
-                continue;
+                return;
             }
 
-            float sqrDistance = ((Vector2)interactable.transform.position - (Vector2)transform.position).sqrMagnitude;
-            if (sqrDistance < closestSqrDistance)
+            if (!other.TryGetComponent<InteractableObject>(out var interactable))
             {
-                closest = interactable;
-                closestSqrDistance = sqrDistance;
+                return;
+            }
+
+            _overlappingInteractables.Add(interactable);
+        }
+
+        private void OnTriggerExit2D(Collider2D other)
+        {
+            if (!other.TryGetComponent<InteractableObject>(out var interactable))
+            {
+                return;
+            }
+
+            _overlappingInteractables.Remove(interactable);
+        }
+
+        private void UpdateCurrentTarget()
+        {
+            InteractableObject nextTarget = FindClosestInteractable();
+            if (CurrentTarget == nextTarget)
+            {
+                return;
+            }
+
+            Debug.Log($"InteractionController: interact target changed by {nextTarget}");
+
+            CurrentTarget = nextTarget;
+            StopRepeat();
+
+            if (_interactionPrompt != null)
+            {
+                if (CurrentTarget == null)
+                {
+                    _interactionPrompt.Hide();
+                }
+                else
+                {
+                    _interactionPrompt.Show();
+                }
+            }
+
+            CurrentTargetChanged?.Invoke(CurrentTarget);
+        }
+
+        private void BeginRepeat(InteractableObject target)
+        {
+            _repeatTarget = target != null && target.IsRepeatable
+                ? target
+                : null;
+            _repeatTimer = _repeatTarget != null
+                ? _repeatTarget.RepeatInterval
+                : 0f;
+        }
+
+        private void UpdateRepeat()
+        {
+            if (_repeatTarget == null ||
+                !ReferenceEquals(_repeatTarget, CurrentTarget) ||
+                !_repeatTarget.CanRepeatInteract)
+            {
+                return;
+            }
+
+            _repeatTimer -= Time.deltaTime;
+            int repeatCount = 0;
+            while (_repeatTimer <= 0f &&
+                   _repeatTarget.CanRepeatInteract &&
+                   repeatCount < 10)
+            {
+                _repeatTarget.Interact();
+                _repeatTimer += Mathf.Max(0.01f, _repeatTarget.RepeatInterval);
+                repeatCount++;
             }
         }
 
-        return closest;
-    }
-
-    private static bool IsAvailable(InteractableObject interactable)
-    {
-        if (interactable == null ||
-            !interactable.isActiveAndEnabled ||
-            !interactable.gameObject.activeInHierarchy)
+        private void StopRepeat()
         {
-            return false;
+            _repeatTarget = null;
+            _repeatTimer = 0f;
         }
 
-        return !IsHubLockedBeforeFirstEvent() ||
-               interactable.IsAvaiableBeforeFirstEvent;
-    }
-
-    private static bool IsHubLockedBeforeFirstEvent()
-    {
-        if (SceneManager.GetActiveScene().name != HubSceneName)
+        private InteractableObject FindClosestInteractable()
         {
-            return false;
+            if (_overlappingInteractables.Count == 0)
+            {
+                return null;
+            }
+
+            if (_overlappingInteractables.Count == 1)
+            {
+                InteractableObject onlyTarget = _overlappingInteractables[0];
+                if (IsAvailable(onlyTarget))
+                {
+                    return onlyTarget;
+                }
+
+                _overlappingInteractables.Clear();
+                return null;
+            }
+
+            InteractableObject closest = null;
+            float closestSqrDistance = float.PositiveInfinity;
+
+            for (int i = _overlappingInteractables.Count - 1; i >= 0; i--)
+            {
+                InteractableObject interactable = _overlappingInteractables[i];
+                if (!IsAvailable(interactable))
+                {
+                    _overlappingInteractables.RemoveAt(i);
+                    continue;
+                }
+
+                float sqrDistance = ((Vector2)interactable.transform.position - (Vector2)transform.position).sqrMagnitude;
+                if (sqrDistance < closestSqrDistance)
+                {
+                    closest = interactable;
+                    closestSqrDistance = sqrDistance;
+                }
+            }
+
+            return closest;
         }
 
-        GameDataManager gameData = GameDataManager.Instance;
-        return gameData != null &&
-               gameData.IsInitialized &&
-               gameData.SaveData.completedEvents.Count == 0;
+        private static bool IsAvailable(InteractableObject interactable)
+        {
+            if (interactable == null ||
+                !interactable.isActiveAndEnabled ||
+                !interactable.gameObject.activeInHierarchy)
+            {
+                return false;
+            }
+
+            return !IsHubLockedBeforeFirstEvent() ||
+                   interactable.IsAvaiableBeforeFirstEvent;
+        }
+
+        private static bool IsHubLockedBeforeFirstEvent()
+        {
+            if (SceneManager.GetActiveScene().name != HubSceneName)
+            {
+                return false;
+            }
+
+            GameDataManager gameData = GameDataManager.Instance;
+            return gameData != null &&
+                   gameData.IsInitialized &&
+                   gameData.SaveData.completedEvents.Count == 0;
+        }
     }
 }

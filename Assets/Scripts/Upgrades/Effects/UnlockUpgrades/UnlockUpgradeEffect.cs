@@ -1,77 +1,85 @@
-using System;
-using UnityEngine;
+using Astrodiver.Equipment.NetGun;
+using Astrodiver.Persistence.GameData;
+using Astrodiver.Upgrades;
 
-[Serializable]
-public sealed class UnlockUpgradeEffect : UpgradeEffect
+namespace Astrodiver.Upgrades.Effects.UnlockUpgrades
 {
-    [SerializeField] private UnlockUpgradeTarget _target = UnlockUpgradeTarget.NetGun;
+    using System;
+    using UnityEngine;
 
-    public UnlockUpgradeEffect()
+    [Serializable]
+    [UnityEngine.Scripting.APIUpdating.MovedFrom(true, sourceNamespace: "", sourceAssembly: "Assembly-CSharp", sourceClassName: "UnlockUpgradeEffect")]
+    public sealed class UnlockUpgradeEffect : UpgradeEffect
     {
-    }
+        [SerializeField] private UnlockUpgradeTarget _target = UnlockUpgradeTarget.NetGun;
 
-    public UnlockUpgradeEffect(UnlockUpgradeTarget target)
-    {
-        _target = target;
-    }
-
-    public UnlockUpgradeTarget Target => _target;
-
-    public override bool TryCreatePreview(
-        GameRuntimeData runtimeData,
-        out UpgradeEffectPreview preview)
-    {
-        preview = UpgradeEffectPreview.Unlock();
-        return true;
-    }
-
-    public override bool TryValidate(out string error)
-    {
-        if (!Enum.IsDefined(typeof(UnlockUpgradeTarget), _target))
+        public UnlockUpgradeEffect()
         {
-            error = $"Unknown unlock upgrade target value '{(int)_target}'.";
-            return false;
         }
 
-        error = null;
-        return true;
-    }
-
-    public override bool TryApply(UpgradeEffectContext context, out string error)
-    {
-        if (context == null)
+        public UnlockUpgradeEffect(UnlockUpgradeTarget target)
         {
-            error = "Upgrade effect context is null.";
-            return false;
+            _target = target;
         }
 
-        if (!TryValidate(out error))
+        public UnlockUpgradeTarget Target => _target;
+
+        public override bool TryCreatePreview(
+            GameRuntimeData runtimeData,
+            out UpgradeEffectPreview preview)
         {
-            return false;
+            preview = UpgradeEffectPreview.Unlock();
+            return true;
         }
 
-        switch (_target)
+        public override bool TryValidate(out string error)
         {
-            case UnlockUpgradeTarget.NetGun:
-                NetGunData netGun = context.RuntimeData.Equipment.netGun;
-                netGun.isUnlocked = true;
-                context.RuntimeData.Equipment.netGun = netGun;
-                break;
-
-            case UnlockUpgradeTarget.ResourceChest:
-                context.RuntimeData.Facilities.ResourceChestUnlocked = true;
-                break;
-
-            case UnlockUpgradeTarget.Worktable:
-                context.RuntimeData.Facilities.WorktableUnlocked = true;
-                break;
-
-            default:
-                error = $"Unsupported unlock upgrade target '{_target}'.";
+            if (!Enum.IsDefined(typeof(UnlockUpgradeTarget), _target))
+            {
+                error = $"Unknown unlock upgrade target value '{(int)_target}'.";
                 return false;
+            }
+
+            error = null;
+            return true;
         }
 
-        error = null;
-        return true;
+        public override bool TryApply(UpgradeEffectContext context, out string error)
+        {
+            if (context == null)
+            {
+                error = "Upgrade effect context is null.";
+                return false;
+            }
+
+            if (!TryValidate(out error))
+            {
+                return false;
+            }
+
+            switch (_target)
+            {
+                case UnlockUpgradeTarget.NetGun:
+                    NetGunData netGun = context.RuntimeData.Equipment.netGun;
+                    netGun.isUnlocked = true;
+                    context.RuntimeData.Equipment.netGun = netGun;
+                    break;
+
+                case UnlockUpgradeTarget.ResourceChest:
+                    context.RuntimeData.Facilities.ResourceChestUnlocked = true;
+                    break;
+
+                case UnlockUpgradeTarget.Worktable:
+                    context.RuntimeData.Facilities.WorktableUnlocked = true;
+                    break;
+
+                default:
+                    error = $"Unsupported unlock upgrade target '{_target}'.";
+                    return false;
+            }
+
+            error = null;
+            return true;
+        }
     }
 }

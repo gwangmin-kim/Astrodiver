@@ -1,39 +1,44 @@
-using UnityEngine;
+using Astrodiver.SceneManagement;
 
-/// <summary>
-/// Places the scene-owned Hub player at the point selected by the preceding
-/// scene transition. Unspecified Hub entry always falls back to ReturnPoint.
-/// </summary>
-[DefaultExecutionOrder(-900)]
-public sealed class HubSpawnController : MonoBehaviour
+namespace Astrodiver.Player.Hub
 {
-    [SerializeField] private Transform _player;
-    [SerializeField] private Transform _startPoint;
-    [SerializeField] private Transform _returnPoint;
+    using UnityEngine;
 
-    private void Awake()
+    /// <summary>
+    /// Places the scene-owned Hub player at the point selected by the preceding
+    /// scene transition. Unspecified Hub entry always falls back to ReturnPoint.
+    /// </summary>
+    [DefaultExecutionOrder(-900)]
+    public sealed class HubSpawnController : MonoBehaviour
     {
-        if (_player == null || _startPoint == null || _returnPoint == null)
+        [SerializeField] private Transform _player;
+        [SerializeField] private Transform _startPoint;
+        [SerializeField] private Transform _returnPoint;
+
+        private void Awake()
         {
-            Debug.LogError(
-                "HubSpawnController: Player, StartPoint, and ReturnPoint must be assigned.",
-                this);
-            return;
-        }
+            if (_player == null || _startPoint == null || _returnPoint == null)
+            {
+                Debug.LogError(
+                    "HubSpawnController: Player, StartPoint, and ReturnPoint must be assigned.",
+                    this);
+                return;
+            }
 
-        HubSpawnPoint spawnPoint = SceneTransitionManager.Instance != null
-            ? SceneTransitionManager.Instance.ConsumeHubSpawnPoint()
-            : HubSpawnPoint.Return;
-        Transform destination = spawnPoint == HubSpawnPoint.Start
-            ? _startPoint
-            : _returnPoint;
+            HubSpawnPoint spawnPoint = SceneTransitionManager.Instance != null
+                ? SceneTransitionManager.Instance.ConsumeHubSpawnPoint()
+                : HubSpawnPoint.Return;
+            Transform destination = spawnPoint == HubSpawnPoint.Start
+                ? _startPoint
+                : _returnPoint;
 
-        _player.SetPositionAndRotation(destination.position, destination.rotation);
+            _player.SetPositionAndRotation(destination.position, destination.rotation);
 
-        if (_player.TryGetComponent(out Rigidbody2D rigidbody))
-        {
-            rigidbody.linearVelocity = Vector2.zero;
-            rigidbody.angularVelocity = 0f;
+            if (_player.TryGetComponent(out Rigidbody2D rigidbody))
+            {
+                rigidbody.linearVelocity = Vector2.zero;
+                rigidbody.angularVelocity = 0f;
+            }
         }
     }
 }

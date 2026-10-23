@@ -1,88 +1,93 @@
-using UnityEngine;
+using Astrodiver.Stages;
 
-[DisallowMultipleComponent]
-[RequireComponent(typeof(Renderer))]
-public sealed class SpaceBackgroundController : MonoBehaviour
+namespace Astrodiver.Rendering
 {
-    [SerializeField] private SpaceBackgroundProfile _defaultProfile;
+    using UnityEngine;
 
-    private Renderer _renderer;
-    private MaterialPropertyBlock _properties;
-
-    public SpaceBackgroundProfile ActiveProfile { get; private set; }
-    public SpaceBackgroundSeeds ActiveSeeds { get; private set; }
-
-    private void Awake()
+    [DisallowMultipleComponent]
+    [RequireComponent(typeof(Renderer))]
+    public sealed class SpaceBackgroundController : MonoBehaviour
     {
-        _renderer = GetComponent<Renderer>();
-        _properties = new MaterialPropertyBlock();
-    }
+        [SerializeField] private SpaceBackgroundProfile _defaultProfile;
 
-    private void Start()
-    {
-        ApplyForCurrentScene();
-    }
+        private Renderer _renderer;
+        private MaterialPropertyBlock _properties;
 
-    private void OnDisable()
-    {
-        if (_renderer != null)
+        public SpaceBackgroundProfile ActiveProfile { get; private set; }
+        public SpaceBackgroundSeeds ActiveSeeds { get; private set; }
+
+        private void Awake()
         {
-            _renderer.SetPropertyBlock(null);
-        }
-    }
-
-    public void ApplyForCurrentScene()
-    {
-        SpaceBackgroundProfile profile = ResolveSceneProfile();
-        if (profile == null)
-        {
-            Debug.LogWarning(
-                "SpaceBackgroundController: No default or scene profile is assigned.",
-                this);
-            _renderer.SetPropertyBlock(null);
-            ActiveProfile = null;
-            return;
+            _renderer = GetComponent<Renderer>();
+            _properties = new MaterialPropertyBlock();
         }
 
-        ActiveProfile = profile;
-        ActiveSeeds = profile.CreateSeeds();
-        _properties.Clear();
-        profile.ApplyTo(_properties, ActiveSeeds);
-        _renderer.SetPropertyBlock(_properties);
-    }
-
-    private SpaceBackgroundProfile ResolveSceneProfile()
-    {
-        SpaceBackgroundSceneSettings[] settings =
-            FindObjectsByType<SpaceBackgroundSceneSettings>(
-                FindObjectsInactive.Include);
-
-        for (int i = 0; i < settings.Length; i++)
+        private void Start()
         {
-            SpaceBackgroundSceneSettings candidate = settings[i];
-            if (candidate.gameObject.scene == gameObject.scene &&
-                candidate.Profile != null)
+            ApplyForCurrentScene();
+        }
+
+        private void OnDisable()
+        {
+            if (_renderer != null)
             {
-                return candidate.Profile;
+                _renderer.SetPropertyBlock(null);
             }
         }
 
-        StageSceneSettings[] stageSettings =
-            FindObjectsByType<StageSceneSettings>(
-                FindObjectsInactive.Include);
-
-        for (int i = 0; i < stageSettings.Length; i++)
+        public void ApplyForCurrentScene()
         {
-            StageSceneSettings stageSetting = stageSettings[i];
-            StageDefinition definition = stageSetting.Definition;
-            if (stageSetting.gameObject.scene == gameObject.scene &&
-                definition != null &&
-                definition.SpaceBackgroundProfile != null)
+            SpaceBackgroundProfile profile = ResolveSceneProfile();
+            if (profile == null)
             {
-                return definition.SpaceBackgroundProfile;
+                Debug.LogWarning(
+                    "SpaceBackgroundController: No default or scene profile is assigned.",
+                    this);
+                _renderer.SetPropertyBlock(null);
+                ActiveProfile = null;
+                return;
             }
+
+            ActiveProfile = profile;
+            ActiveSeeds = profile.CreateSeeds();
+            _properties.Clear();
+            profile.ApplyTo(_properties, ActiveSeeds);
+            _renderer.SetPropertyBlock(_properties);
         }
 
-        return _defaultProfile;
+        private SpaceBackgroundProfile ResolveSceneProfile()
+        {
+            SpaceBackgroundSceneSettings[] settings =
+                FindObjectsByType<SpaceBackgroundSceneSettings>(
+                    FindObjectsInactive.Include);
+
+            for (int i = 0; i < settings.Length; i++)
+            {
+                SpaceBackgroundSceneSettings candidate = settings[i];
+                if (candidate.gameObject.scene == gameObject.scene &&
+                    candidate.Profile != null)
+                {
+                    return candidate.Profile;
+                }
+            }
+
+            StageSceneSettings[] stageSettings =
+                FindObjectsByType<StageSceneSettings>(
+                    FindObjectsInactive.Include);
+
+            for (int i = 0; i < stageSettings.Length; i++)
+            {
+                StageSceneSettings stageSetting = stageSettings[i];
+                StageDefinition definition = stageSetting.Definition;
+                if (stageSetting.gameObject.scene == gameObject.scene &&
+                    definition != null &&
+                    definition.SpaceBackgroundProfile != null)
+                {
+                    return definition.SpaceBackgroundProfile;
+                }
+            }
+
+            return _defaultProfile;
+        }
     }
 }

@@ -1,232 +1,239 @@
-using System;
-using System.Collections.Generic;
-using UnityEngine;
+using Astrodiver.Persistence;
+using Astrodiver.Persistence.GameData;
+using Astrodiver.Player.Inventory;
 
-public enum UpgradePurchaseStatus
+namespace Astrodiver.Upgrades
 {
-    Success,
-    NodeNotFound,
-    InvalidNode,
-    ParentLocked,
-    MaxLevelReached,
-    InventoryUnavailable,
-    InsufficientResources,
-    EffectFailed,
-    SaveFailed
-}
+    using System;
+    using System.Collections.Generic;
+    using UnityEngine;
 
-public readonly struct UpgradePurchaseResult
-{
-    public UpgradePurchaseResult(
-        UpgradePurchaseStatus status,
-        string nodeId,
-        int previousLevel,
-        int currentLevel,
-        string message = null)
+    public enum UpgradePurchaseStatus
     {
-        Status = status;
-        NodeId = nodeId;
-        PreviousLevel = previousLevel;
-        CurrentLevel = currentLevel;
-        Message = message;
+        Success,
+        NodeNotFound,
+        InvalidNode,
+        ParentLocked,
+        MaxLevelReached,
+        InventoryUnavailable,
+        InsufficientResources,
+        EffectFailed,
+        SaveFailed
     }
 
-    public UpgradePurchaseStatus Status { get; }
-    public string NodeId { get; }
-    public int PreviousLevel { get; }
-    public int CurrentLevel { get; }
-    public string Message { get; }
-    public bool Succeeded => Status == UpgradePurchaseStatus.Success;
-}
-
-public sealed class UpgradeService
-{
-    private readonly GameDataManager _gameData;
-    private readonly List<UpgradeResourceCost> _costBuffer = new();
-
-    public UpgradeService(GameDataManager gameData)
+    public readonly struct UpgradePurchaseResult
     {
-        if (gameData == null)
+        public UpgradePurchaseResult(
+            UpgradePurchaseStatus status,
+            string nodeId,
+            int previousLevel,
+            int currentLevel,
+            string message = null)
         {
-            throw new ArgumentNullException(nameof(gameData));
+            Status = status;
+            NodeId = nodeId;
+            PreviousLevel = previousLevel;
+            CurrentLevel = currentLevel;
+            Message = message;
         }
 
-        _gameData = gameData;
+        public UpgradePurchaseStatus Status { get; }
+        public string NodeId { get; }
+        public int PreviousLevel { get; }
+        public int CurrentLevel { get; }
+        public string Message { get; }
+        public bool Succeeded => Status == UpgradePurchaseStatus.Success;
     }
 
-    public event Action<UpgradeNodeDefinition, int> UpgradePurchased;
-
-    public int GetLevel(string nodeId)
+    public sealed class UpgradeService
     {
-        return _gameData.GetUpgradeLevel(nodeId);
-    }
+        private readonly GameDataManager _gameData;
+        private readonly List<UpgradeResourceCost> _costBuffer = new();
 
-    public bool IsUnlocked(string nodeId)
-    {
-        return GetLevel(nodeId) > 0;
-    }
-
-    public UpgradePurchaseStatus GetPurchaseStatus(string nodeId)
-    {
-        if (!_gameData.Definitions.TryGetUpgrade(nodeId, out UpgradeNodeDefinition node))
+        public UpgradeService(GameDataManager gameData)
         {
-            return UpgradePurchaseStatus.NodeNotFound;
+            if (gameData == null)
+            {
+                throw new ArgumentNullException(nameof(gameData));
+            }
+
+            _gameData = gameData;
         }
 
-        return GetPurchaseStatus(node);
-    }
+        public event Action<UpgradeNodeDefinition, int> UpgradePurchased;
 
-    public UpgradePurchaseStatus GetPurchaseStatus(UpgradeNodeDefinition node)
-    {
-        if (node == null || !node.TryValidate(out _))
+        public int GetLevel(string nodeId)
         {
-            return UpgradePurchaseStatus.InvalidNode;
+            return _gameData.GetUpgradeLevel(nodeId);
         }
 
-        if (!_gameData.Definitions.TryGetUpgrade(node.Id, out UpgradeNodeDefinition registered) ||
-            registered != node)
+        public bool IsUnlocked(string nodeId)
         {
-            return UpgradePurchaseStatus.NodeNotFound;
+            return GetLevel(nodeId) > 0;
         }
 
-        int currentLevel = GetLevel(node.Id);
-        if (currentLevel >= node.MaxLevel)
+        public UpgradePurchaseStatus GetPurchaseStatus(string nodeId)
         {
-            return UpgradePurchaseStatus.MaxLevelReached;
+            if (!_gameData.Definitions.TryGetUpgrade(nodeId, out UpgradeNodeDefinition node))
+            {
+                return UpgradePurchaseStatus.NodeNotFound;
+            }
+
+            return GetPurchaseStatus(node);
         }
 
-        if (node.Parent != null && GetLevel(node.Parent.Id) <= 0)
+        public UpgradePurchaseStatus GetPurchaseStatus(UpgradeNodeDefinition node)
         {
-            return UpgradePurchaseStatus.ParentLocked;
+            if (node == null || !node.TryValidate(out _))
+            {
+                return UpgradePurchaseStatus.InvalidNode;
+            }
+
+            if (!_gameData.Definitions.TryGetUpgrade(node.Id, out UpgradeNodeDefinition registered) ||
+                registered != node)
+            {
+                return UpgradePurchaseStatus.NodeNotFound;
+            }
+
+            int currentLevel = GetLevel(node.Id);
+            if (currentLevel >= node.MaxLevel)
+            {
+                return UpgradePurchaseStatus.MaxLevelReached;
+            }
+
+            if (node.Parent != null && GetLevel(node.Parent.Id) <= 0)
+            {
+                return UpgradePurchaseStatus.ParentLocked;
+            }
+
+            _costBuffer.Clear();
+            node.GetCostForNextLevel(currentLevel, _costBuffer);
+            PlayerInventoryController inventory = PlayerInventoryController.Instance;
+            return inventory != null && inventory.CanAfford(_costBuffer)
+                ? UpgradePurchaseStatus.Success
+                : inventory == null
+                    ? UpgradePurchaseStatus.InventoryUnavailable
+                    : UpgradePurchaseStatus.InsufficientResources;
         }
 
-        _costBuffer.Clear();
-        node.GetCostForNextLevel(currentLevel, _costBuffer);
-        PlayerInventoryController inventory = PlayerInventoryController.Instance;
-        return inventory != null && inventory.CanAfford(_costBuffer)
-            ? UpgradePurchaseStatus.Success
-            : inventory == null
-                ? UpgradePurchaseStatus.InventoryUnavailable
-                : UpgradePurchaseStatus.InsufficientResources;
-    }
-
-    public UpgradePurchaseResult TryPurchase(string nodeId)
-    {
-        if (!_gameData.Definitions.TryGetUpgrade(nodeId, out UpgradeNodeDefinition node))
+        public UpgradePurchaseResult TryPurchase(string nodeId)
         {
-            return Result(UpgradePurchaseStatus.NodeNotFound, nodeId, 0);
+            if (!_gameData.Definitions.TryGetUpgrade(nodeId, out UpgradeNodeDefinition node))
+            {
+                return Result(UpgradePurchaseStatus.NodeNotFound, nodeId, 0);
+            }
+
+            return TryPurchase(node);
         }
 
-        return TryPurchase(node);
-    }
-
-    public UpgradePurchaseResult TryPurchase(UpgradeNodeDefinition node)
-    {
-        string validationError = null;
-        if (node == null || !node.TryValidate(out validationError))
+        public UpgradePurchaseResult TryPurchase(UpgradeNodeDefinition node)
         {
-            return Result(
-                UpgradePurchaseStatus.InvalidNode,
-                node != null ? node.Id : null,
-                0,
-                validationError);
-        }
+            string validationError = null;
+            if (node == null || !node.TryValidate(out validationError))
+            {
+                return Result(
+                    UpgradePurchaseStatus.InvalidNode,
+                    node != null ? node.Id : null,
+                    0,
+                    validationError);
+            }
 
-        if (!_gameData.Definitions.TryGetUpgrade(node.Id, out UpgradeNodeDefinition registered) ||
-            registered != node)
-        {
-            return Result(UpgradePurchaseStatus.NodeNotFound, node.Id, 0);
-        }
+            if (!_gameData.Definitions.TryGetUpgrade(node.Id, out UpgradeNodeDefinition registered) ||
+                registered != node)
+            {
+                return Result(UpgradePurchaseStatus.NodeNotFound, node.Id, 0);
+            }
 
-        PlayerInventoryController inventory = PlayerInventoryController.Instance;
-        if (inventory == null)
-        {
-            return Result(UpgradePurchaseStatus.InventoryUnavailable, node.Id, 0);
-        }
+            PlayerInventoryController inventory = PlayerInventoryController.Instance;
+            if (inventory == null)
+            {
+                return Result(UpgradePurchaseStatus.InventoryUnavailable, node.Id, 0);
+            }
 
-        int currentLevel = GetLevel(node.Id);
-        if (currentLevel >= node.MaxLevel)
-        {
-            return Result(UpgradePurchaseStatus.MaxLevelReached, node.Id, currentLevel);
-        }
+            int currentLevel = GetLevel(node.Id);
+            if (currentLevel >= node.MaxLevel)
+            {
+                return Result(UpgradePurchaseStatus.MaxLevelReached, node.Id, currentLevel);
+            }
 
-        if (node.Parent != null && GetLevel(node.Parent.Id) <= 0)
-        {
-            return Result(UpgradePurchaseStatus.ParentLocked, node.Id, currentLevel);
-        }
+            if (node.Parent != null && GetLevel(node.Parent.Id) <= 0)
+            {
+                return Result(UpgradePurchaseStatus.ParentLocked, node.Id, currentLevel);
+            }
 
-        _costBuffer.Clear();
-        node.GetCostForNextLevel(currentLevel, _costBuffer);
-        if (!inventory.CanAfford(_costBuffer))
-        {
-            return Result(UpgradePurchaseStatus.InsufficientResources, node.Id, currentLevel);
-        }
+            _costBuffer.Clear();
+            node.GetCostForNextLevel(currentLevel, _costBuffer);
+            if (!inventory.CanAfford(_costBuffer))
+            {
+                return Result(UpgradePurchaseStatus.InsufficientResources, node.Id, currentLevel);
+            }
 
-        GameSaveData snapshot = _gameData.SaveData.Clone();
-        bool wasDirty = _gameData.HasUnsavedChanges;
+            GameSaveData snapshot = _gameData.SaveData.Clone();
+            bool wasDirty = _gameData.HasUnsavedChanges;
 
-        if (!inventory.TrySpendResourcesForTransaction(_costBuffer))
-        {
-            return Result(UpgradePurchaseStatus.InsufficientResources, node.Id, currentLevel);
-        }
+            if (!inventory.TrySpendResourcesForTransaction(_costBuffer))
+            {
+                return Result(UpgradePurchaseStatus.InsufficientResources, node.Id, currentLevel);
+            }
 
-        int nextLevel = currentLevel + 1;
-        _gameData.SetUpgradeLevel(node.Id, nextLevel);
-        if (!_gameData.RebuildRuntimeData(out string effectError))
-        {
-            _gameData.RestoreTransactionSnapshot(snapshot, wasDirty);
-            return Result(
-                UpgradePurchaseStatus.EffectFailed,
+            int nextLevel = currentLevel + 1;
+            _gameData.SetUpgradeLevel(node.Id, nextLevel);
+            if (!_gameData.RebuildRuntimeData(out string effectError))
+            {
+                _gameData.RestoreTransactionSnapshot(snapshot, wasDirty);
+                return Result(
+                    UpgradePurchaseStatus.EffectFailed,
+                    node.Id,
+                    currentLevel,
+                    effectError);
+            }
+
+            _gameData.MarkDirty();
+
+            if (!_gameData.SaveNow())
+            {
+                _gameData.RestoreTransactionSnapshot(snapshot, wasDirty);
+                return Result(UpgradePurchaseStatus.SaveFailed, node.Id, currentLevel);
+            }
+
+            inventory.NotifyTransactionCommitted();
+            CompleteTutorialEventForFirstUnlock(node.Id, nextLevel);
+            UpgradePurchased?.Invoke(node, nextLevel);
+            return new UpgradePurchaseResult(
+                UpgradePurchaseStatus.Success,
                 node.Id,
                 currentLevel,
-                effectError);
+                nextLevel);
         }
 
-        _gameData.MarkDirty();
-
-        if (!_gameData.SaveNow())
+        private void CompleteTutorialEventForFirstUnlock(string upgradeId, int level)
         {
-            _gameData.RestoreTransactionSnapshot(snapshot, wasDirty);
-            return Result(UpgradePurchaseStatus.SaveFailed, node.Id, currentLevel);
+            if (level != 1)
+            {
+                return;
+            }
+
+            GameProgressEventId eventId = upgradeId switch
+            {
+                "upgrade.root" => GameProgressEventId.UnlockBattery,
+                "upgrade.net_unlock" => GameProgressEventId.UnlockNetgun,
+                "upgrade.worktable_unlock" => GameProgressEventId.UnlockWorktable,
+                _ => GameProgressEventId.None
+            };
+
+            if (eventId != GameProgressEventId.None)
+            {
+                _gameData.CompleteEventAndSave(eventId);
+            }
         }
 
-        inventory.NotifyTransactionCommitted();
-        CompleteTutorialEventForFirstUnlock(node.Id, nextLevel);
-        UpgradePurchased?.Invoke(node, nextLevel);
-        return new UpgradePurchaseResult(
-            UpgradePurchaseStatus.Success,
-            node.Id,
-            currentLevel,
-            nextLevel);
-    }
-
-    private void CompleteTutorialEventForFirstUnlock(string upgradeId, int level)
-    {
-        if (level != 1)
+        private static UpgradePurchaseResult Result(
+            UpgradePurchaseStatus status,
+            string nodeId,
+            int level,
+            string message = null)
         {
-            return;
+            return new UpgradePurchaseResult(status, nodeId, level, level, message);
         }
-
-        GameProgressEventId eventId = upgradeId switch
-        {
-            "upgrade.root" => GameProgressEventId.UnlockBattery,
-            "upgrade.net_unlock" => GameProgressEventId.UnlockNetgun,
-            "upgrade.worktable_unlock" => GameProgressEventId.UnlockWorktable,
-            _ => GameProgressEventId.None
-        };
-
-        if (eventId != GameProgressEventId.None)
-        {
-            _gameData.CompleteEventAndSave(eventId);
-        }
-    }
-
-    private static UpgradePurchaseResult Result(
-        UpgradePurchaseStatus status,
-        string nodeId,
-        int level,
-        string message = null)
-    {
-        return new UpgradePurchaseResult(status, nodeId, level, level, message);
     }
 }

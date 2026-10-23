@@ -1,66 +1,72 @@
-using System;
-using UnityEngine;
+using Astrodiver.Persistence;
+using Astrodiver.Sessions;
 
-public class PlayerBatteryController : MonoBehaviour
+namespace Astrodiver.Player.Actions
 {
-    private BatteryData _batteryData;
+    using System;
+    using UnityEngine;
 
-    private float _currentBatteryAmount;
-    private bool _isDepleted;
-
-    public float CurrentBatteryAmount => _currentBatteryAmount;
-    public float MaxBatteryAmount => Mathf.Max(0f, _batteryData.amount);
-
-    public event Action<float, float> BatteryAmountChanged;
-
-    private void Awake()
+    public class PlayerBatteryController : MonoBehaviour
     {
-        _batteryData = GameDataManager.Instance.GetBattery();
-        _currentBatteryAmount = MaxBatteryAmount;
-    }
+        private BatteryData _batteryData;
 
-    private void Start()
-    {
-        PublishBatteryAmountChanged();
-    }
+        private float _currentBatteryAmount;
+        private bool _isDepleted;
 
-    private void Update()
-    {
-        if (_isDepleted || SessionManager.Instance == null || SessionManager.Instance.IsSessionFinished)
+        public float CurrentBatteryAmount => _currentBatteryAmount;
+        public float MaxBatteryAmount => Mathf.Max(0f, _batteryData.amount);
+
+        public event Action<float, float> BatteryAmountChanged;
+
+        private void Awake()
         {
-            return;
+            _batteryData = GameDataManager.Instance.GetBattery();
+            _currentBatteryAmount = MaxBatteryAmount;
         }
 
-        SetCurrentBatteryAmount(_currentBatteryAmount - Time.deltaTime);
-        if (_currentBatteryAmount > 0f)
+        private void Start()
         {
-            return;
+            PublishBatteryAmountChanged();
         }
 
-        _isDepleted = true;
-        SessionManager.Instance.FinishSessionByTimeout();
-    }
-
-    private void SetCurrentBatteryAmount(float amount)
-    {
-        float nextAmount = Mathf.Clamp(amount, 0f, MaxBatteryAmount);
-        if (_currentBatteryAmount == nextAmount)
+        private void Update()
         {
-            return;
+            if (_isDepleted || SessionManager.Instance == null || SessionManager.Instance.IsSessionFinished)
+            {
+                return;
+            }
+
+            SetCurrentBatteryAmount(_currentBatteryAmount - Time.deltaTime);
+            if (_currentBatteryAmount > 0f)
+            {
+                return;
+            }
+
+            _isDepleted = true;
+            SessionManager.Instance.FinishSessionByTimeout();
         }
 
-        _currentBatteryAmount = nextAmount;
-        PublishBatteryAmountChanged();
+        private void SetCurrentBatteryAmount(float amount)
+        {
+            float nextAmount = Mathf.Clamp(amount, 0f, MaxBatteryAmount);
+            if (_currentBatteryAmount == nextAmount)
+            {
+                return;
+            }
+
+            _currentBatteryAmount = nextAmount;
+            PublishBatteryAmountChanged();
+        }
+
+        private void PublishBatteryAmountChanged()
+        {
+            BatteryAmountChanged?.Invoke(_currentBatteryAmount, MaxBatteryAmount);
+        }
     }
 
-    private void PublishBatteryAmountChanged()
+    [System.Serializable]
+    public struct BatteryData
     {
-        BatteryAmountChanged?.Invoke(_currentBatteryAmount, MaxBatteryAmount);
+        [Min(0f)] public float amount;
     }
-}
-
-[System.Serializable]
-public struct BatteryData
-{
-    [Min(0f)] public float amount;
 }

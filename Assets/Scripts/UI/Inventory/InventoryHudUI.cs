@@ -1,54 +1,59 @@
-using UnityEngine;
+using Astrodiver.Player.Inventory;
 
-[DisallowMultipleComponent]
-public sealed class InventoryHudUI : MonoBehaviour
+namespace Astrodiver.UI.Inventory
 {
-    [SerializeField] private PlayerInventoryController _playerInventory;
-    [SerializeField] private CreatureInventoryBarUI _creatureInventoryBar;
-    [SerializeField] private ResourceFragmentListUI _resourceFragmentList;
+    using UnityEngine;
 
-    private bool _hasStarted;
-
-    private void OnEnable()
+    [DisallowMultipleComponent]
+    public sealed class InventoryHudUI : MonoBehaviour
     {
-        if (_hasStarted)
+        [SerializeField] private PlayerInventoryController _playerInventory;
+        [SerializeField] private CreatureInventoryBarUI _creatureInventoryBar;
+        [SerializeField] private ResourceFragmentListUI _resourceFragmentList;
+
+        private bool _hasStarted;
+
+        private void OnEnable()
         {
+            if (_hasStarted)
+            {
+                InitializeInventoryViews();
+            }
+        }
+
+        private void Start()
+        {
+            _hasStarted = true;
             InitializeInventoryViews();
         }
-    }
 
-    private void Start()
-    {
-        _hasStarted = true;
-        InitializeInventoryViews();
-    }
-
-    private void InitializeInventoryViews()
-    {
-        PlayerInventoryController inventory = ResolvePlayerInventory();
-        if (_creatureInventoryBar != null)
+        private void InitializeInventoryViews()
         {
-            _creatureInventoryBar.Initialize(inventory);
+            PlayerInventoryController inventory = ResolvePlayerInventory();
+            if (_creatureInventoryBar != null)
+            {
+                _creatureInventoryBar.Initialize(inventory);
+            }
+
+            if (_resourceFragmentList != null)
+            {
+                _resourceFragmentList.Initialize(inventory);
+            }
         }
 
-        if (_resourceFragmentList != null)
+        private PlayerInventoryController ResolvePlayerInventory()
         {
-            _resourceFragmentList.Initialize(inventory);
-        }
-    }
+            if (_playerInventory != null && _playerInventory == PlayerInventoryController.Instance)
+                return _playerInventory;
 
-    private PlayerInventoryController ResolvePlayerInventory()
-    {
-        if (_playerInventory != null && _playerInventory == PlayerInventoryController.Instance)
+            _playerInventory = PlayerInventoryController.Instance;
+            if (_playerInventory == null)
+            {
+                Debug.LogWarning("CreatureInventoryBarUI: PlayerInventoryController is not initialized.", this);
+            }
+
             return _playerInventory;
-
-        _playerInventory = PlayerInventoryController.Instance;
-        if (_playerInventory == null)
-        {
-            Debug.LogWarning("CreatureInventoryBarUI: PlayerInventoryController is not initialized.", this);
         }
 
-        return _playerInventory;
     }
-
 }

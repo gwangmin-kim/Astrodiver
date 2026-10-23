@@ -1,0 +1,108 @@
+using Astrodiver.Persistence;
+using Astrodiver.SceneManagement;
+using Astrodiver.Sessions;
+using Astrodiver.UI.Stage;
+using Astrodiver.Upgrades;
+
+namespace Astrodiver.Interaction
+{
+    using UnityEngine;
+
+    [RequireComponent(typeof(Collider2D))]
+    public class SceneGate : InteractableObject
+    {
+        [Header("Hub Stage Selection")]
+        [SerializeField] private StageSelectionUI _stageSelectionUI;
+        [SerializeField] private UpgradeNodeDefinition _requiredHubUpgrade;
+
+        [Header("Direct Scene Transition (Optional)")]
+        [SerializeField] private string _destinationSceneName;
+        [SerializeField] private TransitionSequence _transitionSequence;
+
+        [Header("Exploration Return")]
+        [SerializeField] private bool _finishExploreSession;
+
+        private bool _isTransitioning;
+
+        public override void Interact()
+        {
+            if (_isTransitioning)
+            {
+                return;
+            }
+
+            if (_finishExploreSession)
+            {
+                if (SessionManager.Instance != null)
+                {
+                    SessionManager.Instance.FinishSessionByReturn();
+                }
+                else
+                {
+                    Debug.LogError("SceneGate: Explore session gate requires a SessionManager in the scene.", this);
+                }
+
+                return;
+            }
+
+            if (IsHubGateLocked())
+            {
+                HandleFirstUpgradeLocked();
+                return;
+            }
+
+            if (_stageSelectionUI != null)
+            {
+                _stageSelectionUI.Open();
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(_destinationSceneName))
+            {
+                return;
+            }
+
+            _isTransitioning = true;
+
+            if (_transitionSequence != null)
+            {
+                _transitionSequence.Play(LoadDestinationScene);
+            }
+            else
+            {
+                LoadDestinationScene();
+            }
+        }
+
+        private void LoadDestinationScene()
+        {
+            SceneTransitionManager.Instance.LoadScene(_destinationSceneName);
+        }
+
+        private bool IsHubGateLocked()
+        {
+            return gameObject.scene.name == "Hub" &&
+                   (_requiredHubUpgrade == null ||
+                    GameDataManager.Instance == null ||
+                    !GameDataManager.Instance.IsUpgradeUnlocked(
+                        _requiredHubUpgrade.Id));
+        }
+
+        private void HandleFirstUpgradeLocked()
+        {
+            Debug.Log("첫 번째 업그레이드 잠금을 해제하세요.", this);
+        }
+
+        private void Reset()
+        {
+            Collider2D trigger = GetComponent<Collider2D>();
+            trigger.isTrigger = true;
+
+            int interactableLayer = LayerMask.NameToLayer("Interactable");
+            if (interactableLayer >= 0)
+            {
+                gameObject.layer = interactableLayer;
+            }
+        }
+    }
+}

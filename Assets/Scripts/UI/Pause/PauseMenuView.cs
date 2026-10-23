@@ -1,12 +1,15 @@
-using UnityEngine;
-using UnityEngine.UI;
-
-[DisallowMultipleComponent]
-public sealed class PauseMenuView : MonoBehaviour
+namespace Astrodiver.UI.Pause
 {
-    [SerializeField] private Button _continueButton;
-    [SerializeField] private Button _exitButton;
+    using UnityEngine;
+    using UnityEngine.UI;
 
-    public Button ContinueButton => _continueButton;
-    public Button ExitButton => _exitButton;
+    [DisallowMultipleComponent]
+    public sealed class PauseMenuView : MonoBehaviour
+    {
+        [SerializeField] private Button _continueButton;
+        [SerializeField] private Button _exitButton;
+
+        public Button ContinueButton => _continueButton;
+        public Button ExitButton => _exitButton;
+    }
 }

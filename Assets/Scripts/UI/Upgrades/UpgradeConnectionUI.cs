@@ -1,63 +1,66 @@
-using UnityEngine;
-using UnityEngine.UI;
-
-[DisallowMultipleComponent]
-public sealed class UpgradeConnectionUI : MonoBehaviour
+namespace Astrodiver.UI.Upgrades
 {
-    [SerializeField] private RectTransform _rectTransform;
-    [SerializeField] private Image _lineImage;
+    using UnityEngine;
+    using UnityEngine.UI;
 
-    private RectTransform _parentNode;
-    private RectTransform _childNode;
-    private UpgradeNodeUI _childNodeUI;
-    private RectTransform _coordinateSpace;
-    private float _width;
-
-    public void SetNodes(
-        RectTransform parentNode,
-        UpgradeNodeUI childNode,
-        RectTransform coordinateSpace,
-        float width)
+    [DisallowMultipleComponent]
+    public sealed class UpgradeConnectionUI : MonoBehaviour
     {
-        _parentNode = parentNode;
-        _childNodeUI = childNode;
-        _childNode = childNode != null ? (RectTransform)childNode.transform : null;
-        _coordinateSpace = coordinateSpace;
-        _width = Mathf.Max(1f, width);
-        RefreshColor();
-        RefreshGeometry();
-    }
+        [SerializeField] private RectTransform _rectTransform;
+        [SerializeField] private Image _lineImage;
 
-    public void RefreshColor()
-    {
-        bool isVisible = _childNodeUI != null && _childNodeUI.gameObject.activeSelf;
-        if (gameObject.activeSelf != isVisible)
+        private RectTransform _parentNode;
+        private RectTransform _childNode;
+        private UpgradeNodeUI _childNodeUI;
+        private RectTransform _coordinateSpace;
+        private float _width;
+
+        public void SetNodes(
+            RectTransform parentNode,
+            UpgradeNodeUI childNode,
+            RectTransform coordinateSpace,
+            float width)
         {
-            gameObject.SetActive(isVisible);
+            _parentNode = parentNode;
+            _childNodeUI = childNode;
+            _childNode = childNode != null ? (RectTransform)childNode.transform : null;
+            _coordinateSpace = coordinateSpace;
+            _width = Mathf.Max(1f, width);
+            RefreshColor();
+            RefreshGeometry();
         }
 
-        if (_lineImage != null && isVisible)
+        public void RefreshColor()
         {
-            _lineImage.color = _childNodeUI.OutlineColor;
-        }
-    }
+            bool isVisible = _childNodeUI != null && _childNodeUI.gameObject.activeSelf;
+            if (gameObject.activeSelf != isVisible)
+            {
+                gameObject.SetActive(isVisible);
+            }
 
-    public void RefreshGeometry()
-    {
-        if (_parentNode == null || _childNode == null || _coordinateSpace == null)
+            if (_lineImage != null && isVisible)
+            {
+                _lineImage.color = _childNodeUI.OutlineColor;
+            }
+        }
+
+        public void RefreshGeometry()
         {
-            return;
+            if (_parentNode == null || _childNode == null || _coordinateSpace == null)
+            {
+                return;
+            }
+
+            Vector2 start = _coordinateSpace.InverseTransformPoint(_parentNode.position);
+            Vector2 end = _coordinateSpace.InverseTransformPoint(_childNode.position);
+            Vector2 direction = end - start;
+
+            _rectTransform.anchoredPosition = (start + end) * 0.5f;
+            _rectTransform.sizeDelta = new Vector2(direction.magnitude, _width);
+            _rectTransform.localRotation = Quaternion.Euler(
+                0f,
+                0f,
+                Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg);
         }
-
-        Vector2 start = _coordinateSpace.InverseTransformPoint(_parentNode.position);
-        Vector2 end = _coordinateSpace.InverseTransformPoint(_childNode.position);
-        Vector2 direction = end - start;
-
-        _rectTransform.anchoredPosition = (start + end) * 0.5f;
-        _rectTransform.sizeDelta = new Vector2(direction.magnitude, _width);
-        _rectTransform.localRotation = Quaternion.Euler(
-            0f,
-            0f,
-            Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg);
     }
 }

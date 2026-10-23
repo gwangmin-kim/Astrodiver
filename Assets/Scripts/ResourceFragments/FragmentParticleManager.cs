@@ -1,225 +1,233 @@
-using System;
-using System.Collections.Generic;
-using UnityEngine;
+using Astrodiver.Definitions;
+using Astrodiver.Persistence;
+using Astrodiver.Player;
+using Astrodiver.Player.Inventory;
 
-public sealed class FragmentParticleManager : MonoBehaviour
+namespace Astrodiver.ResourceFragments
 {
-    [Header("Particle System Setup")]
-    [SerializeField] private ParticleSystem _fragmentParticleSystemPrefab;
+    using System;
+    using System.Collections.Generic;
+    using UnityEngine;
 
-    private MagnetData _magnetData;
-
-    private readonly Dictionary<string, FragmentParticleEntry> _particleSystems =
-        new(StringComparer.Ordinal);
-
-    private ParticleSystem.EmitParams _emitParams;
-    private FragmentMagnetManager _magnetManager;
-    private PlayerInventoryController _playerInventory;
-
-    public static FragmentParticleManager Instance { get; private set; }
-
-    public void DropFragment(
-        Vector3 position,
-        ResourceDefinition resource,
-        float radius,
-        int count)
+    public sealed class FragmentParticleManager : MonoBehaviour
     {
-        if (resource == null)
+        [Header("Particle System Setup")]
+        [SerializeField] private ParticleSystem _fragmentParticleSystemPrefab;
+
+        private MagnetData _magnetData;
+
+        private readonly Dictionary<string, FragmentParticleEntry> _particleSystems =
+            new(StringComparer.Ordinal);
+
+        private ParticleSystem.EmitParams _emitParams;
+        private FragmentMagnetManager _magnetManager;
+        private PlayerInventoryController _playerInventory;
+
+        public static FragmentParticleManager Instance { get; private set; }
+
+        public void DropFragment(
+            Vector3 position,
+            ResourceDefinition resource,
+            float radius,
+            int count)
         {
-            Debug.LogError("Cannot drop fragments without a resource definition.", this);
-            return;
+            if (resource == null)
+            {
+                Debug.LogError("Cannot drop fragments without a resource definition.", this);
+                return;
+            }
+
+            if (count <= 0)
+            {
+                return;
+            }
+
+            if (!TryGetOrCreateParticleSystem(
+                    resource,
+                    out FragmentParticleEntry entry))
+            {
+                return;
+            }
+
+            ParticleSystem particleSystem = entry.ParticleSystem;
+            var shape = particleSystem.shape;
+            shape.radius = Mathf.Max(0f, radius);
+
+            _emitParams.position = position;
+            _emitParams.applyShapeToPosition = true;
+
+            particleSystem.Emit(_emitParams, count);
         }
 
-        if (count <= 0)
+        private void Awake()
         {
-            return;
+            if (Instance != null && Instance != this)
+            {
+                Debug.LogWarning(
+                    $"{nameof(FragmentParticleManager)} already exists. Destroying the duplicate.",
+                    this);
+                Destroy(gameObject);
+                return;
+            }
+
+            Instance = this;
+
+            if (GameDataManager.Instance != null)
+            {
+                _magnetData = GameDataManager.Instance.GetMagnet();
+            }
+
+            _magnetManager = new FragmentMagnetManager(_magnetData);
         }
 
-        if (!TryGetOrCreateParticleSystem(
-                resource,
-                out FragmentParticleEntry entry))
-        {
-            return;
-        }
-
-        ParticleSystem particleSystem = entry.ParticleSystem;
-        var shape = particleSystem.shape;
-        shape.radius = Mathf.Max(0f, radius);
-
-        _emitParams.position = position;
-        _emitParams.applyShapeToPosition = true;
-
-        particleSystem.Emit(_emitParams, count);
-    }
-
-    private void Awake()
-    {
-        if (Instance != null && Instance != this)
-        {
-            Debug.LogWarning(
-                $"{nameof(FragmentParticleManager)} already exists. Destroying the duplicate.",
-                this);
-            Destroy(gameObject);
-            return;
-        }
-
-        Instance = this;
-
-        if (GameDataManager.Instance != null)
-        {
-            _magnetData = GameDataManager.Instance.GetMagnet();
-        }
-
-        _magnetManager = new FragmentMagnetManager(_magnetData);
-    }
-
-    private void Start()
-    {
-        _playerInventory = PlayerInventoryController.Instance;
-    }
-
-    private void Update()
-    {
-        if (_playerInventory == null)
+        private void Start()
         {
             _playerInventory = PlayerInventoryController.Instance;
         }
 
-        if (_playerInventory == null || PlayerContext.Instance == null)
+        private void Update()
         {
-            return;
-        }
-
-        Vector3 playerPosition = PlayerContext.Instance.transform.position;
-
-        foreach (FragmentParticleEntry entry in _particleSystems.Values)
-        {
-            if (entry.ParticleSystem.particleCount == 0)
+            if (_playerInventory == null)
             {
-                continue;
+                _playerInventory = PlayerInventoryController.Instance;
             }
 
-            _magnetManager.Process(
-                entry.ParticleSystem,
-                entry.Resource,
-                playerPosition,
-                _playerInventory);
-        }
-    }
-
-    private void OnDestroy()
-    {
-        if (Instance == this)
-        {
-            Instance = null;
-        }
-    }
-
-    private bool TryGetOrCreateParticleSystem(
-        ResourceDefinition resource,
-        out FragmentParticleEntry entry)
-    {
-        entry = null;
-
-        string resourceId = resource.Id?.Trim();
-        if (string.IsNullOrEmpty(resourceId))
-        {
-            Debug.LogError($"Resource '{resource.name}' has an empty id.", resource);
-            return false;
-        }
-
-        if (_particleSystems.TryGetValue(resourceId, out entry))
-        {
-            if (entry.Resource == resource)
+            if (_playerInventory == null || PlayerContext.Instance == null)
             {
-                return true;
+                return;
             }
 
-            Debug.LogError(
-                $"Fragment resource id '{resourceId}' is already registered by " +
-                $"'{entry.Resource.name}', so '{resource.name}' cannot use it.",
-                resource);
-            entry = null;
-            return false;
+            Vector3 playerPosition = PlayerContext.Instance.transform.position;
+
+            foreach (FragmentParticleEntry entry in _particleSystems.Values)
+            {
+                if (entry.ParticleSystem.particleCount == 0)
+                {
+                    continue;
+                }
+
+                _magnetManager.Process(
+                    entry.ParticleSystem,
+                    entry.Resource,
+                    playerPosition,
+                    _playerInventory);
+            }
         }
 
-        if (_fragmentParticleSystemPrefab == null)
+        private void OnDestroy()
         {
-            Debug.LogError("Fragment particle system prefab is not assigned.", this);
-            return false;
+            if (Instance == this)
+            {
+                Instance = null;
+            }
         }
 
-        ParticleSystem particleSystem = Instantiate(_fragmentParticleSystemPrefab, transform);
-        particleSystem.gameObject.name = string.IsNullOrWhiteSpace(resource.DisplayName)
-            ? resourceId
-            : resource.DisplayName;
-        particleSystem.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
-
-        ConfigureParticleSystem(particleSystem, resource);
-        entry = new FragmentParticleEntry(resource, particleSystem);
-        _particleSystems.Add(resourceId, entry);
-
-        return true;
-    }
-
-    private static void ConfigureParticleSystem(
-        ParticleSystem particleSystem,
-        ResourceDefinition resource)
-    {
-        particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-
-        var main = particleSystem.main;
-        main.playOnAwake = false;
-        main.simulationSpace = ParticleSystemSimulationSpace.World;
-        main.startLifetime = resource.FragmentLifetime;
-
-        var textureSheet = particleSystem.textureSheetAnimation;
-        textureSheet.enabled = true;
-        textureSheet.mode = ParticleSystemAnimationMode.Grid;
-        textureSheet.animation = ParticleSystemAnimationType.SingleRow;
-        textureSheet.rowMode = ParticleSystemAnimationRowMode.Custom;
-        textureSheet.rowIndex = resource.RowIndex;
-        textureSheet.frameOverTime = 0f;
-
-        if (resource.RowIndex >= textureSheet.numTilesY)
-        {
-            Debug.LogError(
-                $"Resource '{resource.name}' uses particle row {resource.RowIndex}, " +
-                $"but the particle sheet only has {textureSheet.numTilesY} rows.",
-                resource);
-        }
-
-        particleSystem.Play();
-    }
-
-#if UNITY_EDITOR
-    private void OnDrawGizmosSelected()
-    {
-        if (PlayerContext.Instance == null)
-        {
-            return;
-        }
-
-        Vector3 playerPosition = PlayerContext.Instance.transform.position;
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(playerPosition, _magnetData.Radius);
-
-        Gizmos.color = Color.orange;
-        Gizmos.DrawWireSphere(playerPosition, _magnetData.collectRadius);
-    }
-#endif
-
-    private sealed class FragmentParticleEntry
-    {
-        public FragmentParticleEntry(
+        private bool TryGetOrCreateParticleSystem(
             ResourceDefinition resource,
-            ParticleSystem particleSystem)
+            out FragmentParticleEntry entry)
         {
-            Resource = resource;
-            ParticleSystem = particleSystem;
+            entry = null;
+
+            string resourceId = resource.Id?.Trim();
+            if (string.IsNullOrEmpty(resourceId))
+            {
+                Debug.LogError($"Resource '{resource.name}' has an empty id.", resource);
+                return false;
+            }
+
+            if (_particleSystems.TryGetValue(resourceId, out entry))
+            {
+                if (entry.Resource == resource)
+                {
+                    return true;
+                }
+
+                Debug.LogError(
+                    $"Fragment resource id '{resourceId}' is already registered by " +
+                    $"'{entry.Resource.name}', so '{resource.name}' cannot use it.",
+                    resource);
+                entry = null;
+                return false;
+            }
+
+            if (_fragmentParticleSystemPrefab == null)
+            {
+                Debug.LogError("Fragment particle system prefab is not assigned.", this);
+                return false;
+            }
+
+            ParticleSystem particleSystem = Instantiate(_fragmentParticleSystemPrefab, transform);
+            particleSystem.gameObject.name = string.IsNullOrWhiteSpace(resource.DisplayName)
+                ? resourceId
+                : resource.DisplayName;
+            particleSystem.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+
+            ConfigureParticleSystem(particleSystem, resource);
+            entry = new FragmentParticleEntry(resource, particleSystem);
+            _particleSystems.Add(resourceId, entry);
+
+            return true;
         }
 
-        public ResourceDefinition Resource { get; }
-        public ParticleSystem ParticleSystem { get; }
+        private static void ConfigureParticleSystem(
+            ParticleSystem particleSystem,
+            ResourceDefinition resource)
+        {
+            particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+
+            var main = particleSystem.main;
+            main.playOnAwake = false;
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
+            main.startLifetime = resource.FragmentLifetime;
+
+            var textureSheet = particleSystem.textureSheetAnimation;
+            textureSheet.enabled = true;
+            textureSheet.mode = ParticleSystemAnimationMode.Grid;
+            textureSheet.animation = ParticleSystemAnimationType.SingleRow;
+            textureSheet.rowMode = ParticleSystemAnimationRowMode.Custom;
+            textureSheet.rowIndex = resource.RowIndex;
+            textureSheet.frameOverTime = 0f;
+
+            if (resource.RowIndex >= textureSheet.numTilesY)
+            {
+                Debug.LogError(
+                    $"Resource '{resource.name}' uses particle row {resource.RowIndex}, " +
+                    $"but the particle sheet only has {textureSheet.numTilesY} rows.",
+                    resource);
+            }
+
+            particleSystem.Play();
+        }
+
+    #if UNITY_EDITOR
+        private void OnDrawGizmosSelected()
+        {
+            if (PlayerContext.Instance == null)
+            {
+                return;
+            }
+
+            Vector3 playerPosition = PlayerContext.Instance.transform.position;
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireSphere(playerPosition, _magnetData.Radius);
+
+            Gizmos.color = Color.orange;
+            Gizmos.DrawWireSphere(playerPosition, _magnetData.collectRadius);
+        }
+    #endif
+
+        private sealed class FragmentParticleEntry
+        {
+            public FragmentParticleEntry(
+                ResourceDefinition resource,
+                ParticleSystem particleSystem)
+            {
+                Resource = resource;
+                ParticleSystem = particleSystem;
+            }
+
+            public ResourceDefinition Resource { get; }
+            public ParticleSystem ParticleSystem { get; }
+        }
     }
 }

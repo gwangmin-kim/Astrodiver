@@ -1,17 +1,22 @@
-using TMPro;
-using UnityEngine;
-using UnityEngine.UI;
+using Astrodiver.Definitions;
 
-[DisallowMultipleComponent]
-public sealed class UpgradeTooltipCostEntryUI : MonoBehaviour
+namespace Astrodiver.UI.Upgrades
 {
-    [SerializeField] private Image _iconImage;
-    [SerializeField] private TextMeshProUGUI _amountText;
+    using TMPro;
+    using UnityEngine;
+    using UnityEngine.UI;
 
-    public void SetResource(ResourceDefinition definition, int amount)
+    [DisallowMultipleComponent]
+    public sealed class UpgradeTooltipCostEntryUI : MonoBehaviour
     {
-        _iconImage.sprite = definition != null ? definition.Icon : null;
-        _iconImage.enabled = _iconImage.sprite != null;
-        _amountText.text = amount.ToString();
+        [SerializeField] private Image _iconImage;
+        [SerializeField] private TextMeshProUGUI _amountText;
+
+        public void SetResource(ResourceDefinition definition, int amount)
+        {
+            _iconImage.sprite = definition != null ? definition.Icon : null;
+            _iconImage.enabled = _iconImage.sprite != null;
+            _amountText.text = amount.ToString();
+        }
     }
 }

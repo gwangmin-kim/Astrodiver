@@ -1,101 +1,104 @@
-using PrimeTween;
-using UnityEngine;
-
-[RequireComponent(typeof(SpriteRenderer))]
-public sealed class InteractionPromptSprite : MonoBehaviour
+namespace Astrodiver.Player.Actions
 {
-    [SerializeField] private SpriteRenderer _spriteRenderer;
-    [SerializeField, Min(0.01f)] private float _showDuration = 0.2f;
-    [SerializeField, Min(0.01f)] private float _hideDuration = 0.15f;
-    [SerializeField, Min(0f)] private float _verticalOffset = 0.2f;
-    [SerializeField] private Ease _showEase = Ease.OutQuad;
-    [SerializeField] private Ease _hideEase = Ease.InQuad;
+    using PrimeTween;
+    using UnityEngine;
 
-    private Vector3 _shownLocalPosition;
-    private Tween _alphaTween;
-    private Tween _positionTween;
-    private bool _isInitialized;
-
-    private void Awake()
+    [RequireComponent(typeof(SpriteRenderer))]
+    public sealed class InteractionPromptSprite : MonoBehaviour
     {
-        Initialize();
-    }
+        [SerializeField] private SpriteRenderer _spriteRenderer;
+        [SerializeField, Min(0.01f)] private float _showDuration = 0.2f;
+        [SerializeField, Min(0.01f)] private float _hideDuration = 0.15f;
+        [SerializeField, Min(0f)] private float _verticalOffset = 0.2f;
+        [SerializeField] private Ease _showEase = Ease.OutQuad;
+        [SerializeField] private Ease _hideEase = Ease.InQuad;
 
-    private void OnDisable()
-    {
-        StopTweens();
-    }
+        private Vector3 _shownLocalPosition;
+        private Tween _alphaTween;
+        private Tween _positionTween;
+        private bool _isInitialized;
 
-    public void Show()
-    {
-        Initialize();
-        StopTweens();
-        transform.localPosition = HiddenLocalPosition;
-        SetAlpha(0f);
-
-        PlayAlphaIfChanged(1f, _showDuration, _showEase);
-        PlayPositionIfChanged(_shownLocalPosition, _showDuration, _showEase);
-    }
-
-    public void Hide()
-    {
-        Initialize();
-        StopTweens();
-
-        PlayAlphaIfChanged(0f, _hideDuration, _hideEase);
-        PlayPositionIfChanged(HiddenLocalPosition, _hideDuration, _hideEase);
-    }
-
-    private void Initialize()
-    {
-        if (_isInitialized)
+        private void Awake()
         {
-            return;
+            Initialize();
         }
 
-        if (_spriteRenderer == null)
+        private void OnDisable()
         {
-            _spriteRenderer = GetComponent<SpriteRenderer>();
+            StopTweens();
         }
 
-        _shownLocalPosition = transform.localPosition;
-        SetAlpha(0f);
-        transform.localPosition = HiddenLocalPosition;
-        _isInitialized = true;
-    }
-
-    private Vector3 HiddenLocalPosition => _shownLocalPosition + Vector3.down * _verticalOffset;
-
-    private void StopTweens()
-    {
-        _alphaTween.Stop();
-        _positionTween.Stop();
-    }
-
-    private void PlayAlphaIfChanged(float targetAlpha, float duration, Ease ease)
-    {
-        if (Mathf.Approximately(_spriteRenderer.color.a, targetAlpha))
+        public void Show()
         {
-            return;
+            Initialize();
+            StopTweens();
+            transform.localPosition = HiddenLocalPosition;
+            SetAlpha(0f);
+
+            PlayAlphaIfChanged(1f, _showDuration, _showEase);
+            PlayPositionIfChanged(_shownLocalPosition, _showDuration, _showEase);
         }
 
-        _alphaTween = Tween.Alpha(_spriteRenderer, targetAlpha, duration, ease);
-    }
-
-    private void PlayPositionIfChanged(Vector3 targetPosition, float duration, Ease ease)
-    {
-        if ((transform.localPosition - targetPosition).sqrMagnitude <= 0.000001f)
+        public void Hide()
         {
-            return;
+            Initialize();
+            StopTweens();
+
+            PlayAlphaIfChanged(0f, _hideDuration, _hideEase);
+            PlayPositionIfChanged(HiddenLocalPosition, _hideDuration, _hideEase);
         }
 
-        _positionTween = Tween.LocalPosition(transform, targetPosition, duration, ease);
-    }
+        private void Initialize()
+        {
+            if (_isInitialized)
+            {
+                return;
+            }
 
-    private void SetAlpha(float alpha)
-    {
-        Color color = _spriteRenderer.color;
-        color.a = alpha;
-        _spriteRenderer.color = color;
+            if (_spriteRenderer == null)
+            {
+                _spriteRenderer = GetComponent<SpriteRenderer>();
+            }
+
+            _shownLocalPosition = transform.localPosition;
+            SetAlpha(0f);
+            transform.localPosition = HiddenLocalPosition;
+            _isInitialized = true;
+        }
+
+        private Vector3 HiddenLocalPosition => _shownLocalPosition + Vector3.down * _verticalOffset;
+
+        private void StopTweens()
+        {
+            _alphaTween.Stop();
+            _positionTween.Stop();
+        }
+
+        private void PlayAlphaIfChanged(float targetAlpha, float duration, Ease ease)
+        {
+            if (Mathf.Approximately(_spriteRenderer.color.a, targetAlpha))
+            {
+                return;
+            }
+
+            _alphaTween = Tween.Alpha(_spriteRenderer, targetAlpha, duration, ease);
+        }
+
+        private void PlayPositionIfChanged(Vector3 targetPosition, float duration, Ease ease)
+        {
+            if ((transform.localPosition - targetPosition).sqrMagnitude <= 0.000001f)
+            {
+                return;
+            }
+
+            _positionTween = Tween.LocalPosition(transform, targetPosition, duration, ease);
+        }
+
+        private void SetAlpha(float alpha)
+        {
+            Color color = _spriteRenderer.color;
+            color.a = alpha;
+            _spriteRenderer.color = color;
+        }
     }
 }

@@ -1,0 +1,50 @@
+namespace Astrodiver.Stages
+{
+    using UnityEngine;
+
+    [DisallowMultipleComponent]
+    public sealed class StageSpawnedObject : MonoBehaviour
+    {
+        private StagePopulationManager _owner;
+
+        public string StageId { get; private set; }
+        public string EntryId { get; private set; }
+        public int AreaIndex { get; private set; }
+        public bool IsRemovedFromStage { get; private set; }
+
+        public void Initialize(
+            StagePopulationManager owner,
+            string stageId,
+            string entryId,
+            int areaIndex)
+        {
+            if (_owner != null && !IsRemovedFromStage)
+            {
+                _owner.Unregister(this);
+            }
+
+            _owner = owner;
+            StageId = stageId;
+            EntryId = entryId;
+            AreaIndex = areaIndex;
+            IsRemovedFromStage = false;
+            _owner?.Register(this);
+        }
+
+        public void NotifyRemovedFromStage()
+        {
+            if (IsRemovedFromStage)
+            {
+                return;
+            }
+
+            IsRemovedFromStage = true;
+            _owner?.Unregister(this);
+        }
+
+        private void OnDestroy()
+        {
+            NotifyRemovedFromStage();
+        }
+    }
+}

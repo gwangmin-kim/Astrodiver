@@ -1,81 +1,86 @@
-using UnityEngine;
+using Astrodiver.Interaction;
 
-/// <summary>
-/// Mirrors PlayerInteractionController's selected target as an outline effect.
-/// </summary>
-[DisallowMultipleComponent]
-[RequireComponent(typeof(PlayerInteractionController))]
-public sealed class PlayerInteractionOutlineHighlighter : MonoBehaviour
+namespace Astrodiver.Player.Actions
 {
-    [SerializeField] private PlayerInteractionController _interactionController;
+    using UnityEngine;
 
-    [Header("Outline Appearance")]
-    [SerializeField] private Color _outlineColor = Color.white;
-    [SerializeField, Min(0f)] private float _outlineWidth = 2f;
-
-    private InteractableOutline _highlightedOutline;
-
-    private void Awake()
+    /// <summary>
+    /// Mirrors PlayerInteractionController's selected target as an outline effect.
+    /// </summary>
+    [DisallowMultipleComponent]
+    [RequireComponent(typeof(PlayerInteractionController))]
+    public sealed class PlayerInteractionOutlineHighlighter : MonoBehaviour
     {
-        if (_interactionController == null)
+        [SerializeField] private PlayerInteractionController _interactionController;
+
+        [Header("Outline Appearance")]
+        [SerializeField] private Color _outlineColor = Color.white;
+        [SerializeField, Min(0f)] private float _outlineWidth = 2f;
+
+        private InteractableOutline _highlightedOutline;
+
+        private void Awake()
         {
-            _interactionController = GetComponent<PlayerInteractionController>();
-        }
-    }
-
-    private void OnEnable()
-    {
-        if (_interactionController == null)
-        {
-            return;
-        }
-
-        _interactionController.CurrentTargetChanged += HandleCurrentTargetChanged;
-        HandleCurrentTargetChanged(_interactionController.CurrentTarget);
-    }
-
-    private void OnDisable()
-    {
-        if (_interactionController != null)
-        {
-            _interactionController.CurrentTargetChanged -= HandleCurrentTargetChanged;
-        }
-
-        SetHighlightedOutline(null);
-    }
-
-    private void HandleCurrentTargetChanged(InteractableObject target)
-    {
-        InteractableOutline nextOutline = null;
-        if (target != null)
-        {
-            nextOutline = target.GetComponent<InteractableOutline>();
-            if (nextOutline == null)
+            if (_interactionController == null)
             {
-                nextOutline = target.GetComponentInParent<InteractableOutline>();
+                _interactionController = GetComponent<PlayerInteractionController>();
             }
         }
 
-        SetHighlightedOutline(nextOutline);
-    }
-
-    private void SetHighlightedOutline(InteractableOutline nextOutline)
-    {
-        if (_highlightedOutline == nextOutline)
+        private void OnEnable()
         {
-            return;
+            if (_interactionController == null)
+            {
+                return;
+            }
+
+            _interactionController.CurrentTargetChanged += HandleCurrentTargetChanged;
+            HandleCurrentTargetChanged(_interactionController.CurrentTarget);
         }
 
-        if (_highlightedOutline != null)
+        private void OnDisable()
         {
-            _highlightedOutline.SetHighlighted(false, Color.clear, 0f);
+            if (_interactionController != null)
+            {
+                _interactionController.CurrentTargetChanged -= HandleCurrentTargetChanged;
+            }
+
+            SetHighlightedOutline(null);
         }
 
-        _highlightedOutline = nextOutline;
-
-        if (_highlightedOutline != null)
+        private void HandleCurrentTargetChanged(InteractableObject target)
         {
-            _highlightedOutline.SetHighlighted(true, _outlineColor, _outlineWidth);
+            InteractableOutline nextOutline = null;
+            if (target != null)
+            {
+                nextOutline = target.GetComponent<InteractableOutline>();
+                if (nextOutline == null)
+                {
+                    nextOutline = target.GetComponentInParent<InteractableOutline>();
+                }
+            }
+
+            SetHighlightedOutline(nextOutline);
+        }
+
+        private void SetHighlightedOutline(InteractableOutline nextOutline)
+        {
+            if (_highlightedOutline == nextOutline)
+            {
+                return;
+            }
+
+            if (_highlightedOutline != null)
+            {
+                _highlightedOutline.SetHighlighted(false, Color.clear, 0f);
+            }
+
+            _highlightedOutline = nextOutline;
+
+            if (_highlightedOutline != null)
+            {
+                _highlightedOutline.SetHighlighted(true, _outlineColor, _outlineWidth);
+            }
         }
     }
 }

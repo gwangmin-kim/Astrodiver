@@ -1,27 +1,30 @@
-using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.UI;
-
-[RequireComponent(typeof(Button))]
-public sealed class QuitButtonFocusHandler : MonoBehaviour, IPointerExitHandler, IDeselectHandler
+namespace Astrodiver.UI.MainMenu
 {
-    [SerializeField] private MainMenuController _mainMenuController;
+    using UnityEngine;
+    using UnityEngine.EventSystems;
+    using UnityEngine.UI;
 
-    public void OnPointerExit(PointerEventData eventData)
+    [RequireComponent(typeof(Button))]
+    public sealed class QuitButtonFocusHandler : MonoBehaviour, IPointerExitHandler, IDeselectHandler
     {
-        CancelQuitConfirmation();
-    }
+        [SerializeField] private MainMenuController _mainMenuController;
 
-    public void OnDeselect(BaseEventData eventData)
-    {
-        CancelQuitConfirmation();
-    }
-
-    private void CancelQuitConfirmation()
-    {
-        if (_mainMenuController != null)
+        public void OnPointerExit(PointerEventData eventData)
         {
-            _mainMenuController.CancelQuitConfirmation();
+            CancelQuitConfirmation();
+        }
+
+        public void OnDeselect(BaseEventData eventData)
+        {
+            CancelQuitConfirmation();
+        }
+
+        private void CancelQuitConfirmation()
+        {
+            if (_mainMenuController != null)
+            {
+                _mainMenuController.CancelQuitConfirmation();
+            }
         }
     }
 }

@@ -1,164 +1,170 @@
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI;
+using Astrodiver.Definitions;
+using Astrodiver.Player.Inventory;
 
-[DisallowMultipleComponent]
-public sealed class CreatureInventoryBarUI : MonoBehaviour
+namespace Astrodiver.UI.Inventory
 {
-    [SerializeField] private PlayerInventoryController _playerInventory;
-    [SerializeField] private CreatureInventorySlotUI _slotPrefab;
+    using System.Collections.Generic;
+    using UnityEngine;
+    using UnityEngine.UI;
 
-    private readonly List<CreatureInventorySlotUI> _slots = new();
-
-    private void OnEnable()
+    [DisallowMultipleComponent]
+    public sealed class CreatureInventoryBarUI : MonoBehaviour
     {
-        if (Application.isPlaying)
+        [SerializeField] private PlayerInventoryController _playerInventory;
+        [SerializeField] private CreatureInventorySlotUI _slotPrefab;
+
+        private readonly List<CreatureInventorySlotUI> _slots = new();
+
+        private void OnEnable()
         {
-            Subscribe();
+            if (Application.isPlaying)
+            {
+                Subscribe();
+            }
+
+            InitializeFromPlayerInventory();
         }
 
-        InitializeFromPlayerInventory();
-    }
+        private void OnDisable()
+        {
+            if (Application.isPlaying)
+            {
+                Unsubscribe();
+            }
+        }
 
-    private void OnDisable()
-    {
-        if (Application.isPlaying)
+        public void Initialize(PlayerInventoryController playerInventory)
         {
             Unsubscribe();
-        }
-    }
-
-    public void Initialize(PlayerInventoryController playerInventory)
-    {
-        Unsubscribe();
-        _playerInventory = playerInventory;
-        Subscribe();
-        InitializeFromPlayerInventory();
-    }
-
-    private void OnInventoryChanged()
-    {
-        InitializeFromPlayerInventory();
-    }
-
-    private void Subscribe()
-    {
-        if (!Application.isPlaying || !isActiveAndEnabled || _playerInventory == null)
-        {
-            return;
+            _playerInventory = playerInventory;
+            Subscribe();
+            InitializeFromPlayerInventory();
         }
 
-        _playerInventory.Changed -= OnInventoryChanged;
-        _playerInventory.Changed += OnInventoryChanged;
-    }
-
-    private void Unsubscribe()
-    {
-        if (_playerInventory != null)
+        private void OnInventoryChanged()
         {
+            InitializeFromPlayerInventory();
+        }
+
+        private void Subscribe()
+        {
+            if (!Application.isPlaying || !isActiveAndEnabled || _playerInventory == null)
+            {
+                return;
+            }
+
             _playerInventory.Changed -= OnInventoryChanged;
-        }
-    }
-
-    private void InitializeFromPlayerInventory()
-    {
-        if (_playerInventory == null || !_playerInventory.IsInitialized)
-        {
-            return;
+            _playerInventory.Changed += OnInventoryChanged;
         }
 
-        int slotCount = _playerInventory.CreatureSlotCapacity;
-        EnsureSlots(slotCount);
-
-        for (int i = 0; i < _playerInventory.CreatureSlots.Count && i < _slots.Count; i++)
+        private void Unsubscribe()
         {
-            SetUiSlot(i, _playerInventory.CreatureSlots[i]);
-        }
-    }
-
-    private void SetUiSlot(int slotIndex, CreatureInventorySlot slot)
-    {
-        CreatureDefinition definition = null;
-        _playerInventory?.TryResolveCreatureDefinition(slot, out definition);
-        _slots[slotIndex].SetSlot(slot, definition);
-    }
-
-    private void EnsureSlots(int slotCount)
-    {
-        _slots.Clear();
-
-        for (int i = 0; i < slotCount; i++)
-        {
-            string slotName = $"Creature Slot {i + 1:00}";
-            GameObject slotObject = GetOrCreateSlotObject(slotName);
-
-            if (slotObject == null)
+            if (_playerInventory != null)
             {
-                continue;
+                _playerInventory.Changed -= OnInventoryChanged;
+            }
+        }
+
+        private void InitializeFromPlayerInventory()
+        {
+            if (_playerInventory == null || !_playerInventory.IsInitialized)
+            {
+                return;
             }
 
-            // The GridLayoutGroup displays children in sibling order. Keep the slot
-            // sequence stable so slots always fill from the left in numeric order.
-            slotObject.transform.SetSiblingIndex(i);
+            int slotCount = _playerInventory.CreatureSlotCapacity;
+            EnsureSlots(slotCount);
 
-            CreatureInventorySlotUI slot = slotObject.GetComponent<CreatureInventorySlotUI>();
-            if (slot == null)
+            for (int i = 0; i < _playerInventory.CreatureSlots.Count && i < _slots.Count; i++)
             {
-                Debug.LogError("Creature inventory slot prefab is missing CreatureInventorySlotUI.", slotObject);
-                continue;
+                SetUiSlot(i, _playerInventory.CreatureSlots[i]);
+            }
+        }
+
+        private void SetUiSlot(int slotIndex, CreatureInventorySlot slot)
+        {
+            CreatureDefinition definition = null;
+            _playerInventory?.TryResolveCreatureDefinition(slot, out definition);
+            _slots[slotIndex].SetSlot(slot, definition);
+        }
+
+        private void EnsureSlots(int slotCount)
+        {
+            _slots.Clear();
+
+            for (int i = 0; i < slotCount; i++)
+            {
+                string slotName = $"Creature Slot {i + 1:00}";
+                GameObject slotObject = GetOrCreateSlotObject(slotName);
+
+                if (slotObject == null)
+                {
+                    continue;
+                }
+
+                // The GridLayoutGroup displays children in sibling order. Keep the slot
+                // sequence stable so slots always fill from the left in numeric order.
+                slotObject.transform.SetSiblingIndex(i);
+
+                CreatureInventorySlotUI slot = slotObject.GetComponent<CreatureInventorySlotUI>();
+                if (slot == null)
+                {
+                    Debug.LogError("Creature inventory slot prefab is missing CreatureInventorySlotUI.", slotObject);
+                    continue;
+                }
+
+                slot.SetEmpty();
+                _slots.Add(slot);
             }
 
-            slot.SetEmpty();
-            _slots.Add(slot);
+            for (int i = transform.childCount - 1; i >= 0; i--)
+            {
+                Transform child = transform.GetChild(i);
+                if (!child.name.StartsWith("Creature Slot ")) continue;
+                if (TryParseSlotNumber(child.name, out int slotNumber) && slotNumber <= slotCount) continue;
+
+                DestroyUiObject(child.gameObject);
+            }
         }
 
-        for (int i = transform.childCount - 1; i >= 0; i--)
+        private GameObject GetOrCreateSlotObject(string slotName)
         {
-            Transform child = transform.GetChild(i);
-            if (!child.name.StartsWith("Creature Slot ")) continue;
-            if (TryParseSlotNumber(child.name, out int slotNumber) && slotNumber <= slotCount) continue;
-
-            DestroyUiObject(child.gameObject);
+            Transform slotTransform = transform.Find(slotName);
+            return slotTransform != null ? slotTransform.gameObject : CreateSlotObject(slotName);
         }
-    }
 
-    private GameObject GetOrCreateSlotObject(string slotName)
-    {
-        Transform slotTransform = transform.Find(slotName);
-        return slotTransform != null ? slotTransform.gameObject : CreateSlotObject(slotName);
-    }
-
-    private GameObject CreateSlotObject(string slotName)
-    {
-        if (_slotPrefab == null)
+        private GameObject CreateSlotObject(string slotName)
         {
-            Debug.LogError("CreatureInventoryBarUI requires a slot prefab.", this);
-            return null;
+            if (_slotPrefab == null)
+            {
+                Debug.LogError("CreatureInventoryBarUI requires a slot prefab.", this);
+                return null;
+            }
+
+            GameObject slotObject = Instantiate(_slotPrefab.gameObject, transform, false);
+
+            slotObject.name = slotName;
+            return slotObject;
         }
 
-        GameObject slotObject = Instantiate(_slotPrefab.gameObject, transform, false);
-
-        slotObject.name = slotName;
-        return slotObject;
-    }
-
-    private static bool TryParseSlotNumber(string slotName, out int slotNumber)
-    {
-        slotNumber = 0;
-        string suffix = slotName.Replace("Creature Slot ", string.Empty);
-        return int.TryParse(suffix, out slotNumber);
-    }
-
-    private static void DestroyUiObject(Object target)
-    {
-        if (Application.isPlaying)
+        private static bool TryParseSlotNumber(string slotName, out int slotNumber)
         {
-            Destroy(target);
+            slotNumber = 0;
+            string suffix = slotName.Replace("Creature Slot ", string.Empty);
+            return int.TryParse(suffix, out slotNumber);
         }
-        else
-        {
-            DestroyImmediate(target);
-        }
-    }
 
+        private static void DestroyUiObject(Object target)
+        {
+            if (Application.isPlaying)
+            {
+                Destroy(target);
+            }
+            else
+            {
+                DestroyImmediate(target);
+            }
+        }
+
+    }
 }

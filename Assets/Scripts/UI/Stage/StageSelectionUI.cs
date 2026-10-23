@@ -1,337 +1,346 @@
-using System;
-using UnityEngine;
-using UnityEngine.Events;
-using UnityEngine.EventSystems;
-using UnityEngine.UI;
+using Astrodiver.Persistence;
+using Astrodiver.Player;
+using Astrodiver.SceneManagement;
+using Astrodiver.UI;
+using Astrodiver.Upgrades;
 
-[DisallowMultipleComponent]
-public sealed class StageSelectionUI : MonoBehaviour
+namespace Astrodiver.UI.Stage
 {
-    [Header("Destinations")]
-    [SerializeField] private StageDestination[] _destinations =
-        Array.Empty<StageDestination>();
+    using System;
+    using UnityEngine;
+    using UnityEngine.Events;
+    using UnityEngine.EventSystems;
+    using UnityEngine.UI;
 
-    [Header("Input")]
-    [SerializeField] private PlayerInputHandler _playerInput;
-    [SerializeField] private UIInputHandler _uiInput;
-
-    [Header("Transition (Optional)")]
-    [SerializeField] private TransitionSequence _transitionSequence;
-
-    private bool _inputStateCaptured;
-    private bool _playerInputWasEnabled;
-    private bool _uiInputWasEnabled;
-    private bool _isTransitioning;
-    private UpgradeService _upgradeService;
-
-    public bool IsOpen => gameObject.activeSelf;
-
-    private void OnEnable()
+    [DisallowMultipleComponent]
+    public sealed class StageSelectionUI : MonoBehaviour
     {
-        ResolveReferences();
-        SubscribeToUpgradeService();
-        RefreshDestinations();
+        [Header("Destinations")]
+        [SerializeField] private StageDestination[] _destinations =
+            Array.Empty<StageDestination>();
 
-        if (_uiInput != null)
+        [Header("Input")]
+        [SerializeField] private PlayerInputHandler _playerInput;
+        [SerializeField] private UIInputHandler _uiInput;
+
+        [Header("Transition (Optional)")]
+        [SerializeField] private TransitionSequence _transitionSequence;
+
+        private bool _inputStateCaptured;
+        private bool _playerInputWasEnabled;
+        private bool _uiInputWasEnabled;
+        private bool _isTransitioning;
+        private UpgradeService _upgradeService;
+
+        public bool IsOpen => gameObject.activeSelf;
+
+        private void OnEnable()
         {
-            _uiInput.CancelPressed += Close;
-        }
+            ResolveReferences();
+            SubscribeToUpgradeService();
+            RefreshDestinations();
 
-        CaptureAndApplyInputState();
-        FocusFirstAvailableDestination();
-    }
-
-    private void Update()
-    {
-        if (_isTransitioning)
-        {
-            return;
-        }
-
-        // UIInputHandler.Start may run after this component's OnEnable.
-        if (_playerInput != null && _playerInput.InputEnabled)
-        {
-            _playerInput.SetInputEnabled(false);
-        }
-
-        if (_uiInput != null && !_uiInput.InputEnabled)
-        {
-            _uiInput.SetInputEnabled(true);
-        }
-    }
-
-    private void OnDisable()
-    {
-        if (_uiInput != null)
-        {
-            _uiInput.CancelPressed -= Close;
-        }
-
-        UnbindDestinations();
-        UnsubscribeFromUpgradeService();
-        RestoreInputState();
-        _isTransitioning = false;
-    }
-
-    private void OnDestroy()
-    {
-        UnsubscribeFromUpgradeService();
-    }
-
-    public void Open()
-    {
-        if (!gameObject.activeSelf)
-        {
-            gameObject.SetActive(true);
-        }
-    }
-
-    public void Close()
-    {
-        if (_isTransitioning || !gameObject.activeSelf)
-        {
-            return;
-        }
-
-        gameObject.SetActive(false);
-    }
-
-    private void SelectStage(StageDestination destination)
-    {
-        if (_isTransitioning || destination == null || !destination.IsUnlocked())
-        {
-            return;
-        }
-
-        BuildSceneReference scene = destination.Scene;
-        if (scene == null)
-        {
-            return;
-        }
-
-        if (!scene.CanLoad())
-        {
-            Debug.LogError(
-                $"StageSelectionUI: Build scene index {scene.BuildIndex} is not available.",
-                this);
-            return;
-        }
-
-        if (SceneTransitionManager.Instance == null)
-        {
-            Debug.LogError("StageSelectionUI: SceneTransitionManager is not available.", this);
-            return;
-        }
-
-        _isTransitioning = true;
-        SetDestinationButtonsInteractable(false);
-
-        if (_transitionSequence != null)
-        {
-            _transitionSequence.Play(() => LoadStage(scene.BuildIndex));
-        }
-        else
-        {
-            LoadStage(scene.BuildIndex);
-        }
-    }
-
-    private static void LoadStage(int buildIndex)
-    {
-        SceneTransitionManager.Instance.LoadScene(buildIndex);
-    }
-
-    private void ResolveReferences()
-    {
-        if (_playerInput == null)
-        {
-            _playerInput = FindAnyObjectByType<PlayerInputHandler>();
-        }
-
-        if (_uiInput == null)
-        {
-            _uiInput = GetComponentInParent<UIInputHandler>();
-        }
-    }
-
-    private void RefreshDestinations()
-    {
-        UnbindDestinations();
-
-        for (int i = 0; i < _destinations.Length; i++)
-        {
-            StageDestination destination = _destinations[i];
-            if (destination == null)
+            if (_uiInput != null)
             {
-                continue;
+                _uiInput.CancelPressed += Close;
             }
 
-            bool isUnlocked = destination.IsUnlocked();
-            destination.SetVisible(isUnlocked);
-            if (!isUnlocked)
+            CaptureAndApplyInputState();
+            FocusFirstAvailableDestination();
+        }
+
+        private void Update()
+        {
+            if (_isTransitioning)
             {
-                continue;
+                return;
             }
 
-            destination.Bind(SelectStage);
-            destination.SetInteractable(destination.Scene?.CanLoad() == true);
-        }
-
-        GetComponent<StageMapNavigationUI>()?.RefreshButtonTargets();
-    }
-
-    private void SubscribeToUpgradeService()
-    {
-        UpgradeService upgradeService = GameDataManager.Instance?.Upgrades;
-        if (_upgradeService == upgradeService)
-        {
-            return;
-        }
-
-        UnsubscribeFromUpgradeService();
-        _upgradeService = upgradeService;
-        if (_upgradeService != null)
-        {
-            _upgradeService.UpgradePurchased += HandleUpgradePurchased;
-        }
-    }
-
-    private void UnsubscribeFromUpgradeService()
-    {
-        if (_upgradeService != null)
-        {
-            _upgradeService.UpgradePurchased -= HandleUpgradePurchased;
-            _upgradeService = null;
-        }
-    }
-
-    private void HandleUpgradePurchased(UpgradeNodeDefinition definition, int level)
-    {
-        RefreshDestinations();
-        FocusFirstAvailableDestination();
-    }
-
-#if UNITY_EDITOR
-    private void OnValidate()
-    {
-        for (int i = 0; i < _destinations.Length; i++)
-        {
-            _destinations[i]?.Scene?.RefreshBuildIndex();
-        }
-    }
-#endif
-
-    private void UnbindDestinations()
-    {
-        for (int i = 0; i < _destinations.Length; i++)
-        {
-            _destinations[i]?.Unbind();
-        }
-    }
-
-    private void FocusFirstAvailableDestination()
-    {
-        for (int i = 0; i < _destinations.Length; i++)
-        {
-            Button button = _destinations[i]?.Button;
-            if (button == null || !button.interactable)
+            // UIInputHandler.Start may run after this component's OnEnable.
+            if (_playerInput != null && _playerInput.InputEnabled)
             {
-                continue;
+                _playerInput.SetInputEnabled(false);
             }
 
-            EventSystem.current?.SetSelectedGameObject(button.gameObject);
-            return;
+            if (_uiInput != null && !_uiInput.InputEnabled)
+            {
+                _uiInput.SetInputEnabled(true);
+            }
+        }
+
+        private void OnDisable()
+        {
+            if (_uiInput != null)
+            {
+                _uiInput.CancelPressed -= Close;
+            }
+
+            UnbindDestinations();
+            UnsubscribeFromUpgradeService();
+            RestoreInputState();
+            _isTransitioning = false;
+        }
+
+        private void OnDestroy()
+        {
+            UnsubscribeFromUpgradeService();
+        }
+
+        public void Open()
+        {
+            if (!gameObject.activeSelf)
+            {
+                gameObject.SetActive(true);
+            }
+        }
+
+        public void Close()
+        {
+            if (_isTransitioning || !gameObject.activeSelf)
+            {
+                return;
+            }
+
+            gameObject.SetActive(false);
+        }
+
+        private void SelectStage(StageDestination destination)
+        {
+            if (_isTransitioning || destination == null || !destination.IsUnlocked())
+            {
+                return;
+            }
+
+            BuildSceneReference scene = destination.Scene;
+            if (scene == null)
+            {
+                return;
+            }
+
+            if (!scene.CanLoad())
+            {
+                Debug.LogError(
+                    $"StageSelectionUI: Build scene index {scene.BuildIndex} is not available.",
+                    this);
+                return;
+            }
+
+            if (SceneTransitionManager.Instance == null)
+            {
+                Debug.LogError("StageSelectionUI: SceneTransitionManager is not available.", this);
+                return;
+            }
+
+            _isTransitioning = true;
+            SetDestinationButtonsInteractable(false);
+
+            if (_transitionSequence != null)
+            {
+                _transitionSequence.Play(() => LoadStage(scene.BuildIndex));
+            }
+            else
+            {
+                LoadStage(scene.BuildIndex);
+            }
+        }
+
+        private static void LoadStage(int buildIndex)
+        {
+            SceneTransitionManager.Instance.LoadScene(buildIndex);
+        }
+
+        private void ResolveReferences()
+        {
+            if (_playerInput == null)
+            {
+                _playerInput = FindAnyObjectByType<PlayerInputHandler>();
+            }
+
+            if (_uiInput == null)
+            {
+                _uiInput = GetComponentInParent<UIInputHandler>();
+            }
+        }
+
+        private void RefreshDestinations()
+        {
+            UnbindDestinations();
+
+            for (int i = 0; i < _destinations.Length; i++)
+            {
+                StageDestination destination = _destinations[i];
+                if (destination == null)
+                {
+                    continue;
+                }
+
+                bool isUnlocked = destination.IsUnlocked();
+                destination.SetVisible(isUnlocked);
+                if (!isUnlocked)
+                {
+                    continue;
+                }
+
+                destination.Bind(SelectStage);
+                destination.SetInteractable(destination.Scene?.CanLoad() == true);
+            }
+
+            GetComponent<StageMapNavigationUI>()?.RefreshButtonTargets();
+        }
+
+        private void SubscribeToUpgradeService()
+        {
+            UpgradeService upgradeService = GameDataManager.Instance?.Upgrades;
+            if (_upgradeService == upgradeService)
+            {
+                return;
+            }
+
+            UnsubscribeFromUpgradeService();
+            _upgradeService = upgradeService;
+            if (_upgradeService != null)
+            {
+                _upgradeService.UpgradePurchased += HandleUpgradePurchased;
+            }
+        }
+
+        private void UnsubscribeFromUpgradeService()
+        {
+            if (_upgradeService != null)
+            {
+                _upgradeService.UpgradePurchased -= HandleUpgradePurchased;
+                _upgradeService = null;
+            }
+        }
+
+        private void HandleUpgradePurchased(UpgradeNodeDefinition definition, int level)
+        {
+            RefreshDestinations();
+            FocusFirstAvailableDestination();
+        }
+
+    #if UNITY_EDITOR
+        private void OnValidate()
+        {
+            for (int i = 0; i < _destinations.Length; i++)
+            {
+                _destinations[i]?.Scene?.RefreshBuildIndex();
+            }
+        }
+    #endif
+
+        private void UnbindDestinations()
+        {
+            for (int i = 0; i < _destinations.Length; i++)
+            {
+                _destinations[i]?.Unbind();
+            }
+        }
+
+        private void FocusFirstAvailableDestination()
+        {
+            for (int i = 0; i < _destinations.Length; i++)
+            {
+                Button button = _destinations[i]?.Button;
+                if (button == null || !button.interactable)
+                {
+                    continue;
+                }
+
+                EventSystem.current?.SetSelectedGameObject(button.gameObject);
+                return;
+            }
+        }
+
+        private void SetDestinationButtonsInteractable(bool interactable)
+        {
+            for (int i = 0; i < _destinations.Length; i++)
+            {
+                _destinations[i]?.SetInteractable(interactable);
+            }
+        }
+
+        private void CaptureAndApplyInputState()
+        {
+            if (!_inputStateCaptured)
+            {
+                _playerInputWasEnabled = _playerInput != null && _playerInput.InputEnabled;
+                _uiInputWasEnabled = _uiInput != null && _uiInput.InputEnabled;
+                _inputStateCaptured = true;
+            }
+
+            _playerInput?.SetInputEnabled(false);
+            _uiInput?.SetInputEnabled(true);
+        }
+
+        private void RestoreInputState()
+        {
+            if (!_inputStateCaptured)
+            {
+                return;
+            }
+
+            _uiInput?.SetInputEnabled(_uiInputWasEnabled);
+            _playerInput?.SetInputEnabled(_playerInputWasEnabled);
+            _inputStateCaptured = false;
         }
     }
 
-    private void SetDestinationButtonsInteractable(bool interactable)
+    [Serializable]
+    public sealed class StageDestination
     {
-        for (int i = 0; i < _destinations.Length; i++)
-        {
-            _destinations[i]?.SetInteractable(interactable);
-        }
-    }
+        [SerializeField] private Button _button;
+        [SerializeField] private BuildSceneReference _scene = new();
+        [SerializeField] private UpgradeNodeDefinition _requiredUpgrade;
 
-    private void CaptureAndApplyInputState()
-    {
-        if (!_inputStateCaptured)
-        {
-            _playerInputWasEnabled = _playerInput != null && _playerInput.InputEnabled;
-            _uiInputWasEnabled = _uiInput != null && _uiInput.InputEnabled;
-            _inputStateCaptured = true;
-        }
+        [NonSerialized] private UnityAction _clickListener;
 
-        _playerInput?.SetInputEnabled(false);
-        _uiInput?.SetInputEnabled(true);
-    }
+        public Button Button => _button;
+        public BuildSceneReference Scene => _scene;
+        public UpgradeNodeDefinition RequiredUpgrade => _requiredUpgrade;
 
-    private void RestoreInputState()
-    {
-        if (!_inputStateCaptured)
+        public bool IsUnlocked()
         {
-            return;
+            return _requiredUpgrade == null ||
+                   GameDataManager.Instance?.IsUpgradeUnlocked(_requiredUpgrade.Id) == true;
         }
 
-        _uiInput?.SetInputEnabled(_uiInputWasEnabled);
-        _playerInput?.SetInputEnabled(_playerInputWasEnabled);
-        _inputStateCaptured = false;
-    }
-}
-
-[Serializable]
-public sealed class StageDestination
-{
-    [SerializeField] private Button _button;
-    [SerializeField] private BuildSceneReference _scene = new();
-    [SerializeField] private UpgradeNodeDefinition _requiredUpgrade;
-
-    [NonSerialized] private UnityAction _clickListener;
-
-    public Button Button => _button;
-    public BuildSceneReference Scene => _scene;
-    public UpgradeNodeDefinition RequiredUpgrade => _requiredUpgrade;
-
-    public bool IsUnlocked()
-    {
-        return _requiredUpgrade == null ||
-               GameDataManager.Instance?.IsUpgradeUnlocked(_requiredUpgrade.Id) == true;
-    }
-
-    public void Bind(Action<StageDestination> selectStage)
-    {
-        Unbind();
-        if (_button == null || selectStage == null)
+        public void Bind(Action<StageDestination> selectStage)
         {
-            return;
+            Unbind();
+            if (_button == null || selectStage == null)
+            {
+                return;
+            }
+
+            _clickListener = () => selectStage(this);
+            _button.onClick.AddListener(_clickListener);
         }
 
-        _clickListener = () => selectStage(this);
-        _button.onClick.AddListener(_clickListener);
-    }
-
-    public void Unbind()
-    {
-        if (_button != null && _clickListener != null)
+        public void Unbind()
         {
-            _button.onClick.RemoveListener(_clickListener);
+            if (_button != null && _clickListener != null)
+            {
+                _button.onClick.RemoveListener(_clickListener);
+            }
+
+            _clickListener = null;
         }
 
-        _clickListener = null;
-    }
-
-    public void SetInteractable(bool interactable)
-    {
-        if (_button != null)
+        public void SetInteractable(bool interactable)
         {
-            _button.interactable = interactable;
+            if (_button != null)
+            {
+                _button.interactable = interactable;
+            }
         }
-    }
 
-    public void SetVisible(bool visible)
-    {
-        if (_button != null)
+        public void SetVisible(bool visible)
         {
-            _button.gameObject.SetActive(visible);
+            if (_button != null)
+            {
+                _button.gameObject.SetActive(visible);
+            }
         }
     }
 }

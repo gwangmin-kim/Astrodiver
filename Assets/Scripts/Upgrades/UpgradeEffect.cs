@@ -1,14 +1,19 @@
-[System.Serializable]
-public abstract class UpgradeEffect
-{
-    public abstract bool TryValidate(out string error);
-    public abstract bool TryApply(UpgradeEffectContext context, out string error);
+using Astrodiver.Persistence.GameData;
 
-    public virtual bool TryCreatePreview(
-        GameRuntimeData runtimeData,
-        out UpgradeEffectPreview preview)
+namespace Astrodiver.Upgrades
+{
+    [System.Serializable]
+    public abstract class UpgradeEffect
     {
-        preview = default;
-        return false;
+        public abstract bool TryValidate(out string error);
+        public abstract bool TryApply(UpgradeEffectContext context, out string error);
+
+        public virtual bool TryCreatePreview(
+            GameRuntimeData runtimeData,
+            out UpgradeEffectPreview preview)
+        {
+            preview = default;
+            return false;
+        }
     }
 }
