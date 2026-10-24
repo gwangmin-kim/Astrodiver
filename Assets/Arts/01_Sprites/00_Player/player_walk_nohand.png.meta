@@ -5,6 +5,27 @@ TextureImporter:
   - first:
       213: -292953662381716620
     second: player_walk_nohand_0
+  - first:
+      213: -8608143164773002237
+    second: player_walk_nohand_1
+  - first:
+      213: -8441357178057344064
+    second: player_walk_nohand_2
+  - first:
+      213: -7581151031961469717
+    second: player_walk_nohand_3
+  - first:
+      213: 515092526015396438
+    second: player_walk_nohand_4
+  - first:
+      213: -2372138274002743117
+    second: player_walk_nohand_5
+  - first:
+      213: 1946876789948630072
+    second: player_walk_nohand_6
+  - first:
+      213: -5281363062180602839
+    second: player_walk_nohand_7
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -135,10 +156,10 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: d40bfc932695564488e526c911852189
-      internalID: 906296906
+      spriteID: 3049ff7466bb98880800000000000000
+      internalID: -8608143164773002237
       vertices: []
       indices: 
       edges: []
@@ -157,10 +178,10 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 82c525073a41e53469b935dc92054bd3
-      internalID: -1273998644
+      spriteID: 0cbb2bbee564ada80800000000000000
+      internalID: -8441357178057344064
       vertices: []
       indices: 
       edges: []
@@ -179,10 +200,10 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: a9aa5ea502cb442498c2214395431309
-      internalID: 613610814
+      spriteID: becb9579d475ac690800000000000000
+      internalID: -7581151031961469717
       vertices: []
       indices: 
       edges: []
@@ -201,10 +222,10 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: e6976a573515e354ba5d8ff6411282f6
-      internalID: 709827126
+      spriteID: 65a3b9f5ce9f52700800000000000000
+      internalID: 515092526015396438
       vertices: []
       indices: 
       edges: []
@@ -223,10 +244,10 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 51523db889d186d489848112e37c741e
-      internalID: 1079501111
+      spriteID: 3b055f3dec8741fd0800000000000000
+      internalID: -2372138274002743117
       vertices: []
       indices: 
       edges: []
@@ -245,10 +266,10 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 0d27f68ce6d552d4aaa9c3502385210c
-      internalID: -1324787218
+      spriteID: 834475e1022b40b10800000000000000
+      internalID: 1946876789948630072
       vertices: []
       indices: 
       edges: []
@@ -267,10 +288,10 @@ TextureImporter:
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: 0
+      tessellationDetail: -1
       bones: []
-      spriteID: 288ab566765e0164daa5d360238da2ae
-      internalID: 1621172310
+      spriteID: 92c1bdcd644d4b6b0800000000000000
+      internalID: -5281363062180602839
       vertices: []
       indices: 
       edges: []
@@ -279,7 +300,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 93537125ee872674d90f7a927da57c9c
+    spriteID: ab8463810b134664b8f479ff157c25c1
     internalID: 0
     vertices: []
     indices: 
@@ -292,13 +313,13 @@ TextureImporter:
         value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":16.0,"y":16.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":1,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
       player_walk_nohand_0: -292953662381716620
-      player_walk_nohand_1: 906296906
-      player_walk_nohand_2: -1273998644
-      player_walk_nohand_3: 613610814
-      player_walk_nohand_4: 709827126
-      player_walk_nohand_5: 1079501111
-      player_walk_nohand_6: -1324787218
-      player_walk_nohand_7: 1621172310
+      player_walk_nohand_1: -8608143164773002237
+      player_walk_nohand_2: -8441357178057344064
+      player_walk_nohand_3: -7581151031961469717
+      player_walk_nohand_4: 515092526015396438
+      player_walk_nohand_5: -2372138274002743117
+      player_walk_nohand_6: 1946876789948630072
+      player_walk_nohand_7: -5281363062180602839
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
