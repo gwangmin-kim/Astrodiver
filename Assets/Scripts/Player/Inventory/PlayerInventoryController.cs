@@ -19,19 +19,18 @@ namespace Astrodiver.Player.Inventory
         private InventoryData _inventory;
         private InventoryData _resourceChest;
         private GameDataManager _gameDataManager;
-        private CreatureInventorySlot[] _creatureSlots = Array.Empty<CreatureInventorySlot>();
-        private InventoryData _sessionStartSnapshot;
-        private bool _sessionStartWasDirty;
-        private bool _isExploreSessionActive;
+        private readonly CreatureInventory _creatures = new();
+        private ExplorationInventorySession _explorationSession;
+        private bool IsExploreSessionActive => _explorationSession?.IsActive == true;
         private bool _hasPendingChestResourcePopupRequest;
 
         public event Action Changed; // 자원 변경이 일어났을 때 호출
         public event Action ChestResourcesChanged;
 
         public IReadOnlyList<CreatureInventorySlot> CreatureSlots =>
-            _creatureSlots;
+            _creatures.Slots;
 
-        public int CreatureSlotCapacity => _creatureSlots.Length;
+        public int CreatureSlotCapacity => _creatures.Capacity;
         public int CreatureMaxStackCount =>
             _gameDataManager?.RuntimeData?.Inventory?.CreatureMaxStackCount ?? 10;
         public bool IsInitialized { get; private set; }
@@ -49,7 +48,7 @@ namespace Astrodiver.Player.Inventory
             IsResourceChestUnlocked ? _resourceChest : _inventory;
 
         private InventoryData ResourceCollectionInventory =>
-            IsResourceChestUnlocked && !_isExploreSessionActive
+            IsResourceChestUnlocked && !IsExploreSessionActive
                 ? _resourceChest
                 : _inventory;
 
@@ -71,6 +70,13 @@ namespace Astrodiver.Player.Inventory
                 return;
             }
 
+            _explorationSession = new ExplorationInventorySession(
+                new GameDataExplorationInventorySave(_gameDataManager),
+                _creatures,
+                data => InitializeCreatureSlots(
+                    _gameDataManager.RuntimeData?.Inventory.CreatureSlotCapacity ?? 1,
+                    data.Creatures));
+
             _gameDataManager.DataChanged += OnGameDataChanged;
             _gameDataManager.RuntimeDataChanged += OnRuntimeDataChanged;
             if (_gameDataManager.IsInitialized)
@@ -90,7 +96,7 @@ namespace Astrodiver.Player.Inventory
             {
                 _gameDataManager.DataChanged -= OnGameDataChanged;
                 _gameDataManager.RuntimeDataChanged -= OnRuntimeDataChanged;
-                if (_isExploreSessionActive)
+                if (IsExploreSessionActive)
                 {
                     _gameDataManager.EndSaveSuspension();
                 }
@@ -110,28 +116,14 @@ namespace Astrodiver.Player.Inventory
                 return false;
             }
 
-            CreatureInventorySlot[] slots = _creatureSlots;
-            int targetIndex = FindCreatureSlot(
-                slots,
-                creature.Id,
-                CreatureMaxStackCount);
-            if (targetIndex < 0)
+            if (!_creatures.CanAdd(creature.Id, CreatureMaxStackCount))
             {
                 Debug.Log("Inventory: Cannot Find Available Slot.", this);
                 return false;
             }
-
             InventoryData snapshot = CreateHubRollbackSnapshot(_inventory);
             bool wasDirty = GameDataManager.Instance.HasUnsavedChanges;
-            CreatureInventorySlot slot = slots[targetIndex];
-            if (slot == null)
-            {
-                slot = new CreatureInventorySlot();
-                slots[targetIndex] = slot;
-            }
-
-            int nextCount = slot.IsEmpty ? 1 : slot.Count + 1;
-            slot.Set(creature.Id, nextCount);
+            _creatures.TryAdd(creature.Id, CreatureMaxStackCount);
             SyncCreatureSaveData();
 
             if (!CompleteInventoryMutation(_inventory, snapshot, wasDirty))
@@ -155,28 +147,12 @@ namespace Astrodiver.Player.Inventory
                 return 0;
             }
 
-            string creatureId = creature.Id.Trim();
-            int total = 0;
-            IReadOnlyList<CreatureInventorySlot> slots = _creatureSlots;
-            for (int i = 0; i < slots.Count; i++)
-            {
-                CreatureInventorySlot slot = slots[i];
-                if (slot == null || !slot.Matches(creatureId))
-                {
-                    continue;
-                }
-
-                total = total > int.MaxValue - slot.Count
-                    ? int.MaxValue
-                    : total + slot.Count;
-            }
-
-            return total;
+            return _creatures.GetCount(creature.Id.Trim());
         }
 
         public int TakeCreature(CreatureDefinition creature, int requestedAmount)
         {
-            if (_inventory == null || _isExploreSessionActive ||
+            if (_inventory == null || IsExploreSessionActive ||
                 creature == null || string.IsNullOrWhiteSpace(creature.Id) ||
                 requestedAmount <= 0)
             {
@@ -202,24 +178,7 @@ namespace Astrodiver.Player.Inventory
         internal bool TryPeekLeftmostCreatureForWorktable(out string creatureId)
         {
             creatureId = null;
-            if (_inventory == null || _isExploreSessionActive)
-            {
-                return false;
-            }
-
-            for (int i = 0; i < _creatureSlots.Length; i++)
-            {
-                CreatureInventorySlot slot = _creatureSlots[i];
-                if (slot == null || slot.IsEmpty)
-                {
-                    continue;
-                }
-
-                creatureId = slot.DefinitionId;
-                return true;
-            }
-
-            return false;
+            return _inventory != null && !IsExploreSessionActive && _creatures.TryPeekFirst(out creatureId);
         }
 
         internal InventoryData CreateWorktableTransferSnapshot()
@@ -229,30 +188,12 @@ namespace Astrodiver.Player.Inventory
 
         internal bool TryRemoveLeftmostCreatureForWorktable(string expectedCreatureId)
         {
-            if (!TryPeekLeftmostCreatureForWorktable(out string creatureId) ||
-                !string.Equals(
-                    creatureId,
-                    expectedCreatureId,
-                    StringComparison.Ordinal))
+            if (_inventory == null || IsExploreSessionActive || !_creatures.TryRemoveFirst(expectedCreatureId))
             {
                 return false;
             }
-
-            for (int i = 0; i < _creatureSlots.Length; i++)
-            {
-                CreatureInventorySlot slot = _creatureSlots[i];
-                if (slot == null || slot.IsEmpty)
-                {
-                    continue;
-                }
-
-                slot.Set(slot.DefinitionId, slot.Count - 1);
-                CompactCreatureSlots(i);
-                SyncCreatureSaveData();
-                return true;
-            }
-
-            return false;
+            SyncCreatureSaveData();
+            return true;
         }
 
         internal void RestoreWorktableTransferSnapshot(InventoryData snapshot)
@@ -359,7 +300,7 @@ namespace Astrodiver.Player.Inventory
         /// </summary>
         public bool TrySpendResource(ResourceDefinition resource, int amount)
         {
-            if (_inventory == null || _isExploreSessionActive ||
+            if (_inventory == null || IsExploreSessionActive ||
                 resource == null || amount <= 0)
             {
                 return false;
@@ -382,7 +323,7 @@ namespace Astrodiver.Player.Inventory
         /// </summary>
         public bool TrySpendResources(IReadOnlyList<UpgradeResourceCost> costs)
         {
-            if (_inventory == null || _isExploreSessionActive)
+            if (_inventory == null || IsExploreSessionActive)
             {
                 return false;
             }
@@ -400,7 +341,7 @@ namespace Astrodiver.Player.Inventory
 
         internal bool TrySpendResourcesForTransaction(IReadOnlyList<UpgradeResourceCost> costs)
         {
-            if (_inventory == null || _isExploreSessionActive || !CanAfford(costs))
+            if (_inventory == null || IsExploreSessionActive || !CanAfford(costs))
             {
                 return false;
             }
@@ -432,41 +373,17 @@ namespace Astrodiver.Player.Inventory
                 Debug.LogError("Cannot start exploration before inventory data is initialized.", this);
                 return false;
             }
-
-            if (_isExploreSessionActive)
+            if (IsExploreSessionActive)
             {
                 Debug.LogWarning("An exploration session is already active.", this);
                 return false;
             }
-
-            GameDataManager manager = GameDataManager.Instance;
-            InventoryData playerBeforeDeposit = _inventory.Clone();
-            InventoryData chestBeforeDeposit = _resourceChest.Clone();
-            bool wasDirtyBeforeDeposit = manager.HasUnsavedChanges;
-            bool depositedResources = DepositCarriedResourcesToChest();
-            if (depositedResources)
+            if (!_explorationSession.Begin(_inventory, _resourceChest, IsResourceChestUnlocked,
+                    out bool depositedResources, out string error))
             {
-                manager.MarkDirty();
-            }
-
-            if (manager.HasUnsavedChanges && !manager.SaveNow())
-            {
-                _inventory.CopyFrom(playerBeforeDeposit);
-                _resourceChest.CopyFrom(chestBeforeDeposit);
-                manager.RestoreDirtyState(wasDirtyBeforeDeposit);
-                Debug.LogError("Cannot start exploration with unsaved hub data.", this);
+                Debug.LogError(error, this);
                 return false;
             }
-
-            if (!manager.BeginSaveSuspension())
-            {
-                Debug.LogError("Cannot suspend saving for the exploration session.", this);
-                return false;
-            }
-
-            _sessionStartSnapshot = _inventory.Clone();
-            _sessionStartWasDirty = manager.HasUnsavedChanges;
-            _isExploreSessionActive = true;
             if (depositedResources)
             {
                 NotifyChestResourcesChanged();
@@ -476,32 +393,16 @@ namespace Astrodiver.Player.Inventory
 
         public bool CompleteExploreSession(float lossRatio)
         {
-            if (!_isExploreSessionActive)
+            if (!IsExploreSessionActive)
             {
                 Debug.LogWarning("Cannot complete exploration because no session is active.", this);
                 return false;
             }
-
-            GameDataManager manager = GameDataManager.Instance;
-            InventoryData runtimeBeforePenalty = _inventory.Clone();
-            InventoryData chestBeforeDeposit = _resourceChest.Clone();
-            bool wasDirty = manager.HasUnsavedChanges;
-            ApplySessionLoss(lossRatio);
-            bool depositedResources = DepositCarriedResourcesToChest();
-            manager.MarkDirty();
-
-            if (!manager.SaveExplorationResult())
+            if (!_explorationSession.Complete(lossRatio, IsResourceChestUnlocked,
+                    out bool depositedResources))
             {
-                _inventory.CopyFrom(runtimeBeforePenalty);
-                _resourceChest.CopyFrom(chestBeforeDeposit);
-                InitializeCreatureSlots(
-                    manager.RuntimeData?.Inventory.CreatureSlotCapacity ?? 1,
-                    _inventory.Creatures);
-                manager.RestoreDirtyState(wasDirty);
                 return false;
             }
-
-            ClearSessionState();
             Changed?.Invoke();
             if (depositedResources)
             {
@@ -512,18 +413,10 @@ namespace Astrodiver.Player.Inventory
 
         public void CancelExploreSession()
         {
-            if (!_isExploreSessionActive)
+            if (_explorationSession != null && _explorationSession.Cancel())
             {
-                return;
+                Changed?.Invoke();
             }
-
-            _inventory.CopyFrom(_sessionStartSnapshot);
-            InitializeCreatureSlots(
-                GameDataManager.Instance.RuntimeData?.Inventory.CreatureSlotCapacity ?? 1,
-                _inventory.Creatures);
-            GameDataManager.Instance.RestoreDirtyState(_sessionStartWasDirty);
-            ClearSessionState();
-            Changed?.Invoke();
         }
 
         public bool TryResolveCreatureDefinition(
@@ -544,85 +437,14 @@ namespace Astrodiver.Player.Inventory
                 GameDataManager.Instance.Definitions.TryGetResource(entry.DefinitionId, out definition);
         }
 
-        private static int FindCreatureSlot(
-            IReadOnlyList<CreatureInventorySlot> slots,
-            string creatureId,
-            int maxStackCount)
-        {
-            // 일치하면서 자리가 남는 슬롯이 있는지 검사
-            for (int i = 0; i < slots.Count; i++)
-            {
-                CreatureInventorySlot slot = slots[i];
-                if (slot != null && slot.Matches(creatureId) &&
-                    slot.Count < maxStackCount)
-                {
-                    return i;
-                }
-            }
-
-            // 빈 슬롯이 있는지 검사
-            for (int i = 0; i < slots.Count; i++)
-            {
-                if (slots[i] == null || slots[i].IsEmpty)
-                {
-                    return i;
-                }
-            }
-
-            return -1;
-        }
-
         private int TakeCreatureInternal(string creatureId, int requestedAmount)
         {
-            CreatureInventorySlot[] slots = _creatureSlots;
-            int remainingAmount = requestedAmount;
-
-            for (int i = slots.Length - 1; i >= 0 && remainingAmount > 0; i--)
-            {
-                CreatureInventorySlot slot = slots[i];
-                if (slot == null || !slot.Matches(creatureId))
-                {
-                    continue;
-                }
-
-                int takenFromSlot = Mathf.Min(slot.Count, remainingAmount);
-                slot.Set(creatureId, slot.Count - takenFromSlot);
-                remainingAmount -= takenFromSlot;
-            }
-
-            int takenAmount = requestedAmount - remainingAmount;
-            if (takenAmount > 0)
+            int taken = _creatures.Take(creatureId, requestedAmount);
+            if (taken > 0)
             {
                 SyncCreatureSaveData();
             }
-
-            return takenAmount;
-        }
-
-        private void CompactCreatureSlots(int startIndex)
-        {
-            int writeIndex = Mathf.Clamp(startIndex, 0, _creatureSlots.Length);
-            for (int readIndex = writeIndex; readIndex < _creatureSlots.Length; readIndex++)
-            {
-                CreatureInventorySlot source = _creatureSlots[readIndex];
-                if (source == null || source.IsEmpty)
-                {
-                    continue;
-                }
-
-                if (writeIndex != readIndex)
-                {
-                    _creatureSlots[writeIndex].Set(source.DefinitionId, source.Count);
-                    source.Clear();
-                }
-
-                writeIndex++;
-            }
-
-            for (int i = writeIndex; i < _creatureSlots.Length; i++)
-            {
-                _creatureSlots[i]?.Clear();
-            }
+            return taken;
         }
 
         private bool TryAggregateCosts(IReadOnlyList<UpgradeResourceCost> costs)
@@ -662,7 +484,7 @@ namespace Astrodiver.Player.Inventory
         /// </summary>
         private InventoryData CreateHubRollbackSnapshot(InventoryData inventory)
         {
-            return _isExploreSessionActive ? null : inventory.Clone();
+            return IsExploreSessionActive ? null : inventory.Clone();
         }
 
         private bool CompleteInventoryMutation(
@@ -673,7 +495,7 @@ namespace Astrodiver.Player.Inventory
             GameDataManager manager = GameDataManager.Instance;
             manager.MarkDirty();
 
-            if (!_isExploreSessionActive && !manager.SaveNow())
+            if (!IsExploreSessionActive && !manager.SaveNow())
             {
                 mutatedInventory.CopyFrom(hubSnapshot);
                 InitializeCreatureSlots(
@@ -692,7 +514,7 @@ namespace Astrodiver.Player.Inventory
             InventoryData snapshot,
             bool wasDirty)
         {
-            if (_isExploreSessionActive)
+            if (IsExploreSessionActive)
             {
                 return false;
             }
@@ -717,58 +539,6 @@ namespace Astrodiver.Player.Inventory
             return false;
         }
 
-        private void ApplySessionLoss(float lossRatio)
-        {
-            float clampedLossRatio = Mathf.Clamp01(lossRatio);
-            if (clampedLossRatio <= 0f)
-            {
-                return;
-            }
-
-            CreatureInventorySlot[] slots = _creatureSlots;
-            for (int i = 0; i < slots.Length; i++)
-            {
-                CreatureInventorySlot slot = slots[i];
-                if (slot == null || slot.IsEmpty)
-                {
-                    continue;
-                }
-
-                int lostAmount = Mathf.CeilToInt(slot.Count * clampedLossRatio);
-                slot.Set(slot.DefinitionId, slot.Count - lostAmount);
-            }
-            SyncCreatureSaveData();
-
-            List<ResourceInventoryEntry> resources = _inventory.MutableResourceAmounts;
-            for (int i = resources.Count - 1; i >= 0; i--)
-            {
-                ResourceInventoryEntry entry = resources[i];
-                if (entry == null || entry.IsEmpty)
-                {
-                    continue;
-                }
-
-                int lostAmount = Mathf.CeilToInt(entry.Amount * clampedLossRatio);
-                _inventory.SetResourceAmount(entry.DefinitionId, entry.Amount - lostAmount);
-            }
-        }
-
-        private void ClearSessionState()
-        {
-            _isExploreSessionActive = false;
-            _sessionStartSnapshot = null;
-            _sessionStartWasDirty = false;
-            GameDataManager.Instance.EndSaveSuspension();
-        }
-
-        private bool DepositCarriedResourcesToChest()
-        {
-            return IsResourceChestUnlocked &&
-                   _inventory != null &&
-                   _resourceChest != null &&
-                   _inventory.TransferAllResourcesTo(_resourceChest);
-        }
-
         private void NotifyChestResourcesChanged()
         {
             _hasPendingChestResourcePopupRequest = true;
@@ -786,7 +556,7 @@ namespace Astrodiver.Player.Inventory
             _resourceChest = data?.resourceChest;
             if (_inventory == null || _resourceChest == null)
             {
-                _creatureSlots = Array.Empty<CreatureInventorySlot>();
+                _creatures.Clear();
                 IsInitialized = false;
                 Changed?.Invoke();
                 return;
@@ -815,7 +585,7 @@ namespace Astrodiver.Player.Inventory
             int capacity,
             IReadOnlyList<CreatureInventoryEntry> savedEntries)
         {
-            _creatureSlots = CreateEmptySlots(capacity);
+            _creatures.Reset(capacity);
             if (savedEntries == null)
             {
                 return;
@@ -839,27 +609,13 @@ namespace Astrodiver.Player.Inventory
                     continue;
                 }
 
-                int remaining = entry.Count;
-                for (int slotIndex = 0;
-                     slotIndex < _creatureSlots.Length && remaining > 0;
-                     slotIndex++)
-                {
-                    CreatureInventorySlot slot = _creatureSlots[slotIndex];
-                    if (!slot.IsEmpty)
-                    {
-                        continue;
-                    }
-
-                    int stackCount = Mathf.Min(remaining, CreatureMaxStackCount);
-                    slot.Set(definition.Id, stackCount);
-                    remaining -= stackCount;
-                }
+                int remaining = _creatures.RestoreEntry(definition.Id, entry.Count, CreatureMaxStackCount);
 
                 if (remaining > 0)
                 {
                     Debug.LogWarning(
                         $"Inventory: {remaining} of creature '{entry.DefinitionId}' exceeded the " +
-                        $"runtime capacity of {_creatureSlots.Length} slots and was not loaded.",
+                        $"runtime capacity of {_creatures.Capacity} slots and was not loaded.",
                         this);
                 }
             }
@@ -868,16 +624,16 @@ namespace Astrodiver.Player.Inventory
         private void ResizeCreatureSlots(int capacity)
         {
             int normalizedCapacity = Mathf.Max(1, capacity);
-            if (_creatureSlots.Length == normalizedCapacity)
+            if (_creatures.Capacity == normalizedCapacity)
             {
                 return;
             }
 
-            if (normalizedCapacity < _creatureSlots.Length)
+            if (normalizedCapacity < _creatures.Capacity)
             {
-                for (int i = normalizedCapacity; i < _creatureSlots.Length; i++)
+                for (int i = normalizedCapacity; i < _creatures.Capacity; i++)
                 {
-                    CreatureInventorySlot slot = _creatureSlots[i];
+                    CreatureInventorySlot slot = _creatures.Slots[i];
                     if (slot != null && !slot.IsEmpty)
                     {
                         Debug.LogWarning(
@@ -888,30 +644,14 @@ namespace Astrodiver.Player.Inventory
                 }
             }
 
-            Array.Resize(ref _creatureSlots, normalizedCapacity);
-            for (int i = 0; i < _creatureSlots.Length; i++)
-            {
-                _creatureSlots[i] ??= new CreatureInventorySlot();
-            }
+            _creatures.Resize(normalizedCapacity);
 
             SyncCreatureSaveData();
         }
 
         private void SyncCreatureSaveData()
         {
-            _inventory?.SetCreatures(_creatureSlots);
-        }
-
-        private static CreatureInventorySlot[] CreateEmptySlots(int capacity)
-        {
-            CreatureInventorySlot[] slots =
-                new CreatureInventorySlot[Mathf.Max(1, capacity)];
-            for (int i = 0; i < slots.Length; i++)
-            {
-                slots[i] = new CreatureInventorySlot();
-            }
-
-            return slots;
+            _inventory?.SetCreatures(_creatures.Slots);
         }
     }
 }
