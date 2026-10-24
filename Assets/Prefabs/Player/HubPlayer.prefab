@@ -226,19 +226,23 @@ MonoBehaviour:
   _inputHandler: {fileID: 1733661268314778264}
   _spriteRenderer: {fileID: 6622567161960103410}
   _outline: {fileID: 900000000000000004}
+  _rigidbody: {fileID: 7852614355243644505}
   _frames:
   - {fileID: -4011156695772592429, guid: 41e7fe10513fb0c4ca36968fb474d5a9, type: 3}
-  - {fileID: -1297828108, guid: 41e7fe10513fb0c4ca36968fb474d5a9, type: 3}
-  - {fileID: 1682594826, guid: 41e7fe10513fb0c4ca36968fb474d5a9, type: 3}
-  - {fileID: -1641673295, guid: 41e7fe10513fb0c4ca36968fb474d5a9, type: 3}
-  - {fileID: -2002766297, guid: 41e7fe10513fb0c4ca36968fb474d5a9, type: 3}
-  - {fileID: 625219091, guid: 41e7fe10513fb0c4ca36968fb474d5a9, type: 3}
-  - {fileID: -824258769, guid: 41e7fe10513fb0c4ca36968fb474d5a9, type: 3}
-  - {fileID: 51665654, guid: 41e7fe10513fb0c4ca36968fb474d5a9, type: 3}
-  _framesPerSecond: 6
-  _idleFrame: 6
+  - {fileID: 1845033623573024759, guid: 41e7fe10513fb0c4ca36968fb474d5a9, type: 3}
+  - {fileID: 8974724668737955745, guid: 41e7fe10513fb0c4ca36968fb474d5a9, type: 3}
+  - {fileID: -1730309353538335421, guid: 41e7fe10513fb0c4ca36968fb474d5a9, type: 3}
+  - {fileID: 5655113843551733533, guid: 41e7fe10513fb0c4ca36968fb474d5a9, type: 3}
+  - {fileID: -530996365917316113, guid: 41e7fe10513fb0c4ca36968fb474d5a9, type: 3}
+  - {fileID: -5617630236828921313, guid: 41e7fe10513fb0c4ca36968fb474d5a9, type: 3}
+  - {fileID: 2247692710846146279, guid: 41e7fe10513fb0c4ca36968fb474d5a9, type: 3}
+  _framesPerSecond: 4
+  _idleFrame: 3
+  _jumpFrame: 5
   _animateWhileThrusting: 0
   _inputThreshold: 0.1
+  _rotationAngle: 10
+  _groundNormalThreshold: 0.5
 --- !u!1 &2571804616391932232
 GameObject:
   m_ObjectHideFlags: 0
@@ -325,7 +329,7 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1.3333334, y: 1.3333334}
+  m_Size: {x: 0.16, y: 0.17}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1

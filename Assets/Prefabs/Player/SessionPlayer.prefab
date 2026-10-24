@@ -243,7 +243,7 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 0.375, y: 0.375}
+  m_Size: {x: 0.25, y: 0.25}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -556,19 +556,23 @@ MonoBehaviour:
   _inputHandler: {fileID: 2112401720433368642}
   _spriteRenderer: {fileID: 7631392804896647362}
   _outline: {fileID: 900000000000000004}
+  _rigidbody: {fileID: 2519992166632233461}
   _frames:
   - {fileID: -292953662381716620, guid: 7f70a046fbee95b47a0a31f25725f997, type: 3}
-  - {fileID: 906296906, guid: 7f70a046fbee95b47a0a31f25725f997, type: 3}
-  - {fileID: -1273998644, guid: 7f70a046fbee95b47a0a31f25725f997, type: 3}
-  - {fileID: 613610814, guid: 7f70a046fbee95b47a0a31f25725f997, type: 3}
-  - {fileID: 709827126, guid: 7f70a046fbee95b47a0a31f25725f997, type: 3}
-  - {fileID: 1079501111, guid: 7f70a046fbee95b47a0a31f25725f997, type: 3}
-  - {fileID: -1324787218, guid: 7f70a046fbee95b47a0a31f25725f997, type: 3}
-  - {fileID: 1621172310, guid: 7f70a046fbee95b47a0a31f25725f997, type: 3}
-  _framesPerSecond: 10
-  _idleFrame: 0
+  - {fileID: -8608143164773002237, guid: 7f70a046fbee95b47a0a31f25725f997, type: 3}
+  - {fileID: -8441357178057344064, guid: 7f70a046fbee95b47a0a31f25725f997, type: 3}
+  - {fileID: -7581151031961469717, guid: 7f70a046fbee95b47a0a31f25725f997, type: 3}
+  - {fileID: 515092526015396438, guid: 7f70a046fbee95b47a0a31f25725f997, type: 3}
+  - {fileID: -2372138274002743117, guid: 7f70a046fbee95b47a0a31f25725f997, type: 3}
+  - {fileID: 1946876789948630072, guid: 7f70a046fbee95b47a0a31f25725f997, type: 3}
+  - {fileID: -5281363062180602839, guid: 7f70a046fbee95b47a0a31f25725f997, type: 3}
+  _framesPerSecond: 4
+  _idleFrame: 3
+  _jumpFrame: 3
   _animateWhileThrusting: 1
   _inputThreshold: 0.1
+  _rotationAngle: 10
+  _groundNormalThreshold: 0.5
 --- !u!1001 &175290763017896208
 PrefabInstance:
   m_ObjectHideFlags: 0
