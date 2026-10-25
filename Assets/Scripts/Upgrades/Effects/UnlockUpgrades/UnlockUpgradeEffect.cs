@@ -1,12 +1,11 @@
 using Astrodiver.Equipment.NetGun;
 using Astrodiver.Persistence.GameData;
 using Astrodiver.Upgrades;
+using System;
+using UnityEngine;
 
 namespace Astrodiver.Upgrades.Effects.UnlockUpgrades
 {
-    using System;
-    using UnityEngine;
-
     [Serializable]
     [UnityEngine.Scripting.APIUpdating.MovedFrom(true, sourceNamespace: "", sourceAssembly: "Assembly-CSharp", sourceClassName: "UnlockUpgradeEffect")]
     public sealed class UnlockUpgradeEffect : UpgradeEffect

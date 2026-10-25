@@ -1,11 +1,10 @@
 using Astrodiver.Equipment.NetGun;
 using Astrodiver.Equipment.PlasmaGun;
 using Astrodiver.Player;
+using UnityEngine;
 
 namespace Astrodiver.Player.Actions
 {
-    using UnityEngine;
-
     public enum PlayerEquipmentType
     {
         NetGun,

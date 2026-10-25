@@ -1,7 +1,7 @@
+using UnityEngine;
+
 namespace Astrodiver.Equipment.NetGun
 {
-    using UnityEngine;
-
     /// <summary>
     /// Draws the ropes between a launched net and its firing point, and keeps the
     /// net's local down direction facing the firing point.

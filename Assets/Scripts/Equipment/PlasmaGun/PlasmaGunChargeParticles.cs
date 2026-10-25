@@ -1,7 +1,7 @@
+using UnityEngine;
+
 namespace Astrodiver.Equipment.PlasmaGun
 {
-    using UnityEngine;
-
     /// <summary>
     /// Pulls particles emitted around the plasma muzzle into its centre while the
     /// gun charges. All particle motion is in local space, so it follows the gun.

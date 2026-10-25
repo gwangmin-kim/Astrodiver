@@ -1,13 +1,12 @@
 using Astrodiver.Creatures;
 using Astrodiver.Definitions;
 using Astrodiver.Rendering;
+using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace Astrodiver.Stages
 {
-    using System;
-    using System.Collections.Generic;
-    using UnityEngine;
-
     [Serializable]
     public sealed class StagePopulationDefinition
     {

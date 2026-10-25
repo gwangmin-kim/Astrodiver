@@ -2,13 +2,12 @@ using Astrodiver.Definitions;
 using Astrodiver.Persistence;
 using Astrodiver.Player;
 using Astrodiver.Player.Inventory;
+using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace Astrodiver.ResourceFragments
 {
-    using System;
-    using System.Collections.Generic;
-    using UnityEngine;
-
     public sealed class FragmentParticleManager : MonoBehaviour
     {
         [Header("Particle System Setup")]

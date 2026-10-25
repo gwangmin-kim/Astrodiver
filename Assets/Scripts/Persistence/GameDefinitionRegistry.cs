@@ -1,13 +1,12 @@
 using Astrodiver.Definitions;
 using Astrodiver.Tutorials;
 using Astrodiver.Upgrades;
+using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace Astrodiver.Persistence
 {
-    using System;
-    using System.Collections.Generic;
-    using UnityEngine;
-
     public sealed class GameDefinitionRegistry
     {
         private readonly Dictionary<string, ResourceDefinition> _resources;

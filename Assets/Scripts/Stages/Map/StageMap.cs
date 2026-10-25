@@ -1,10 +1,10 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Tilemaps;
+
 namespace Astrodiver.Stages.Map
 {
-    using System;
-    using System.Collections.Generic;
-    using UnityEngine;
-    using UnityEngine.Tilemaps;
-
     [ExecuteAlways, DisallowMultipleComponent]
     public sealed class StageMap : MonoBehaviour
     {

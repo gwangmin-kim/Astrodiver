@@ -1,10 +1,9 @@
 using Astrodiver.UI;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace Astrodiver.UI.Upgrades
 {
-    using System.Collections.Generic;
-    using UnityEngine;
-
     [DefaultExecutionOrder(100)]
     [DisallowMultipleComponent]
     public sealed class UpgradeTreeNavigationUI : MonoBehaviour

@@ -1,12 +1,11 @@
 using Astrodiver.Definitions;
+using System;
+using System.Text.RegularExpressions;
+using UnityEditor;
+using UnityEngine;
 
 namespace Astrodiver.Editor
 {
-    using System;
-    using System.Text.RegularExpressions;
-    using UnityEditor;
-    using UnityEngine;
-
     [CreateAssetMenu(
         fileName = "GameDataSheet",
         menuName = "Astrodiver/Data/Game Data Sheet")]

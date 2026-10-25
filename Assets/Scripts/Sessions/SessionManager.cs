@@ -4,12 +4,11 @@ using Astrodiver.Player.Actions;
 using Astrodiver.Player.Inventory;
 using Astrodiver.SceneManagement;
 using Astrodiver.Stages;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace Astrodiver.Sessions
 {
-    using UnityEngine;
-    using UnityEngine.UI;
-
     [DefaultExecutionOrder(-1000)]
     public class SessionManager : MonoBehaviour
     {

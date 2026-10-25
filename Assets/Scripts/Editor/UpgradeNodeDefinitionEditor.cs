@@ -3,12 +3,11 @@ using Astrodiver.Upgrades.Effects.MiningTileUpgrades;
 using Astrodiver.Upgrades.Effects.NumericUpgrades;
 using Astrodiver.Upgrades.Effects.StageUpgrades;
 using Astrodiver.Upgrades.Effects.UnlockUpgrades;
+using UnityEditor;
+using UnityEngine;
 
 namespace Astrodiver.Editor
 {
-    using UnityEditor;
-    using UnityEngine;
-
     [CustomEditor(typeof(UpgradeNodeDefinition))]
     public sealed class UpgradeNodeDefinitionEditor : UnityEditor.Editor
     {

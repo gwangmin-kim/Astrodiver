@@ -1,8 +1,8 @@
+using System.Collections.Generic;
+using UnityEngine;
+
 namespace Astrodiver.Equipment.PlasmaGun
 {
-    using System.Collections.Generic;
-    using UnityEngine;
-
     /// <summary>
     /// Owns the pooled muzzle and impact particle effects for one gun.
     /// </summary>

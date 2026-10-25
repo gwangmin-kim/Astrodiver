@@ -2,12 +2,11 @@ using Astrodiver.Definitions;
 using Astrodiver.Persistence;
 using Astrodiver.Player.Inventory;
 using Astrodiver.UI.Inventory;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace Astrodiver.UI.Upgrades
 {
-    using System.Collections.Generic;
-    using UnityEngine;
-
     [DisallowMultipleComponent]
     public sealed class UpgradeResourceListUI : MonoBehaviour
     {

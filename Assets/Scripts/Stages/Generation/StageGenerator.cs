@@ -1,12 +1,11 @@
 using Astrodiver.Stages.Map;
 using Astrodiver.World;
+using System;
+using UnityEngine;
+using UnityEngine.Tilemaps;
 
 namespace Astrodiver.Stages.Generation
 {
-    using System;
-    using UnityEngine;
-    using UnityEngine.Tilemaps;
-
     [DefaultExecutionOrder(-1100)]
     [DisallowMultipleComponent]
     [RequireComponent(typeof(StageMap))]

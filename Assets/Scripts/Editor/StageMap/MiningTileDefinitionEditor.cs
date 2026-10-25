@@ -1,16 +1,15 @@
 using Astrodiver.Stages.Map;
+using System;
+using System.Linq;
+using System.Reflection;
+using UnityEditor;
+using UnityEditor.Tilemaps;
+using UnityEditor.UIElements;
+using UnityEngine;
+using UnityEngine.UIElements;
 
 namespace Astrodiver.Editor.StageMap
 {
-    using System;
-    using System.Linq;
-    using System.Reflection;
-    using UnityEditor;
-    using UnityEditor.Tilemaps;
-    using UnityEditor.UIElements;
-    using UnityEngine;
-    using UnityEngine.UIElements;
-
     [CustomEditor(typeof(MiningTileDefinition))]
     public sealed class MiningTileDefinitionEditor : AutoTileEditor
     {

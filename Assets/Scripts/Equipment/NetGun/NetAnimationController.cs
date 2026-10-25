@@ -1,8 +1,8 @@
+using UnityEngine;
+using PrimeTween;
+
 namespace Astrodiver.Equipment.NetGun
 {
-    using UnityEngine;
-    using PrimeTween;
-
     public class NetAnimationController : MonoBehaviour
     {
         [SerializeField] private Transform _netSprite;

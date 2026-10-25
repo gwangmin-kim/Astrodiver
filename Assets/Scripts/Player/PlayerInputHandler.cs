@@ -1,9 +1,9 @@
+using System;
+using UnityEngine;
+using UnityEngine.InputSystem;
+
 namespace Astrodiver.Player
 {
-    using System;
-    using UnityEngine;
-    using UnityEngine.InputSystem;
-
     public class PlayerInputHandler : MonoBehaviour
     {
         [Header("Input Action Settings")]

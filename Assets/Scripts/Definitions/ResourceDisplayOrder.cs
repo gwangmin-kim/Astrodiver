@@ -1,9 +1,8 @@
 using Astrodiver.Upgrades;
+using System;
 
 namespace Astrodiver.Definitions
 {
-    using System;
-
     public static class ResourceDisplayOrder
     {
         public static int Compare(

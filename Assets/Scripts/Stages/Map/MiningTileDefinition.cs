@@ -1,10 +1,9 @@
 using Astrodiver.Definitions;
+using UnityEngine;
+using UnityEngine.Tilemaps;
 
 namespace Astrodiver.Stages.Map
 {
-    using UnityEngine;
-    using UnityEngine.Tilemaps;
-
     [CreateAssetMenu(fileName = "MiningTileDefinition", menuName = "Astrodiver/Stage Map/Mining Definition")]
     public sealed class MiningTileDefinition : AutoTile
     {

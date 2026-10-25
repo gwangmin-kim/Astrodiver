@@ -1,9 +1,8 @@
 using Astrodiver.Upgrades;
+using System.Collections.Generic;
 
 namespace Astrodiver.UI.Upgrades
 {
-    using System.Collections.Generic;
-
     public sealed class UpgradeTooltipViewModel
     {
         public string DisplayName { get; set; }

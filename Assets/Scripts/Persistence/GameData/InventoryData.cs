@@ -1,12 +1,11 @@
 using Astrodiver.Player.Inventory;
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Astrodiver.Persistence.GameData
 {
-    using System;
-    using System.Collections.Generic;
-    using UnityEngine;
-    using UnityEngine.Serialization;
-
     [Serializable]
     public sealed class InventoryData
     {

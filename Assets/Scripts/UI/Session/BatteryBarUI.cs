@@ -1,12 +1,11 @@
 using Astrodiver.Player;
 using Astrodiver.Player.Actions;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace Astrodiver.UI.Session
 {
-    using TMPro;
-    using UnityEngine;
-    using UnityEngine.UI;
-
     [DisallowMultipleComponent]
     public sealed class BatteryBarUI : MonoBehaviour
     {

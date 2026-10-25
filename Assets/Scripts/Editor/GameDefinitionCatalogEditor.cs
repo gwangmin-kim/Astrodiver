@@ -2,14 +2,13 @@ using Astrodiver.Definitions;
 using Astrodiver.Stages.Map;
 using Astrodiver.Tutorials;
 using Astrodiver.Upgrades;
+using System;
+using System.Linq;
+using UnityEditor;
+using UnityEngine;
 
 namespace Astrodiver.Editor
 {
-    using System;
-    using System.Linq;
-    using UnityEditor;
-    using UnityEngine;
-
     [CustomEditor(typeof(GameDefinitionCatalog))]
     public sealed class GameDefinitionCatalogEditor : UnityEditor.Editor
     {

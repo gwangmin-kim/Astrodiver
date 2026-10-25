@@ -1,8 +1,8 @@
+using System;
+using UnityEngine;
+
 namespace Astrodiver.Rendering
 {
-    using System;
-    using UnityEngine;
-
     [CreateAssetMenu(
         fileName = "SpaceBackgroundProfile",
         menuName = "Astrodiver/Rendering/Space Background Profile")]

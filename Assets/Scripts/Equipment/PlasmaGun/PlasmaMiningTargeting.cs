@@ -1,10 +1,9 @@
 using Astrodiver.Stages.Map;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace Astrodiver.Equipment.PlasmaGun
 {
-    using System.Collections.Generic;
-    using UnityEngine;
-
     /// <summary>
     /// Tile-only targeting.
     /// Chain selection intentionally ignores occlusion.

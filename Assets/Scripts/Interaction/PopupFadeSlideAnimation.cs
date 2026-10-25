@@ -1,8 +1,8 @@
+using PrimeTween;
+using UnityEngine;
+
 namespace Astrodiver.Interaction
 {
-    using PrimeTween;
-    using UnityEngine;
-
     [DisallowMultipleComponent]
     [RequireComponent(typeof(CanvasGroup))]
     public sealed class PopupFadeSlideAnimation : MonoBehaviour

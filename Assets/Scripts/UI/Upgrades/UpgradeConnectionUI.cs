@@ -1,8 +1,8 @@
+using UnityEngine;
+using UnityEngine.UI;
+
 namespace Astrodiver.UI.Upgrades
 {
-    using UnityEngine;
-    using UnityEngine.UI;
-
     [DisallowMultipleComponent]
     public sealed class UpgradeConnectionUI : MonoBehaviour
     {

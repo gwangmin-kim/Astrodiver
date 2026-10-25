@@ -1,13 +1,12 @@
 using Astrodiver.UI.TutorialDocument;
 using Astrodiver.UI.Upgrades;
 using Astrodiver.Upgrades;
+using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace Astrodiver.UI.StageUnlockReport
 {
-    using System;
-    using System.Collections.Generic;
-    using UnityEngine;
-
     /// <summary>
     /// Controls the short stage-unlock report sequence independently from the
     /// whiteboard tutorial. Its pages are pre-authored prefabs; this class only

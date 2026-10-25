@@ -1,11 +1,10 @@
 using Astrodiver.Definitions;
+using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace Astrodiver.Upgrades
 {
-    using System;
-    using System.Collections.Generic;
-    using UnityEngine;
-
     [CreateAssetMenu(
         fileName = "UpgradeNodeDefinition",
         menuName = "Astrodiver/Upgrades/Upgrade Node Definition")]

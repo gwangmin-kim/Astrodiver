@@ -3,14 +3,13 @@ using Astrodiver.Definitions;
 using Astrodiver.Persistence;
 using Astrodiver.Player.Inventory;
 using Astrodiver.Stages;
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+using PrimeTween;
 
 namespace Astrodiver.Equipment.NetGun
 {
-    using System;
-    using System.Collections.Generic;
-    using UnityEngine;
-    using PrimeTween;
-
     public class NetGunController : MonoBehaviour
     {
         [Header("Required Components")]

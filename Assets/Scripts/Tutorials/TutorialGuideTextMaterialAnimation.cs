@@ -1,9 +1,9 @@
+using PrimeTween;
+using TMPro;
+using UnityEngine;
+
 namespace Astrodiver.Tutorials
 {
-    using PrimeTween;
-    using TMPro;
-    using UnityEngine;
-
     [DisallowMultipleComponent]
     public sealed class TutorialGuideTextMaterialAnimation : MonoBehaviour
     {

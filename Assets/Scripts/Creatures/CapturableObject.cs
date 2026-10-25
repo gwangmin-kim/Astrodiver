@@ -1,11 +1,10 @@
 using Astrodiver.Definitions;
 using Astrodiver.Equipment.NetGun;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace Astrodiver.Creatures
 {
-    using System.Collections.Generic;
-    using UnityEngine;
-
     /// <summary>
     /// Base component for objects that can be captured by a net.
     /// </summary>

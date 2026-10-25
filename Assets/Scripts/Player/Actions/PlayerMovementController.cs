@@ -1,11 +1,10 @@
 using Astrodiver.Persistence;
 using Astrodiver.Player;
 using Astrodiver.World;
+using UnityEngine;
 
 namespace Astrodiver.Player.Actions
 {
-    using UnityEngine;
-
     [RequireComponent(typeof(Rigidbody2D))]
     [RequireComponent(typeof(PlayerInputHandler))]
     public class PlayerMovementController : MonoBehaviour

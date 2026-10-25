@@ -1,12 +1,11 @@
 using Astrodiver.Persistence.GameData;
 using Astrodiver.Upgrades;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace Astrodiver.UI.Upgrades
 {
-    using TMPro;
-    using UnityEngine;
-    using UnityEngine.UI;
-
     [DisallowMultipleComponent]
     public sealed class UpgradeTooltipUI : MonoBehaviour
     {

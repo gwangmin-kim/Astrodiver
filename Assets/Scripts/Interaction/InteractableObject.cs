@@ -1,7 +1,7 @@
+using UnityEngine;
+
 namespace Astrodiver.Interaction
 {
-    using UnityEngine;
-
     /// <summary>
     /// Base component for world objects the player can interact with.
     /// </summary>

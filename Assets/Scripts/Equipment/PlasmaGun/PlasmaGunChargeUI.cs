@@ -1,8 +1,8 @@
+using UnityEngine;
+using UnityEngine.UI;
+
 namespace Astrodiver.Equipment.PlasmaGun
 {
-    using UnityEngine;
-    using UnityEngine.UI;
-
     [DisallowMultipleComponent]
     public sealed class PlasmaGunChargeUI : MonoBehaviour
     {

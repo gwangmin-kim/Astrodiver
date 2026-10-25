@@ -1,9 +1,8 @@
 using Astrodiver.Interaction;
+using UnityEngine;
 
 namespace Astrodiver.Player.Actions
 {
-    using UnityEngine;
-
     /// <summary>
     /// Mirrors PlayerInteractionController's selected target as an outline effect.
     /// </summary>

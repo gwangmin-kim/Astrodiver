@@ -1,7 +1,7 @@
+using UnityEngine;
+
 namespace Astrodiver.Interaction
 {
-    using UnityEngine;
-
     /// <summary>
     /// Controls the outline properties of its preconfigured SpriteRenderer instances
     /// without cloning their shared material.

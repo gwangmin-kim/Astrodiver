@@ -1,10 +1,9 @@
 using Astrodiver.Stages;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace Astrodiver.Persistence.GameData
 {
-    using System.Collections.Generic;
-    using UnityEngine;
-
     /// <summary>
     /// Holds additive respawn-probability bonuses for individual stages.
     /// This data is derived from purchased upgrades and is never saved directly.

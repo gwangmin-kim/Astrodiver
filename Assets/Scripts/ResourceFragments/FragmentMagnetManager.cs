@@ -1,11 +1,10 @@
 using Astrodiver.Definitions;
 using Astrodiver.Player.Inventory;
+using System;
+using UnityEngine;
 
 namespace Astrodiver.ResourceFragments
 {
-    using System;
-    using UnityEngine;
-
     public sealed class FragmentMagnetManager
     {
         private readonly MagnetData _magnetData;

@@ -1,14 +1,13 @@
 using Astrodiver.Persistence;
 using Astrodiver.Persistence.GameData;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Astrodiver.Tutorials
 {
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using UnityEngine;
-    using UnityEngine.SceneManagement;
-
     [DefaultExecutionOrder(-9000)]
     [DisallowMultipleComponent]
     public sealed class TutorialGuideSystem : MonoBehaviour

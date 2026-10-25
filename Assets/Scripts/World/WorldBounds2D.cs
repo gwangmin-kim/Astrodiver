@@ -1,7 +1,7 @@
+using UnityEngine;
+
 namespace Astrodiver.World
 {
-    using UnityEngine;
-
     [DisallowMultipleComponent]
     [RequireComponent(typeof(PolygonCollider2D))]
     public sealed class WorldBounds2D : MonoBehaviour

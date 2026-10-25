@@ -2,13 +2,12 @@ using Astrodiver.Stages.Map;
 using Astrodiver.Tutorials;
 using Astrodiver.Upgrades;
 using Astrodiver.Upgrades.Effects.MiningTileUpgrades;
+using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace Astrodiver.Definitions
 {
-    using System;
-    using System.Collections.Generic;
-    using UnityEngine;
-
     [CreateAssetMenu(
         fileName = "GameDefinitionCatalog",
         menuName = "Astrodiver/Data/Game Definition Catalog")]

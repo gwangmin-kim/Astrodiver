@@ -2,13 +2,12 @@ using Astrodiver.Definitions;
 using Astrodiver.Persistence;
 using Astrodiver.Persistence.GameData;
 using Astrodiver.Upgrades;
+using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace Astrodiver.Player.Inventory
 {
-    using System;
-    using System.Collections.Generic;
-    using UnityEngine;
-
     public sealed class PlayerInventoryController : MonoBehaviour
     {
         public static PlayerInventoryController Instance { get; private set; }

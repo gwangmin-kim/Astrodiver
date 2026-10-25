@@ -1,7 +1,7 @@
+using UnityEngine;
+
 namespace Astrodiver.Player
 {
-    using UnityEngine;
-
     /// <summary>
     /// Keeps an outline visible on the player sprites using the project's
     /// Sprite Lit 8-Direction Outline material.

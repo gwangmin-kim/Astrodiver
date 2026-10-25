@@ -1,7 +1,7 @@
+using UnityEngine;
+
 namespace Astrodiver.Definitions
 {
-    using UnityEngine;
-
     [CreateAssetMenu(fileName = "ResourceDefinition", menuName = "Astrodiver/Inventory/Resource Definition")]
     public sealed class ResourceDefinition : GameDefinition
     {

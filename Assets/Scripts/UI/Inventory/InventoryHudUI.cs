@@ -1,9 +1,8 @@
 using Astrodiver.Player.Inventory;
+using UnityEngine;
 
 namespace Astrodiver.UI.Inventory
 {
-    using UnityEngine;
-
     [DisallowMultipleComponent]
     public sealed class InventoryHudUI : MonoBehaviour
     {

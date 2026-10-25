@@ -1,7 +1,7 @@
+using UnityEngine;
+
 namespace Astrodiver.Persistence.GameData
 {
-    using UnityEngine;
-
     [System.Serializable]
     public sealed class InventoryRuntimeData
     {

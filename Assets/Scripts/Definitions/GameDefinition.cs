@@ -1,8 +1,8 @@
+using UnityEngine;
+using UnityEngine.Serialization;
+
 namespace Astrodiver.Definitions
 {
-    using UnityEngine;
-    using UnityEngine.Serialization;
-
     public abstract class GameDefinition : ScriptableObject
     {
         [SerializeField, HideInInspector]

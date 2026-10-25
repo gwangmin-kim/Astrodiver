@@ -3,15 +3,14 @@ using Astrodiver.Player;
 using Astrodiver.SceneManagement;
 using Astrodiver.UI;
 using Astrodiver.Upgrades;
+using System;
+using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace Astrodiver.UI.Stage
 {
-    using System;
-    using UnityEngine;
-    using UnityEngine.Events;
-    using UnityEngine.EventSystems;
-    using UnityEngine.UI;
-
     [DisallowMultipleComponent]
     public sealed class StageSelectionUI : MonoBehaviour
     {

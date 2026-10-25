@@ -1,8 +1,8 @@
+using System;
+using UnityEngine;
+
 namespace Astrodiver.Player.Inventory
 {
-    using System;
-    using UnityEngine;
-
     [Serializable]
     public sealed class CreatureInventorySlot
     {

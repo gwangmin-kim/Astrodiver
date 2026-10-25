@@ -1,9 +1,8 @@
 using Astrodiver.Persistence.GameData;
+using UnityEngine;
 
 namespace Astrodiver.Persistence
 {
-    using UnityEngine;
-
     [CreateAssetMenu(
         fileName = "GameDataDefaults",
         menuName = "Astrodiver/Save System/Game Data Defaults")]

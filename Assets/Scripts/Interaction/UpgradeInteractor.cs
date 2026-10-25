@@ -5,11 +5,10 @@ using Astrodiver.UI.Inventory;
 using Astrodiver.UI.StageUnlockReport;
 using Astrodiver.UI.TutorialDocument;
 using Astrodiver.UI.Upgrades;
+using UnityEngine;
 
 namespace Astrodiver.Interaction
 {
-    using UnityEngine;
-
     public sealed class UpgradeInteractor : InteractableObject
     {
         [Header("References")]

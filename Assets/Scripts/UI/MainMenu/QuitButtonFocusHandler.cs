@@ -1,9 +1,9 @@
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
+
 namespace Astrodiver.UI.MainMenu
 {
-    using UnityEngine;
-    using UnityEngine.EventSystems;
-    using UnityEngine.UI;
-
     [RequireComponent(typeof(Button))]
     public sealed class QuitButtonFocusHandler : MonoBehaviour, IPointerExitHandler, IDeselectHandler
     {

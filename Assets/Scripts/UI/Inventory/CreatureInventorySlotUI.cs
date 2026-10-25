@@ -1,12 +1,11 @@
 using Astrodiver.Definitions;
 using Astrodiver.Player.Inventory;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace Astrodiver.UI.Inventory
 {
-    using TMPro;
-    using UnityEngine;
-    using UnityEngine.UI;
-
     [DisallowMultipleComponent]
     public sealed class CreatureInventorySlotUI : MonoBehaviour
     {

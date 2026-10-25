@@ -1,12 +1,12 @@
+using System;
+using UnityEngine;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 namespace Astrodiver.SceneManagement
 {
-    using System;
-    using UnityEngine;
-
-    #if UNITY_EDITOR
-    using UnityEditor;
-    #endif
-
     [Serializable]
     public sealed class BuildSceneReference
     {

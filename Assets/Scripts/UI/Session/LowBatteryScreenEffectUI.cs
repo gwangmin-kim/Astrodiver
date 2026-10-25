@@ -1,11 +1,10 @@
 using Astrodiver.Player;
 using Astrodiver.Player.Actions;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace Astrodiver.UI.Session
 {
-    using UnityEngine;
-    using UnityEngine.UI;
-
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Image))]
     public sealed class LowBatteryScreenEffectUI : MonoBehaviour

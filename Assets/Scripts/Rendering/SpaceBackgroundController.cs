@@ -1,9 +1,8 @@
 using Astrodiver.Stages;
+using UnityEngine;
 
 namespace Astrodiver.Rendering
 {
-    using UnityEngine;
-
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Renderer))]
     public sealed class SpaceBackgroundController : MonoBehaviour

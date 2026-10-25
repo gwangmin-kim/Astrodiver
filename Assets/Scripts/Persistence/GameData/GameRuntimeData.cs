@@ -1,7 +1,7 @@
+using System;
+
 namespace Astrodiver.Persistence.GameData
 {
-    using System;
-
     /// <summary>
     /// 기본값과 저장된 진행 상태로부터 구축된 인게임 런타임 데이터의 루트입니다.
     /// </summary>

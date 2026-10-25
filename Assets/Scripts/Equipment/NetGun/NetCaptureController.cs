@@ -1,11 +1,10 @@
 using Astrodiver.Creatures;
+using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace Astrodiver.Equipment.NetGun
 {
-    using System;
-    using System.Collections.Generic;
-    using UnityEngine;
-
     [RequireComponent(typeof(Collider2D))]
     [RequireComponent(typeof(Rigidbody2D))]
     public sealed class NetCaptureController : MonoBehaviour

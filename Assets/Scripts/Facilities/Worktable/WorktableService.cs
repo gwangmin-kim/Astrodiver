@@ -2,13 +2,12 @@ using Astrodiver.Definitions;
 using Astrodiver.Persistence;
 using Astrodiver.Persistence.GameData;
 using Astrodiver.Player.Inventory;
+using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace Astrodiver.Facilities.Worktable
 {
-    using System;
-    using System.Collections.Generic;
-    using UnityEngine;
-
     [DefaultExecutionOrder(-9000)]
     [DisallowMultipleComponent]
     public sealed class WorktableService : MonoBehaviour

@@ -1,8 +1,8 @@
+using System.Collections.Generic;
+using UnityEngine;
+
 namespace Astrodiver.Equipment.NetGun
 {
-    using System.Collections.Generic;
-    using UnityEngine;
-
     public sealed class NetMovementManager
     {
         private readonly Dictionary<NetCaptureController, NetMovementState> _movementStates = new();

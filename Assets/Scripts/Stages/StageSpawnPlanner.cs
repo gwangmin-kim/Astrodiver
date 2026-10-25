@@ -1,8 +1,8 @@
+using System;
+using System.Collections.Generic;
+
 namespace Astrodiver.Stages
 {
-    using System;
-    using System.Collections.Generic;
-
     public static class StageSpawnPlanner
     {
         public static int SampleGuaranteedCount(

@@ -1,12 +1,11 @@
 using Astrodiver.Definitions;
 using Astrodiver.Persistence;
+using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace Astrodiver.Tutorials
 {
-    using System;
-    using System.Collections.Generic;
-    using UnityEngine;
-
     [CreateAssetMenu(
         fileName = "TutorialGuideDefinition",
         menuName = "Astrodiver/Tutorials/Tutorial Guide Definition")]

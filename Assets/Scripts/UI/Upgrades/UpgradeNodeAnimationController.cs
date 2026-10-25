@@ -1,11 +1,10 @@
 using Astrodiver.Upgrades;
+using PrimeTween;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace Astrodiver.UI.Upgrades
 {
-    using PrimeTween;
-    using UnityEngine;
-    using UnityEngine.UI;
-
     /// <summary>
     /// Owns presentation-only motion for an <see cref="UpgradeNodeUI"/>.
     /// Attach this component to an upgrade node (or its visual child) and keep

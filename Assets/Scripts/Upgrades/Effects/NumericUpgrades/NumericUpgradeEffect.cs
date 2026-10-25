@@ -4,12 +4,11 @@ using Astrodiver.Persistence.GameData;
 using Astrodiver.Player.Actions;
 using Astrodiver.ResourceFragments;
 using Astrodiver.Upgrades;
+using System;
+using UnityEngine;
 
 namespace Astrodiver.Upgrades.Effects.NumericUpgrades
 {
-    using System;
-    using UnityEngine;
-
     public enum NumericUpgradeOperation
     {
         Add = 0,

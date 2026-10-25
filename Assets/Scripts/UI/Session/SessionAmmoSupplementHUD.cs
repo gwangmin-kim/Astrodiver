@@ -2,13 +2,12 @@ using Astrodiver.Equipment.NetGun;
 using Astrodiver.Equipment.PlasmaGun;
 using Astrodiver.Player;
 using Astrodiver.Player.Actions;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace Astrodiver.UI.Session
 {
-    using System.Collections.Generic;
-    using UnityEngine;
-    using UnityEngine.UI;
-
     [DisallowMultipleComponent]
     public sealed class SessionAmmoSupplementHUD : MonoBehaviour
     {

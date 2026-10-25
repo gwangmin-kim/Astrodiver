@@ -1,9 +1,9 @@
+using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
+
 namespace Astrodiver.Rendering
 {
-    using UnityEngine;
-    using UnityEngine.Rendering;
-    using UnityEngine.Rendering.Universal;
-
     /// <summary>
     /// Installs the shared HDR glow profile once for the entire game session and
     /// enables URP post processing on every camera that renders during the session.

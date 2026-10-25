@@ -1,11 +1,10 @@
 using Astrodiver.UI;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace Astrodiver.UI.Stage
 {
-    using System.Collections.Generic;
-    using UnityEngine;
-    using UnityEngine.UI;
-
     [DefaultExecutionOrder(100)]
     [DisallowMultipleComponent]
     public sealed class StageMapNavigationUI : MonoBehaviour

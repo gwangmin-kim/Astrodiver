@@ -1,10 +1,9 @@
 using Astrodiver.Player;
+using System;
+using UnityEngine;
 
 namespace Astrodiver.Creatures
 {
-    using System;
-    using UnityEngine;
-
     public enum CreatureFacingDirection
     {
         Left = -1,

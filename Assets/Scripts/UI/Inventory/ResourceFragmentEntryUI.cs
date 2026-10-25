@@ -1,11 +1,10 @@
 using Astrodiver.Definitions;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace Astrodiver.UI.Inventory
 {
-    using TMPro;
-    using UnityEngine;
-    using UnityEngine.UI;
-
     [DisallowMultipleComponent]
     public sealed class ResourceFragmentEntryUI : MonoBehaviour
     {

@@ -1,8 +1,8 @@
+using System;
+using UnityEngine;
+
 namespace Astrodiver.Creatures
 {
-    using System;
-    using UnityEngine;
-
     /// <summary>
     /// Base state machine for a creature. Derived brains decide when to transition states.
     /// </summary>

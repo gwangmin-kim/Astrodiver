@@ -1,7 +1,7 @@
+using UnityEngine;
+
 namespace Astrodiver.Stages
 {
-    using UnityEngine;
-
     [System.Serializable]
     public sealed class StageSpawnEntry
     {
