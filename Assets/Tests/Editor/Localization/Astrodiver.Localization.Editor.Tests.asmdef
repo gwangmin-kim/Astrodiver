@@ -1,0 +1,6 @@
+{
+  "name": "Astrodiver.Localization.Editor.Tests",
+  "references": ["Astrodiver.Localization.Editor", "Unity.Localization", "Unity.Localization.Editor", "Unity.TextMeshPro", "Unity.Addressables.Editor"],
+  "includePlatforms": ["Editor"],
+  "optionalUnityReferences": ["TestAssemblies"]
+}
