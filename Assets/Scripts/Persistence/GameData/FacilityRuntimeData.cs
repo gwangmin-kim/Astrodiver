@@ -1,8 +1,8 @@
+using System;
+using UnityEngine;
+
 namespace Astrodiver.Persistence.GameData
 {
-    using System;
-    using UnityEngine;
-
     [Serializable]
     public sealed class FacilityRuntimeData
     {

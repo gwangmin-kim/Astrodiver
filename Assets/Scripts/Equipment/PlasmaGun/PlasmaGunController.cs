@@ -1,11 +1,10 @@
 using Astrodiver.Persistence;
+using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace Astrodiver.Equipment.PlasmaGun
 {
-    using System;
-    using System.Collections.Generic;
-    using UnityEngine;
-
     public class PlasmaGunController : MonoBehaviour
     {
         private PlasmaGunData _data;

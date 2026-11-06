@@ -1,12 +1,11 @@
 using Astrodiver.Persistence.GameData;
 using Astrodiver.Stages;
 using Astrodiver.Upgrades;
+using System;
+using UnityEngine;
 
 namespace Astrodiver.Upgrades.Effects.StageUpgrades
 {
-    using System;
-    using UnityEngine;
-
     [Serializable]
     [UnityEngine.Scripting.APIUpdating.MovedFrom(true, sourceNamespace: "", sourceAssembly: "Assembly-CSharp", sourceClassName: "StageRespawnProbabilityBonusUpgradeEffect")]
     public sealed class StageRespawnProbabilityBonusUpgradeEffect : UpgradeEffect

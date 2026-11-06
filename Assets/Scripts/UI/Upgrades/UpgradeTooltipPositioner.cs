@@ -1,7 +1,7 @@
+using UnityEngine;
+
 namespace Astrodiver.UI.Upgrades
 {
-    using UnityEngine;
-
     [DisallowMultipleComponent]
     public sealed class UpgradeTooltipPositioner : MonoBehaviour
     {

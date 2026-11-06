@@ -1,11 +1,10 @@
 using Astrodiver.Definitions;
+using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace Astrodiver.Facilities.Worktable
 {
-    using System;
-    using System.Collections.Generic;
-    using UnityEngine;
-
     [Serializable]
     public sealed class WorktableRecipe
     {

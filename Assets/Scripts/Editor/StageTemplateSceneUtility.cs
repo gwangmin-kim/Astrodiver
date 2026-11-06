@@ -1,10 +1,10 @@
+using System.IO;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+
 namespace Astrodiver.Editor
 {
-    using System.IO;
-    using UnityEditor;
-    using UnityEditor.SceneManagement;
-    using UnityEngine;
-
     public static class StageTemplateSceneUtility
     {
         private const string TemplateScenePath = "Assets/Scenes/Templates/EmptyStageTemplate.unity";

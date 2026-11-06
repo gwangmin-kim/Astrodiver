@@ -3,11 +3,10 @@ using Astrodiver.SceneManagement;
 using Astrodiver.Sessions;
 using Astrodiver.UI.Stage;
 using Astrodiver.Upgrades;
+using UnityEngine;
 
 namespace Astrodiver.Interaction
 {
-    using UnityEngine;
-
     [RequireComponent(typeof(Collider2D))]
     public class SceneGate : InteractableObject
     {

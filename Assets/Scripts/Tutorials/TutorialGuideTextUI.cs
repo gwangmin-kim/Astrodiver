@@ -1,11 +1,11 @@
+using System.Collections;
+using PrimeTween;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
 namespace Astrodiver.Tutorials
 {
-    using System.Collections;
-    using PrimeTween;
-    using TMPro;
-    using UnityEngine;
-    using UnityEngine.UI;
-
     [DisallowMultipleComponent]
     public sealed class TutorialGuideTextUI : MonoBehaviour
     {

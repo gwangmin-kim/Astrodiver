@@ -1,9 +1,9 @@
+using System;
+using UnityEngine;
+using UnityEngine.Events;
+
 namespace Astrodiver.SceneManagement
 {
-    using System;
-    using UnityEngine;
-    using UnityEngine.Events;
-
     public class TransitionSequence : MonoBehaviour
     {
         [SerializeField] private UnityEvent _transitionStarted;

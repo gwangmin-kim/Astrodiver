@@ -1,16 +1,15 @@
 using Astrodiver.Definitions;
 using Astrodiver.Stages;
 using Astrodiver.Upgrades;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using UnityEditor;
+using UnityEngine;
 
 namespace Astrodiver.Editor
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Linq;
-    using UnityEditor;
-    using UnityEngine;
-
     public sealed class GameDataWorkspaceWindow : EditorWindow
     {
         private const string MenuPath = "Astrodiver/Data/Game Data Workspace";
@@ -30,7 +29,7 @@ namespace Astrodiver.Editor
         private GameDefinition _pendingDraggedEntry;
         private GameDefinition _pendingDropTarget;
         private bool _pendingDropAfter;
-        private Editor _selectedEditor;
+        private UnityEditor.Editor _selectedEditor;
         private Vector2 _dragStartPosition;
         private Vector2 _sheetScroll;
         private Vector2 _entryScroll;
@@ -453,7 +452,7 @@ namespace Astrodiver.Editor
             EditorGUILayout.Space();
 
             _detailScroll = EditorGUILayout.BeginScrollView(_detailScroll);
-            Editor.CreateCachedEditor(_selectedEntry, null, ref _selectedEditor);
+            UnityEditor.Editor.CreateCachedEditor(_selectedEntry, null, ref _selectedEditor);
             _selectedEditor?.OnInspectorGUI();
             EditorGUILayout.EndScrollView();
             EditorGUILayout.EndVertical();

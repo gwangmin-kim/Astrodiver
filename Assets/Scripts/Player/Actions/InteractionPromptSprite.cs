@@ -1,8 +1,8 @@
+using PrimeTween;
+using UnityEngine;
+
 namespace Astrodiver.Player.Actions
 {
-    using PrimeTween;
-    using UnityEngine;
-
     [RequireComponent(typeof(SpriteRenderer))]
     public sealed class InteractionPromptSprite : MonoBehaviour
     {

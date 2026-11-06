@@ -1,9 +1,8 @@
 using Astrodiver.Stages.Map;
+using UnityEngine;
 
 namespace Astrodiver.Equipment.PlasmaGun
 {
-    using UnityEngine;
-
     /// <summary>A cell identity and a snapshot of its beam/impact position.</summary>
     public readonly struct MiningHit
     {

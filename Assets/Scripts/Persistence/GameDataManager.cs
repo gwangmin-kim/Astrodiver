@@ -5,13 +5,12 @@ using Astrodiver.Persistence.GameData;
 using Astrodiver.Player.Actions;
 using Astrodiver.ResourceFragments;
 using Astrodiver.Upgrades;
+using System;
+using Unity.Collections;
+using UnityEngine;
 
 namespace Astrodiver.Persistence
 {
-    using System;
-    using Unity.Collections;
-    using UnityEngine;
-
     [DefaultExecutionOrder(-10000)]
     public class GameDataManager : MonoBehaviour
     {

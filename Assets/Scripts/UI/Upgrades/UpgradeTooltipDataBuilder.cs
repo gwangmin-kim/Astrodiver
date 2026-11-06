@@ -4,12 +4,11 @@ using Astrodiver.Stages.Map;
 using Astrodiver.Upgrades;
 using Astrodiver.Upgrades.Effects.MiningTileUpgrades;
 using Astrodiver.Upgrades.Effects.StageUpgrades;
+using System.Collections.Generic;
+using System.Globalization;
 
 namespace Astrodiver.UI.Upgrades
 {
-    using System.Collections.Generic;
-    using System.Globalization;
-
     public sealed class UpgradeTooltipDataBuilder
     {
         private const string UnlockText = "잠금 해제";

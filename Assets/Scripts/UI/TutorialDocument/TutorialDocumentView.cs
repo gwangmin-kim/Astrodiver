@@ -1,17 +1,16 @@
 using Astrodiver.Player;
 using Astrodiver.UI;
 using Astrodiver.UI.Inventory;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using PrimeTween;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace Astrodiver.UI.TutorialDocument
 {
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using PrimeTween;
-    using UnityEngine;
-    using UnityEngine.EventSystems;
-    using UnityEngine.UI;
-
     /// <summary>
     /// Displays pre-authored page GameObjects as a modal, paged document.
     ///

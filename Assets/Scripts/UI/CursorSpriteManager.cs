@@ -1,10 +1,9 @@
 using Astrodiver.Sessions;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Astrodiver.UI
 {
-    using UnityEngine;
-    using UnityEngine.SceneManagement;
-
     /// <summary>
     /// Applies the exploration cursor only while a scene contains a SessionManager.
     /// All other scenes use the hub cursor.

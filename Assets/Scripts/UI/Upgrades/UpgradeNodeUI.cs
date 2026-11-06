@@ -1,14 +1,13 @@
 using Astrodiver.Upgrades;
+using System;
+using TMPro;
+using Unity.Collections;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace Astrodiver.UI.Upgrades
 {
-    using System;
-    using TMPro;
-    using Unity.Collections;
-    using UnityEngine;
-    using UnityEngine.EventSystems;
-    using UnityEngine.UI;
-
     public enum UpgradeNodeVisualState
     {
         Locked, // 부모가 해금되지 않아 잠긴 상태

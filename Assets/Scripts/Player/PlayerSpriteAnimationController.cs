@@ -1,8 +1,7 @@
+using UnityEngine;
+using System.Collections.Generic;
 namespace Astrodiver.Player
 {
-    using UnityEngine;
-    using System.Collections.Generic;
-
     [DisallowMultipleComponent]
     [RequireComponent(typeof(PlayerInputHandler))]
     public sealed class PlayerSpriteAnimationController : MonoBehaviour

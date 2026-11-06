@@ -1,9 +1,8 @@
 using Astrodiver.Player;
+using UnityEngine;
 
 namespace Astrodiver.Player.Hub
 {
-    using UnityEngine;
-
     [RequireComponent(typeof(Rigidbody2D))]
     [RequireComponent(typeof(PlayerInputHandler))]
     public class HubPlayerMovementController : MonoBehaviour

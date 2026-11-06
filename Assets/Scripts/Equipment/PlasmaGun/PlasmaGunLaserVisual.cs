@@ -1,7 +1,7 @@
+using UnityEngine;
+
 namespace Astrodiver.Equipment.PlasmaGun
 {
-    using UnityEngine;
-
     /// <summary>
     /// Renders the plasma gun's beam independently from hit detection and damage.
     /// The preconfigured child SpriteRenderer uses a sliced capsule sprite, so its

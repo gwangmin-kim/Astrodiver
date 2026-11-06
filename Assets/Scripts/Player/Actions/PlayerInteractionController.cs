@@ -1,14 +1,13 @@
 using Astrodiver.Interaction;
 using Astrodiver.Persistence;
 using Astrodiver.Player;
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Astrodiver.Player.Actions
 {
-    using System;
-    using System.Collections.Generic;
-    using UnityEngine;
-    using UnityEngine.SceneManagement;
-
     [RequireComponent(typeof(PlayerInputHandler))]
     public class PlayerInteractionController : MonoBehaviour
     {

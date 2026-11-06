@@ -1,9 +1,9 @@
+using System;
+using UnityEngine;
+using PrimeTween;
+
 namespace Astrodiver.Creatures
 {
-    using System;
-    using UnityEngine;
-    using PrimeTween;
-
     public class CaptureAnimationController : MonoBehaviour
     {
         [SerializeField][Min(0.01f)] private float _collectSpeed = 8f;

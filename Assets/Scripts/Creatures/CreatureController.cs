@@ -1,9 +1,8 @@
 using Astrodiver.Equipment.NetGun;
+using UnityEngine;
 
 namespace Astrodiver.Creatures
 {
-    using UnityEngine;
-
     [RequireComponent(typeof(CreatureMotionController))]
     public class CreatureController : CapturableObject
     {

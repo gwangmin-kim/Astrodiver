@@ -1,11 +1,10 @@
 using Astrodiver.Definitions;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace Astrodiver.UI.Upgrades
 {
-    using TMPro;
-    using UnityEngine;
-    using UnityEngine.UI;
-
     [DisallowMultipleComponent]
     public sealed class UpgradeTooltipCostEntryUI : MonoBehaviour
     {

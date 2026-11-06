@@ -1,7 +1,7 @@
+using UnityEngine;
+
 namespace Astrodiver.Stages
 {
-    using UnityEngine;
-
     [DisallowMultipleComponent]
     public sealed class StageSceneSettings : MonoBehaviour
     {

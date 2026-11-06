@@ -1,9 +1,8 @@
 using Astrodiver.Persistence.GameData;
+using System;
 
 namespace Astrodiver.Upgrades
 {
-    using System;
-
     public sealed class UpgradeEffectContext
     {
         public UpgradeEffectContext(GameRuntimeData runtimeData)

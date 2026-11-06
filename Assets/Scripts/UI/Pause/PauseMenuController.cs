@@ -2,13 +2,12 @@ using Astrodiver.Player;
 using Astrodiver.SceneManagement;
 using Astrodiver.Sessions;
 using Astrodiver.UI;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace Astrodiver.UI.Pause
 {
-    using UnityEngine;
-    using UnityEngine.EventSystems;
-    using UnityEngine.UI;
-
     [DisallowMultipleComponent]
     [RequireComponent(typeof(PlayerInputHandler))]
     public sealed class PauseMenuController : MonoBehaviour

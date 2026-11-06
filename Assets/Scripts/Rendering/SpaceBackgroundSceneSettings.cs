@@ -1,7 +1,7 @@
+using UnityEngine;
+
 namespace Astrodiver.Rendering
 {
-    using UnityEngine;
-
     [DisallowMultipleComponent]
     public sealed class SpaceBackgroundSceneSettings : MonoBehaviour
     {

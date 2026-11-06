@@ -1,10 +1,9 @@
 using Astrodiver.Stages.Map;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace Astrodiver.Persistence.GameData
 {
-    using System.Collections.Generic;
-    using UnityEngine;
-
     /// <summary>
     /// Holds derived, definition-specific mining tile drop multipliers.
     /// This data is rebuilt from purchased upgrades and is never saved directly.

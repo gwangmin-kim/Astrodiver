@@ -1,11 +1,10 @@
 using Astrodiver.Persistence;
 using Astrodiver.Persistence.GameData;
 using Astrodiver.Upgrades;
+using UnityEngine;
 
 namespace Astrodiver.Interaction
 {
-    using UnityEngine;
-
     [DisallowMultipleComponent]
     public sealed class ChestFacilityController : MonoBehaviour
     {

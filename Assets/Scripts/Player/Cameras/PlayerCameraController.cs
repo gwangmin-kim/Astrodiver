@@ -1,11 +1,10 @@
 using Astrodiver.Player;
 using Astrodiver.World;
+using Unity.Cinemachine;
+using UnityEngine;
 
 namespace Astrodiver.Player.Cameras
 {
-    using Unity.Cinemachine;
-    using UnityEngine;
-
     [RequireComponent(typeof(PlayerInputHandler))]
     public class PlayerCameraController : MonoBehaviour
     {

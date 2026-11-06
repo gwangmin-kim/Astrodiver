@@ -1,10 +1,9 @@
 using Astrodiver.Player.Actions;
 using Astrodiver.ResourceFragments;
+using System;
 
 namespace Astrodiver.Persistence.GameData
 {
-    using System;
-
     [Serializable]
     public sealed class PlayerStatsRuntimeData
     {

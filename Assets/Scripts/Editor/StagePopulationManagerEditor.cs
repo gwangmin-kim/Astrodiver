@@ -1,11 +1,10 @@
 using Astrodiver.Stages;
+using UnityEditor;
+using UnityEditor.IMGUI.Controls;
+using UnityEngine;
 
 namespace Astrodiver.Editor
 {
-    using UnityEditor;
-    using UnityEditor.IMGUI.Controls;
-    using UnityEngine;
-
     [CustomEditor(typeof(StagePopulationManager))]
     public sealed class StagePopulationManagerEditor : UnityEditor.Editor
     {

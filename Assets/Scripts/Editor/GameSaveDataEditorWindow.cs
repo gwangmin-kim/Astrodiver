@@ -2,15 +2,14 @@ using Astrodiver.Definitions;
 using Astrodiver.Persistence;
 using Astrodiver.Persistence.GameData;
 using Astrodiver.Upgrades;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using UnityEditor;
+using UnityEngine;
 
 namespace Astrodiver.Editor
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using UnityEditor;
-    using UnityEngine;
-
     public sealed class GameSaveDataEditorWindow : EditorWindow
     {
         private const string SaveFileName = "player-save.json";

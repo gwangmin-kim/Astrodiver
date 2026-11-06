@@ -1,9 +1,8 @@
 using Astrodiver.SceneManagement;
+using UnityEngine;
 
 namespace Astrodiver.Player.Hub
 {
-    using UnityEngine;
-
     /// <summary>
     /// Places the scene-owned Hub player at the point selected by the preceding
     /// scene transition. Unspecified Hub entry always falls back to ReturnPoint.

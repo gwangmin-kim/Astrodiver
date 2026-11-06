@@ -1,13 +1,12 @@
 using Astrodiver.Persistence;
 using Astrodiver.Player.Inventory;
 using Astrodiver.Upgrades;
+using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace Astrodiver.UI.Upgrades
 {
-    using System;
-    using System.Collections.Generic;
-    using UnityEngine;
-
     [DisallowMultipleComponent]
     public sealed class UpgradeTreeUI : MonoBehaviour
     {

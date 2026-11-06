@@ -1,9 +1,9 @@
+using System.Collections;
+using UnityEngine;
+using UnityEngine.UI;
+
 namespace Astrodiver.SceneManagement
 {
-    using System.Collections;
-    using UnityEngine;
-    using UnityEngine.UI;
-
     [DisallowMultipleComponent]
     public sealed class IrisSceneTransition : MonoBehaviour
     {

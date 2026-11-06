@@ -1,10 +1,10 @@
+using System;
+using System.Collections;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
 namespace Astrodiver.SceneManagement
 {
-    using System;
-    using System.Collections;
-    using UnityEngine;
-    using UnityEngine.SceneManagement;
-
     public sealed class SceneTransitionManager : MonoBehaviour
     {
         public static SceneTransitionManager Instance { get; private set; }

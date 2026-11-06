@@ -1,11 +1,10 @@
 using Astrodiver.Persistence;
 using Astrodiver.Sessions;
+using System;
+using UnityEngine;
 
 namespace Astrodiver.Player.Actions
 {
-    using System;
-    using UnityEngine;
-
     public class PlayerBatteryController : MonoBehaviour
     {
         private BatteryData _batteryData;

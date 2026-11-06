@@ -1,12 +1,11 @@
 using Astrodiver.Persistence;
 using Astrodiver.SceneManagement;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace Astrodiver.UI.MainMenu
 {
-    using TMPro;
-    using UnityEngine;
-    using UnityEngine.UI;
-
     public sealed class MainMenuController : MonoBehaviour
     {
         [Header("Scene")]

@@ -1,12 +1,11 @@
 using Astrodiver.Persistence.GameData;
 using Astrodiver.Stages.Map;
 using Astrodiver.Upgrades;
+using System;
+using UnityEngine;
 
 namespace Astrodiver.Upgrades.Effects.MiningTileUpgrades
 {
-    using System;
-    using UnityEngine;
-
     [Serializable]
     [UnityEngine.Scripting.APIUpdating.MovedFrom(true, sourceNamespace: "", sourceAssembly: "Assembly-CSharp", sourceClassName: "MiningTileDropBonusUpgradeEffect")]
     public sealed class MiningTileDropBonusUpgradeEffect : UpgradeEffect

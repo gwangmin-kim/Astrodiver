@@ -1,10 +1,9 @@
 using Astrodiver.Player.Actions;
 using Astrodiver.Player.Inventory;
+using UnityEngine;
 
 namespace Astrodiver.Player
 {
-    using UnityEngine;
-
     /// <summary>
     /// 외부에서 플레이어의 구성요소에 접근하기 위한 싱글톤 객체
     /// 씬에 종속된 플레이어 컴포넌트만 PlayerContext를 통해 접근

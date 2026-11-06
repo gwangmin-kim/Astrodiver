@@ -1,9 +1,9 @@
+using System;
+using UnityEngine;
+using UnityEngine.Serialization;
+
 namespace Astrodiver.Persistence.GameData
 {
-    using System;
-    using UnityEngine;
-    using UnityEngine.Serialization;
-
     [Serializable]
     public sealed class CreatureInventoryEntry
     {

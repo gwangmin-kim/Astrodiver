@@ -1,8 +1,8 @@
+using PrimeTween;
+using UnityEngine;
+
 namespace Astrodiver.Creatures
 {
-    using PrimeTween;
-    using UnityEngine;
-
     [DisallowMultipleComponent]
     [RequireComponent(typeof(CreatureController))]
     public sealed class CreatureSpawnAnimation : MonoBehaviour

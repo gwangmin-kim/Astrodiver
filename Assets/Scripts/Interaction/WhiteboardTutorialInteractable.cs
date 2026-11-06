@@ -1,10 +1,9 @@
 using Astrodiver.Persistence;
 using Astrodiver.UI.TutorialDocument;
+using UnityEngine;
 
 namespace Astrodiver.Interaction
 {
-    using UnityEngine;
-
     /// <summary>
     /// Opens the tutorial document when the player interacts with the hub whiteboard.
     /// </summary>

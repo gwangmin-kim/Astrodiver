@@ -1,11 +1,10 @@
 using Astrodiver.Player.Actions;
+using UnityEditor;
+using UnityEditor.IMGUI.Controls;
+using UnityEngine;
 
 namespace Astrodiver.Editor
 {
-    using UnityEditor;
-    using UnityEditor.IMGUI.Controls;
-    using UnityEngine;
-
     [CustomEditor(typeof(PlayerMovementController))]
     public sealed class PlayerMovementControllerEditor : UnityEditor.Editor
     {

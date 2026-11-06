@@ -1,7 +1,7 @@
+using System;
+
 namespace Astrodiver.Creatures
 {
-    using System;
-
     public sealed class CreatureStateChangedEventArgs : EventArgs
     {
         public CreatureState PreviousState { get; }

@@ -1,9 +1,8 @@
 using Astrodiver.Player;
+using UnityEngine;
 
 namespace Astrodiver.Player.Actions
 {
-    using UnityEngine;
-
     [RequireComponent(typeof(PlayerInputHandler))]
     public class PlayerAimController : MonoBehaviour
     {

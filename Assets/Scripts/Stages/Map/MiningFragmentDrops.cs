@@ -1,10 +1,9 @@
 using Astrodiver.Persistence;
 using Astrodiver.ResourceFragments;
+using UnityEngine;
 
 namespace Astrodiver.Stages.Map
 {
-    using UnityEngine;
-
     /// <summary>Connects a map's destruction events to the existing resource collection flow.</summary>
     [DisallowMultipleComponent, RequireComponent(typeof(StageMap))]
     public sealed class MiningFragmentDrops : MonoBehaviour

@@ -1,12 +1,11 @@
 using Astrodiver.Persistence.GameData;
+using System;
+using System.IO;
+using System.Text;
+using UnityEngine;
 
 namespace Astrodiver.Persistence
 {
-    using System;
-    using System.IO;
-    using System.Text;
-    using UnityEngine;
-
     /// <summary>
     /// 실제 저장, 로드 API 제공
     /// </summary>

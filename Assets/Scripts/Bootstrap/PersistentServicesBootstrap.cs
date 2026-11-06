@@ -3,11 +3,10 @@ using Astrodiver.Persistence;
 using Astrodiver.Player.Inventory;
 using Astrodiver.SceneManagement;
 using Astrodiver.Tutorials;
+using UnityEngine;
 
 namespace Astrodiver.Bootstrap
 {
-    using UnityEngine;
-
     /// <summary>
     /// Creates the services that must survive scene changes before the first scene loads.
     /// Their prefabs intentionally live under Resources so their serialized setup remains

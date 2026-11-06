@@ -1,11 +1,10 @@
 using Astrodiver.World;
+using UnityEditor;
+using UnityEditor.IMGUI.Controls;
+using UnityEngine;
 
 namespace Astrodiver.Editor
 {
-    using UnityEditor;
-    using UnityEditor.IMGUI.Controls;
-    using UnityEngine;
-
     [CustomEditor(typeof(WorldBounds2D))]
     public sealed class WorldBounds2DEditor : UnityEditor.Editor
     {

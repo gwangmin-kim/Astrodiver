@@ -2,13 +2,12 @@ using Astrodiver.Definitions;
 using Astrodiver.Facilities.Worktable;
 using Astrodiver.Interaction;
 using Astrodiver.Player.Inventory;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace Astrodiver.UI.Inventory
 {
-    using System.Collections.Generic;
-    using UnityEngine;
-    using UnityEngine.UI;
-
     [DisallowMultipleComponent]
     public sealed class WorktableInventoryUI : MonoBehaviour
     {

@@ -2,12 +2,11 @@ using Astrodiver.Definitions;
 using Astrodiver.Persistence;
 using Astrodiver.Player.Inventory;
 using Astrodiver.UI.Inventory;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace Astrodiver.Interaction
 {
-    using System.Collections.Generic;
-    using UnityEngine;
-
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Collider2D))]
     public sealed class ChestResourcePopupController : MonoBehaviour

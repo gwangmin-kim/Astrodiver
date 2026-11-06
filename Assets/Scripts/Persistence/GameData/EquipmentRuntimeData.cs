@@ -1,10 +1,9 @@
 using Astrodiver.Equipment.NetGun;
 using Astrodiver.Equipment.PlasmaGun;
+using System;
 
 namespace Astrodiver.Persistence.GameData
 {
-    using System;
-
     [Serializable]
     public sealed class EquipmentRuntimeData
     {

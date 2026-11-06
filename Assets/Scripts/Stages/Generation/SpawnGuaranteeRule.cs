@@ -1,7 +1,7 @@
+using UnityEngine;
+
 namespace Astrodiver.Stages.Generation
 {
-    using UnityEngine;
-
     internal sealed class SpawnGuaranteeRule
     {
         private readonly RectInt _air;

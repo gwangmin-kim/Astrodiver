@@ -1,10 +1,10 @@
+using PrimeTween;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
+
 namespace Astrodiver.UI.Stage
 {
-    using PrimeTween;
-    using UnityEngine;
-    using UnityEngine.EventSystems;
-    using UnityEngine.UI;
-
     /// <summary>
     /// Adds a purely visual rotation to a stage button's Image and draws the
     /// connection from its preceding stage while this destination is unlocked.

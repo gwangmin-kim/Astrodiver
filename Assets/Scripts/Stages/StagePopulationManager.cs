@@ -1,13 +1,12 @@
 using Astrodiver.Persistence;
 using Astrodiver.Persistence.GameData;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace Astrodiver.Stages
 {
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using UnityEngine;
-
     [DisallowMultipleComponent]
     public sealed class StagePopulationManager : MonoBehaviour
     {

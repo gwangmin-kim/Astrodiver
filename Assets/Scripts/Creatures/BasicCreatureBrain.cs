@@ -1,7 +1,7 @@
+using UnityEngine;
+
 namespace Astrodiver.Creatures
 {
-    using UnityEngine;
-
     /// <summary>
     /// Simple autonomous brain: alternates between Idle and Move, and remains idle while captured.
     /// </summary>

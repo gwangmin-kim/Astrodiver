@@ -1,13 +1,12 @@
 using Astrodiver.Persistence;
 using Astrodiver.Persistence.GameData;
 using Astrodiver.Player.Inventory;
+using System;
+using System.Collections.Generic;
+using UnityEngine;
 
 namespace Astrodiver.Upgrades
 {
-    using System;
-    using System.Collections.Generic;
-    using UnityEngine;
-
     public enum UpgradePurchaseStatus
     {
         Success,
