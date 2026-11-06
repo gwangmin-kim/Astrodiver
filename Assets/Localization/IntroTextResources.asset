@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa74770507ef8b041a7994f247da5e9b, type: 3}
+  m_Name: IntroTextResources
+  m_EditorClassIdentifier: Assembly-CSharp::Astrodiver.Cutscenes.Intro.IntroTextResources
+  programmingRunning:
+    m_TableReference:
+      m_TableCollectionName: GUID:425b57a1dc754c44e8e69bdd55f3e71a
+    m_TableEntryReference:
+      m_KeyId: 1
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  programmingComplete:
+    m_TableReference:
+      m_TableCollectionName: GUID:425b57a1dc754c44e8e69bdd55f3e71a
+    m_TableEntryReference:
+      m_KeyId: 2
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  continuePrompt:
+    m_TableReference:
+      m_TableCollectionName: GUID:94e044194061647419234bb724eb353d
+    m_TableEntryReference:
+      m_KeyId: 1
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  loadingPrompt:
+    m_TableReference:
+      m_TableCollectionName: GUID:94e044194061647419234bb724eb353d
+    m_TableEntryReference:
+      m_KeyId: 2
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  hubLoadError:
+    m_TableReference:
+      m_TableCollectionName: GUID:425b57a1dc754c44e8e69bdd55f3e71a
+    m_TableEntryReference:
+      m_KeyId: 7
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  references:
+    version: 2
+    RefIds: []

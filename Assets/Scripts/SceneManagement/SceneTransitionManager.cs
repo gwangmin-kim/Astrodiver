@@ -13,6 +13,11 @@ namespace Astrodiver.SceneManagement
         private bool _hasPendingHubSpawnPoint;
         private HubSpawnPoint _pendingHubSpawnPoint;
         private IrisSceneTransition _irisTransition;
+        private AsyncOperation _introHubLoad;
+        private bool _isActivatingIntroHub;
+
+        public bool IsLoading => _isLoading;
+        public bool IsIntroHubReady => _introHubLoad != null && _introHubLoad.progress >= 0.9f;
 
         private void Awake()
         {
@@ -45,6 +50,72 @@ namespace Astrodiver.SceneManagement
             BeginLoad(
                 () => SceneManager.LoadSceneAsync(sceneName),
                 $"scene '{sceneName}'");
+        }
+
+        public bool LoadIntro(string sceneName)
+        {
+            return CanLoadScene(sceneName) && BeginLoad(
+                () => SceneManager.LoadSceneAsync(sceneName),
+                $"intro scene '{sceneName}'");
+        }
+
+        /// <summary>
+        /// The intro owns the loading screen. Keep the Hub inactive until its letter is accepted.
+        /// This reserves the scene-loading queue, so other transitions must not start meanwhile.
+        /// </summary>
+        public bool PreloadHubForIntro(string sceneName)
+        {
+            if (_isLoading || !CanLoadScene(sceneName) ||
+                _irisTransition == null || !_irisTransition.IsAvailable)
+            {
+                return false;
+            }
+
+            try
+            {
+                _introHubLoad = SceneManager.LoadSceneAsync(sceneName);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError($"Could not preload the intro Hub: {exception.Message}", this);
+                return false;
+            }
+
+            if (_introHubLoad == null)
+            {
+                return false;
+            }
+
+            _introHubLoad.allowSceneActivation = false;
+            _isActivatingIntroHub = false;
+            _isLoading = true;
+            return true;
+        }
+
+        public bool ActivateIntroHub()
+        {
+            if (!IsIntroHubReady || _isActivatingIntroHub)
+            {
+                return false;
+            }
+
+            _isActivatingIntroHub = true;
+            _pendingHubSpawnPoint = HubSpawnPoint.Start;
+            _hasPendingHubSpawnPoint = true;
+            StartCoroutine(ActivateIntroHubRoutine());
+            return true;
+        }
+
+        private IEnumerator ActivateIntroHubRoutine()
+        {
+            yield return _irisTransition.Close();
+            _introHubLoad.allowSceneActivation = true;
+            yield return _introHubLoad;
+            _introHubLoad = null;
+            yield return null;
+            yield return _irisTransition.Open();
+            _isActivatingIntroHub = false;
+            _isLoading = false;
         }
 
         /// <summary>

@@ -11,6 +11,7 @@ namespace Astrodiver.UI.MainMenu
     {
         [Header("Scene")]
         [SerializeField] private string _hubSceneName = "Hub";
+        [SerializeField] private string _introSceneName = "Intro";
 
         [Header("Buttons")]
         [SerializeField] private Button _newGameButton;
@@ -53,15 +54,24 @@ namespace Astrodiver.UI.MainMenu
                 return;
             }
 
+            if (SceneTransitionManager.Instance == null ||
+                SceneTransitionManager.Instance.IsLoading ||
+                !Application.CanStreamedLevelBeLoaded(_introSceneName) ||
+                !Application.CanStreamedLevelBeLoaded(_hubSceneName))
+            {
+                HandleGameStartFailure("start the intro", "Intro and Hub must be available in Build Settings.");
+                return;
+            }
+
             if (!manager.TryStartNewGame(out string error))
             {
                 HandleGameStartFailure("start a new game", error);
                 return;
             }
 
-            if (!LoadHub())
+            if (!SceneTransitionManager.Instance.LoadIntro(_introSceneName))
             {
-                HandleGameStartFailure("load the Hub scene", "SceneTransitionManager is not available.");
+                HandleGameStartFailure("load the intro scene", "Scene transition could not start.");
             }
         }
 

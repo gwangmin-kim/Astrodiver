@@ -21,6 +21,7 @@ namespace Astrodiver.Tutorials
 
         [Header("Scene Visibility")]
         [SerializeField] private string _mainMenuSceneName = "MainMenu";
+        [SerializeField] private string _introSceneName = "Intro";
 
         private readonly Dictionary<TutorialGuideDefinition, TutorialGuideTextUI> _items = new();
         private readonly HashSet<TutorialGuideDefinition> _completing = new();
@@ -101,7 +102,8 @@ namespace Astrodiver.Tutorials
                 scene.name,
                 _mainMenuSceneName,
                 StringComparison.Ordinal);
-            if (isMainMenu)
+            bool isIntro = string.Equals(scene.name, _introSceneName, StringComparison.Ordinal);
+            if (isMainMenu || isIntro)
             {
                 StopProcessing();
                 return;

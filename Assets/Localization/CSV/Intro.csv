@@ -1,0 +1,12 @@
+Key,Id,Comment,Smart,ko
+intro.programming.running,1,초기 연출용 진행 바 제목,false,LOADING...
+intro.programming.complete,2,프로그램 완료 표시,false,COMPLETE!
+intro.message.too_late,3,첫 글리치 메시지,false,우린 이미 너무 늦었는지도 몰라.
+intro.message.hope,4,회상 이후 희망 메시지,false,하지만... 넌 할 수 있을 거야.
+intro.message.last_memory,5,마지막 메시지와 우주 장면에서 함께 사용,false,"지구의 마지막 기억을 네게 담아
+네가 돌아오는 길에 좋은 소식이 있길 바라며"
+intro.letter.body,6,인트로 마지막 편지 본문 전체,false,"[희망의 전언]
+지구로부터 온 편지
+
+신호가 잘 전달되고 있니?"
+intro.error.hub_load_failed,7,허브 준비 실패 시 사용자 안내,false,허브를 불러오지 못했습니다.
