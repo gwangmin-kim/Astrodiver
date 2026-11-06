@@ -1,5 +1,7 @@
 ﻿<Solution>
   <Project Path="Assembly-CSharp.csproj" />
   <Project Path="Assembly-CSharp-Editor.csproj" />
+  <Project Path="Astrodiver.Localization.Editor.csproj" />
+  <Project Path="Astrodiver.Localization.Editor.Tests.csproj" />
   <Project Path="PrimeTween.Installer.csproj" />
 </Solution>
