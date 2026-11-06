@@ -1,17 +1,25 @@
+using System.Collections;
+using UnityEngine;
+using UnityEngine.Localization;
+using UnityEngine.Localization.Settings;
+using UnityEngine.Localization.Tables;
+using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.AddressableAssets;
+
 namespace Astrodiver.Localization
 {
-    using System;
-    using System.Collections;
-    using UnityEngine;
-    using UnityEngine.Localization;
-    using UnityEngine.Localization.Settings;
-    using UnityEngine.Localization.Tables;
-    using UnityEngine.ResourceManagement.AsyncOperations;
-    using UnityEngine.AddressableAssets;
-
-    /// <summary>Uses Localization's locale state; callers keep serialized LocalizedString references.</summary>
+    /// <summary>
+    /// Uses Localization's locale state; callers keep serialized LocalizedString references.
+    /// </summary>
     public static class GameText
     {
+        /// <summary>
+        /// Localization 초기화와 필요한 테이블의 로딩을 기다림
+        /// </summary>
+        /// <param name="allLocales">현재 선택한 언어만 준비할지, 등록된 모든 언어를 준비할지</param>
+        /// <param name="retainedTables">호출자가 추가로 보유할 테이블 핸들을 담는 목록. 필요 없으면 null</param>
+        /// <param name="tables">준비할 테이블들의 참조</param>
+        /// <returns></returns>
         public static IEnumerator Prepare(bool allLocales,
             System.Collections.Generic.ICollection<AsyncOperationHandle> retainedTables, params TableReference[] tables)
         {
@@ -43,7 +51,10 @@ namespace Astrodiver.Localization
             }
         }
 
-        /// <summary>No blocking loads: an unprepared table returns false.</summary>
+        /// <summary>
+        /// 문구가 준비됐는지 확인하고 문자열을 반환<br/>
+        /// 로딩을 기다리지 않음; 준비되지 않은 경우 false 반환
+        /// </summary>
         public static bool TryResolve(LocalizedString reference, out string value)
         {
             value = string.Empty;
@@ -69,6 +80,9 @@ namespace Astrodiver.Localization
             return true;
         }
 
+        /// <summary>
+        /// 조회 실패 시 로그와 개발용 표시를 제공
+        /// </summary>
         public static string ResolvePrepared(LocalizedString reference)
         {
             if (TryResolve(reference, out string value))

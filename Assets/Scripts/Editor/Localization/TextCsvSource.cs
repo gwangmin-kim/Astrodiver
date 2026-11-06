@@ -1,8 +1,8 @@
+using UnityEditor.Localization;
+using UnityEngine;
+
 namespace Astrodiver.Editor.Localization
 {
-    using UnityEditor.Localization;
-    using UnityEngine;
-
     [CreateAssetMenu(menuName = "Astrodiver/Localization/CSV Source")]
     public sealed class TextCsvSource : ScriptableObject
     {
