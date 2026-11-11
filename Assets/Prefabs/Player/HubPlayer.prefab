@@ -207,7 +207,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerOutline
   _outlineColor: {r: 0, g: 0, b: 0, a: 1}
-  _outlineWidth: 2
+  _outlineWidth: 4
   _outlineMaterial: {fileID: 2100000, guid: a9c6d2e81f24499fb928c3ec61e36501, type: 2}
   _spriteRenderers:
   - {fileID: 6622567161960103410}
