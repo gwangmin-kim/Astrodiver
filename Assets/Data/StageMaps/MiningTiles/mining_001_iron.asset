@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.2D.Tilemap.Extras::UnityEngine.Tilemaps.AutoTile
   m_DefaultSprite: {fileID: -1537906656, guid: e28da2fdbf546ed48bfce8280f1f7b7a, type: 3}
   m_DefaultGameObject: {fileID: 0}
-  m_DefaultColliderType: 2
+  m_DefaultColliderType: 1
   m_MaskType: 1
   m_Random: 0
   m_PhysicsShapeCheck: 0
