@@ -211,12 +211,11 @@ namespace Astrodiver.Equipment.PlasmaGun
         {
             if (_laserVisual == null || _shootOrigin == null) return;
 
-            Vector2 origin = _shootOrigin.position;
-            Vector2 fallbackEnd = origin + (Vector2)_shootOrigin.up * _data.AttackRange;
+            // 판정은 몸 중심 기준이지만, 광선은 항상 총구에서 대상 타일 중심으로 그린다.
             Vector2 firstEnd = _currentTargetList.Count > 0
-                ? _currentTargetList[0].Position
-                : fallbackEnd;
-            _laserVisual.Show(origin, firstEnd);
+                ? (Vector2)_currentTargetList[0].CellCenter
+                : AimOrigin + AimDirection * _data.AttackRange;
+            _laserVisual.Show(_shootOrigin.position, firstEnd);
 
             int chainSegmentCount = Mathf.Min(
                 _chainLaserVisuals.Count,
@@ -224,7 +223,7 @@ namespace Astrodiver.Equipment.PlasmaGun
             for (int i = 0; i < chainSegmentCount; i++)
             {
                 _chainLaserVisuals[i].Show(
-                    _currentTargetList[i].Position, _currentTargetList[i + 1].Position);
+                    _currentTargetList[i].CellCenter, _currentTargetList[i + 1].CellCenter);
             }
 
             for (int i = chainSegmentCount; i < _chainLaserVisuals.Count; i++)
