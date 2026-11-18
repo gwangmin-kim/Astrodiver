@@ -24,6 +24,7 @@ namespace Astrodiver.Equipment.PlasmaGun
         [SerializeField] private PlasmaGunChargeUI _chargeUI;
 
         private readonly PlasmaMiningTargeting _targeting = new();
+        private IAimSource _aimSource;
         private readonly List<MiningHit> _currentTargetList = new();
         private readonly List<PlasmaGunLaserVisual> _chainLaserVisuals = new();
 
@@ -46,6 +47,14 @@ namespace Astrodiver.Equipment.PlasmaGun
         public int TotalAmmo => Mathf.Max(0, _data.ammoCapacity);
         public bool HasAmmo => _remainingAmmo > 0;
         public event Action<int, int> AmmoChanged;
+
+        /// <summary>
+        /// 탐색 기준(몸 중심 + 손 방향)을 지정한다. 지정되지 않으면 총구 기준으로 동작한다.
+        /// </summary>
+        public void SetAimSource(IAimSource aimSource) => _aimSource = aimSource;
+
+        private Vector2 AimOrigin => _aimSource != null ? _aimSource.AimOrigin : (Vector2)_shootOrigin.position;
+        private Vector2 AimDirection => _aimSource != null ? _aimSource.AimDirection : (Vector2)_shootOrigin.up;
 
         private void Start()
         {
@@ -171,8 +180,10 @@ namespace Astrodiver.Equipment.PlasmaGun
         private void SetTarget()
         {
             _currentTargetList.Clear();
+            // 총구는 장비 크기에 따라 벽 너머로 들어갈 수 있으므로, 몸 중심에서
+            // 손이 뻗은 방향으로 탐색해 가장 가까운 타일을 놓치지 않도록 한다.
             if (_shootOrigin == null || !_targeting.TryFindFirstTarget(
-                    _shootOrigin.position, _shootOrigin.up, _initialCastRadius,
+                    AimOrigin, AimDirection, _initialCastRadius,
                     _data.AttackRange, _targetLayer, out MiningHit first)) return;
 
             _currentTargetList.Add(first);
@@ -280,7 +291,7 @@ namespace Astrodiver.Equipment.PlasmaGun
         [Range(0.1f, 1f)] public float tickInterval;
         [Tooltip("Attack tick timer speed multiplier (1 = base speed)")]
         [Min(0f)] public float tickSpeedMultiplier;
-        [Tooltip("최초 목표 탐지 거리 (CircleCast 거리)")]
+        [Tooltip("최초 목표 탐지 거리 (몸 중심에서부터의 CircleCast 거리)")]
         [Min(0.1f)] public float baseAttackRange;
         [Min(0f)] public float attackRangeRatio;
 

@@ -18,6 +18,7 @@ namespace Astrodiver.Player.Actions
         [SerializeField] private PlayerInputHandler _inputHandler;
         [SerializeField] private NetGunController _netGun;
         [SerializeField] private PlasmaGunController _plasmaGun;
+        [SerializeField] private PlayerAimController _aimController;
 
         private PlayerEquipmentType _currentEquipment = PlayerEquipmentType.PlasmaGun;
 
@@ -31,6 +32,10 @@ namespace Astrodiver.Player.Actions
             if (_inputHandler == null) _inputHandler = GetComponent<PlayerInputHandler>();
             if (_netGun == null) _netGun = GetComponentInChildren<NetGunController>();
             if (_plasmaGun == null) _plasmaGun = GetComponentInChildren<PlasmaGunController>();
+            if (_aimController == null) _aimController = GetComponent<PlayerAimController>();
+
+            // 채굴 판정은 총구가 아닌 몸 중심 기준으로 수행한다.
+            _plasmaGun.SetAimSource(_aimController);
         }
 
         private void Start()

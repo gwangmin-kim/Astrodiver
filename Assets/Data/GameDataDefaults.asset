@@ -73,7 +73,7 @@ MonoBehaviour:
       tickDamage: 1
       tickInterval: 0.5
       tickSpeedMultiplier: 1
-      baseAttackRange: 2.5
+      baseAttackRange: 3.7
       attackRangeRatio: 1
       chainCount: 0
       chainedDamageRate: 0.5

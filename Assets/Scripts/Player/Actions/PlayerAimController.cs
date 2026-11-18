@@ -1,10 +1,11 @@
+using Astrodiver.Equipment;
 using Astrodiver.Player;
 using UnityEngine;
 
 namespace Astrodiver.Player.Actions
 {
     [RequireComponent(typeof(PlayerInputHandler))]
-    public class PlayerAimController : MonoBehaviour
+    public class PlayerAimController : MonoBehaviour, IAimSource
     {
         [Header("Required Components")]
         [SerializeField] private PlayerInputHandler _inputHandler;
@@ -21,6 +22,12 @@ namespace Astrodiver.Player.Actions
         // SmoothDamp 내부 계산용 변수
         private Vector2 _smoothDampPositionVelocity;
         private float _smoothDampAngleVelocity;
+
+        /// <summary>손 궤도의 중심. 루트 위치가 아닌 Hand Offset이 적용된 몸 중심.</summary>
+        public Vector2 AimOrigin => (Vector2)transform.position + _handOffset;
+
+        /// <summary>손(장비)이 실제로 향하고 있는 방향. 화면에 보이는 총 방향과 일치한다.</summary>
+        public Vector2 AimDirection => _handTransform.up;
 
         private void Awake()
         {
