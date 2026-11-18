@@ -1009,6 +1009,19 @@ MonoBehaviour:
   _floorWidthCells: 8
   _floorThicknessCells: 2
   _floorTransitionCells: 3
+  _oreRules:
+  - _enabled: 1
+    _ore: {fileID: 11400000, guid: b7053514cdb4748258158ab1adfca1e9, type: 2}
+    _horizontalScale: 7
+    _verticalScale: 5
+    _threshold: 0.58
+    _fullAt: 0.78
+  - _enabled: 1
+    _ore: {fileID: 11400000, guid: 0cfe4cca921b3426c95cdd00669513f8, type: 2}
+    _horizontalScale: 3.5
+    _verticalScale: 3.5
+    _threshold: 0.68
+    _fullAt: 0.82
 --- !u!114 &1530818370
 MonoBehaviour:
   m_ObjectHideFlags: 0

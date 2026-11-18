@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b8adefa1565644079dd8dd0af7e993b, type: 3}
+  m_Name: ore_gold
+  m_EditorClassIdentifier: Assembly-CSharp::Astrodiver.Stages.Map.OreDefinition
+  _resource: {fileID: 11400000, guid: 6cae5ba7d51ba5d4b838ba85ce2ded9e, type: 2}
+  _levelSprites:
+  - {fileID: 21300000, guid: 02f921e56e57241189916ac24e9508d6, type: 3}
+  - {fileID: 21300000, guid: db363930f2f9e4db78ca1e17b0fcf33b, type: 3}
+  - {fileID: 21300000, guid: 26e921357d29e49e7bb4ec6017818541, type: 3}
+  _randomRotation: 1
+  _debugColor: {r: 1, g: 0.78, b: 0.15, a: 1}
+  _bonusHpAtFull: 4
+  _minDropAmount: 1
+  _maxDropAmount: 3
