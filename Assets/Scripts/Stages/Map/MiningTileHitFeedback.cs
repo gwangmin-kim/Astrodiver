@@ -6,6 +6,7 @@ namespace Astrodiver.Stages.Map
 {
     /// <summary>
     /// 피격된 채굴 타일 위에 같은 스프라이트의 오버레이를 띄워 펀치(크기) + 짧은 발광으로 피격을 표시한다.
+    /// StageOreOverlay가 있으면 부여된 광석 스프라이트도 함께 복제해 같이 튀게 한다.
     /// Tilemap의 셀 색상은 HDR 값을 표현할 수 없고 AutoTile 갱신 시 초기화될 수 있으므로,
     /// 타일맵 자체를 수정하지 않고 풀링된 SpriteRenderer로 처리한다.
     /// </summary>
@@ -40,13 +41,21 @@ namespace Astrodiver.Stages.Map
             new Keyframe(1f, 0f, -2f, 0f));
 
         [Header("Sorting")]
+        [Tooltip("베이스/광석 오버레이 중 더 위에 있는 렌더러 기준 정렬 순서 오프셋")]
         [SerializeField] private int _sortingOrderOffset = 1;
+
+        private sealed class Layer
+        {
+            public Transform Transform;
+            public SpriteRenderer Sprite;
+            public SpriteRenderer Flash;
+        }
 
         private sealed class Entry
         {
             public Transform Root;
-            public SpriteRenderer Base;
-            public SpriteRenderer Flash;
+            public Layer Base;
+            public Layer Ore;
             public Vector3Int Cell;
             public float Elapsed;
         }
@@ -57,6 +66,8 @@ namespace Astrodiver.Stages.Map
         private MaterialPropertyBlock _propertyBlock;
         private StageMap _map;
         private TilemapRenderer _tilemapRenderer;
+        private StageOreOverlay _oreOverlay;
+        private TilemapRenderer _oreRenderer;
 
         private void OnEnable()
         {
@@ -93,16 +104,16 @@ namespace Astrodiver.Stages.Map
             entry.Elapsed = 0f;
 
             if (_tilemapRenderer == null) _tilemapRenderer = tilemap.GetComponent<TilemapRenderer>();
-            Matrix4x4 matrix = tilemap.GetTransformMatrix(damaged.Cell);
-            entry.Root.SetPositionAndRotation(tilemap.GetCellCenterWorld(damaged.Cell), matrix.rotation);
+            entry.Root.SetPositionAndRotation(tilemap.GetCellCenterWorld(damaged.Cell), Quaternion.identity);
+            int sortingOrder = GetBaseSortingOrder() + _sortingOrderOffset;
 
-            ConfigureRenderer(entry.Base, sprite, _sortingOrderOffset);
-            entry.Base.sharedMaterial = _tilemapRenderer != null ? _tilemapRenderer.sharedMaterial : null;
-            entry.Base.color = tilemap.color * tilemap.GetColor(damaged.Cell);
+            ConfigureLayer(entry.Base, tilemap, _tilemapRenderer, damaged.Cell, sprite, sortingOrder);
 
-            ConfigureRenderer(entry.Flash, sprite, _sortingOrderOffset + 1);
-            entry.Flash.sharedMaterial = _flashMaterial;
-            entry.Flash.enabled = _flashMaterial != null;
+            Tilemap oreTilemap = GetOreTilemap();
+            Sprite oreSprite = oreTilemap != null ? oreTilemap.GetSprite(damaged.Cell) : null;
+            entry.Ore.Transform.gameObject.SetActive(oreSprite != null);
+            if (oreSprite != null)
+                ConfigureLayer(entry.Ore, oreTilemap, _oreRenderer, damaged.Cell, oreSprite, sortingOrder + 2);
 
             entry.Root.gameObject.SetActive(true);
             Apply(entry, 0f);
@@ -138,20 +149,58 @@ namespace Astrodiver.Stages.Map
             float scale = 1f + _punchAmount * Mathf.Max(0f, _punchCurve.Evaluate(t));
             entry.Root.localScale = new Vector3(scale, scale, 1f);
 
-            if (!entry.Flash.enabled) return;
-            _propertyBlock ??= new MaterialPropertyBlock();
-            entry.Flash.GetPropertyBlock(_propertyBlock);
-            _propertyBlock.SetColor(_flashColorId, _flashColor);
-            _propertyBlock.SetFloat(_flashAmountId, Mathf.Clamp01(_flashCurve.Evaluate(t)));
-            entry.Flash.SetPropertyBlock(_propertyBlock);
+            float flashAmount = Mathf.Clamp01(_flashCurve.Evaluate(t));
+            ApplyFlash(entry.Base.Flash, flashAmount);
+            if (entry.Ore.Transform.gameObject.activeSelf) ApplyFlash(entry.Ore.Flash, flashAmount);
         }
 
-        private void ConfigureRenderer(SpriteRenderer renderer, Sprite sprite, int orderOffset)
+        private void ApplyFlash(SpriteRenderer flash, float amount)
+        {
+            if (!flash.enabled) return;
+            _propertyBlock ??= new MaterialPropertyBlock();
+            flash.GetPropertyBlock(_propertyBlock);
+            _propertyBlock.SetColor(_flashColorId, _flashColor);
+            _propertyBlock.SetFloat(_flashAmountId, amount);
+            flash.SetPropertyBlock(_propertyBlock);
+        }
+
+        private void ConfigureLayer(Layer layer, Tilemap tilemap, TilemapRenderer source,
+            Vector3Int cell, Sprite sprite, int sortingOrder)
+        {
+            // 셀 회전(AutoTile/광석 랜덤 회전)은 레이어별로, 펀치 스케일은 공통 Root에 적용한다.
+            layer.Transform.localRotation = tilemap.GetTransformMatrix(cell).rotation;
+
+            ConfigureRenderer(layer.Sprite, sprite, source, sortingOrder);
+            layer.Sprite.sharedMaterial = source != null ? source.sharedMaterial : null;
+            layer.Sprite.color = tilemap.color * tilemap.GetColor(cell);
+
+            ConfigureRenderer(layer.Flash, sprite, source, sortingOrder + 1);
+            layer.Flash.sharedMaterial = _flashMaterial;
+            layer.Flash.enabled = _flashMaterial != null;
+        }
+
+        private static void ConfigureRenderer(SpriteRenderer renderer, Sprite sprite,
+            TilemapRenderer source, int sortingOrder)
         {
             renderer.sprite = sprite;
-            if (_tilemapRenderer == null) return;
-            renderer.sortingLayerID = _tilemapRenderer.sortingLayerID;
-            renderer.sortingOrder = _tilemapRenderer.sortingOrder + orderOffset;
+            if (source != null) renderer.sortingLayerID = source.sortingLayerID;
+            renderer.sortingOrder = sortingOrder;
+        }
+
+        private Tilemap GetOreTilemap()
+        {
+            if (_oreOverlay == null) _oreOverlay = GetComponent<StageOreOverlay>();
+            Tilemap oreTilemap = _oreOverlay != null ? _oreOverlay.OreTilemap : null;
+            if (oreTilemap != null && _oreRenderer == null) _oreRenderer = oreTilemap.GetComponent<TilemapRenderer>();
+            return oreTilemap;
+        }
+
+        /// <summary>복제 렌더러가 원본 베이스/광석 타일보다 항상 위에 그려지도록 둘 중 높은 정렬 순서를 기준으로 한다.</summary>
+        private int GetBaseSortingOrder()
+        {
+            int order = _tilemapRenderer != null ? _tilemapRenderer.sortingOrder : 0;
+            if (GetOreTilemap() != null && _oreRenderer != null) order = Mathf.Max(order, _oreRenderer.sortingOrder);
+            return order;
         }
 
         private Entry Rent()
@@ -160,12 +209,24 @@ namespace Astrodiver.Stages.Map
 
             GameObject root = new("Mining Tile Hit Feedback");
             root.transform.SetParent(transform, false);
-            GameObject flash = new("Flash");
-            flash.transform.SetParent(root.transform, false);
             return new Entry
             {
                 Root = root.transform,
-                Base = root.AddComponent<SpriteRenderer>(),
+                Base = CreateLayer("Base", root.transform),
+                Ore = CreateLayer("Ore", root.transform)
+            };
+        }
+
+        private static Layer CreateLayer(string name, Transform parent)
+        {
+            GameObject sprite = new(name);
+            sprite.transform.SetParent(parent, false);
+            GameObject flash = new("Flash");
+            flash.transform.SetParent(sprite.transform, false);
+            return new Layer
+            {
+                Transform = sprite.transform,
+                Sprite = sprite.AddComponent<SpriteRenderer>(),
                 Flash = flash.AddComponent<SpriteRenderer>()
             };
         }

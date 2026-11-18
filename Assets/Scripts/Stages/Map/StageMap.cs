@@ -21,6 +21,8 @@ namespace Astrodiver.Stages.Map
         public event Action<StageMapMiningCellDestroyed> MiningCellDestroyed;
         /// <summary>피해를 받았지만 파괴되지 않은 셀. 파괴 시에는 MiningCellDestroyed만 발생한다.</summary>
         public event Action<StageMapMiningCellDamaged> MiningCellDamaged;
+        /// <summary>ApplyGeneratedTiles로 타일/광석 데이터가 통째로 교체된 직후 발생한다.</summary>
+        public event Action GeneratedTilesApplied;
         public Grid Grid => _grid;
         public Tilemap Tilemap => _tilemap;
         public void Configure(Grid grid, Tilemap tilemap) { _grid = grid; _tilemap = tilemap; EnforceTransformLock(); }
@@ -40,6 +42,7 @@ namespace Astrodiver.Stages.Map
             if (composite.generationType == CompositeCollider2D.GenerationType.Manual)
                 composite.GenerateGeometry();
             Physics2D.SyncTransforms();
+            GeneratedTilesApplied?.Invoke();
         }
         public void EnforceTransformLock() { Pin(_grid != null ? _grid.transform : null); Pin(_tilemap != null ? _tilemap.transform : null); }
         public bool TryValidate(out string error)

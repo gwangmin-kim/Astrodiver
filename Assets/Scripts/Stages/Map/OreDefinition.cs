@@ -16,6 +16,8 @@ namespace Astrodiver.Stages.Map
         [Header("Visual")]
         [Tooltip("풍부도 단계별 조각 스프라이트. 드문 단계 → 꽉 찬 단계 순서")]
         [SerializeField] private Sprite[] _levelSprites = System.Array.Empty<Sprite>();
+        [Tooltip("셀 좌표 기반으로 90° 단위 회전을 섞어 반복 패턴을 줄인다. 광원 방향이 그려진 스프라이트라면 끈다.")]
+        [SerializeField] private bool _randomRotation;
         [Tooltip("Scene 뷰 디버그 기즈모 색상")]
         [SerializeField] private Color _debugColor = new(1f, 0.8f, 0.2f, 1f);
 
@@ -32,6 +34,7 @@ namespace Astrodiver.Stages.Map
         public ResourceDefinition Resource => _resource;
         public int LevelCount => _levelSprites?.Length ?? 0;
         public Color DebugColor => _debugColor;
+        public bool RandomRotation => _randomRotation;
 
         /// <summary>풍부도(0~1)를 스프라이트 단계 인덱스로 변환한다. 단계 수로 균등 분할한다.</summary>
         public int GetLevel(float richness)
