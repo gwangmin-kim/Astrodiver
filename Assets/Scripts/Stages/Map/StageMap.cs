@@ -15,6 +15,8 @@ namespace Astrodiver.Stages.Map
         [SerializeField] private Tilemap _tilemap;
         private readonly Dictionary<Vector3Int, int> _miningHitPoints = new();
         public event Action<StageMapMiningCellDestroyed> MiningCellDestroyed;
+        /// <summary>피해를 받았지만 파괴되지 않은 셀. 파괴 시에는 MiningCellDestroyed만 발생한다.</summary>
+        public event Action<StageMapMiningCellDamaged> MiningCellDamaged;
         public Grid Grid => _grid;
         public Tilemap Tilemap => _tilemap;
         public void Configure(Grid grid, Tilemap tilemap) { _grid = grid; _tilemap = tilemap; EnforceTransformLock(); }
@@ -51,7 +53,12 @@ namespace Astrodiver.Stages.Map
             remainingHitPoints = 0;
             if (damage <= 0 || !TryGetMiningCell(cell, out MiningTileDefinition definition, out int hitPoints) || !definition.IsDestructible) return false;
             remainingHitPoints = Mathf.Max(0, hitPoints - damage);
-            if (remainingHitPoints > 0) { _miningHitPoints[cell] = remainingHitPoints; return true; }
+            if (remainingHitPoints > 0)
+            {
+                _miningHitPoints[cell] = remainingHitPoints;
+                MiningCellDamaged?.Invoke(new StageMapMiningCellDamaged(cell, damage, remainingHitPoints, definition));
+                return true;
+            }
             _miningHitPoints.Remove(cell);
             Vector3 worldPosition = _tilemap.GetCellCenterWorld(cell);
             _tilemap.SetTile(cell, null);
@@ -74,6 +81,11 @@ namespace Astrodiver.Stages.Map
         private void LateUpdate() => EnforceTransformLock();
         public MiningTileDefinition GetMiningDefinition(Vector3Int cell) => _tilemap != null ? _tilemap.GetTile<MiningTileDefinition>(cell) : null;
         private static void Pin(Transform target) { if (target == null) return; target.SetPositionAndRotation(Vector3.zero, Quaternion.identity); target.localScale = Vector3.one; }
+    }
+    public readonly struct StageMapMiningCellDamaged
+    {
+        public StageMapMiningCellDamaged(Vector3Int cell, int damage, int remainingHitPoints, MiningTileDefinition definition) { Cell = cell; Damage = damage; RemainingHitPoints = remainingHitPoints; Definition = definition; }
+        public Vector3Int Cell { get; } public int Damage { get; } public int RemainingHitPoints { get; } public MiningTileDefinition Definition { get; }
     }
     public readonly struct StageMapMiningCellDestroyed
     {

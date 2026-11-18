@@ -921,6 +921,7 @@ GameObject:
   - component: {fileID: 1530818367}
   - component: {fileID: 1530818368}
   - component: {fileID: 1530818369}
+  - component: {fileID: 1530818370}
   m_Layer: 0
   m_Name: Map
   m_TagString: Untagged
@@ -1006,6 +1007,80 @@ MonoBehaviour:
   _floorWidthCells: 8
   _floorThicknessCells: 2
   _floorTransitionCells: 3
+--- !u!114 &1530818370
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1530818365}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b274db4d6c1224917b40d7d71cc20534, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Astrodiver.Stages.Map.MiningTileHitFeedback
+  _flashMaterial: {fileID: 2100000, guid: fa6832b5254254dc6ada5304f7489b09, type: 2}
+  _duration: 0.16
+  _punchAmount: 0.15
+  _punchCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 12
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.25
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: -1.5
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  _flashColor: {r: 1.5, g: 1.5, b: 1.5, a: 1}
+  _flashCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: -2
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  _sortingOrderOffset: 1
 --- !u!114 &1743776474 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2736211216521836210, guid: 93e602bf39f61564bb4585ced48d8c42, type: 3}
