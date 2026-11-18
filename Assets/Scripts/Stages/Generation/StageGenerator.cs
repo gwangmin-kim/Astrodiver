@@ -55,6 +55,9 @@ namespace Astrodiver.Stages.Generation
         [SerializeField, Min(1)] private int _floorWidthCells = 8;
         [SerializeField, Min(1)] private int _floorThicknessCells = 2;
         [SerializeField, Min(0)] private int _floorTransitionCells = 3;
+        [Header("Ores")]
+        [Tooltip("셀마다 풍부도가 가장 높은 광석 하나만 부여된다.")]
+        [SerializeField] private OreGenerationRule[] _oreRules = Array.Empty<OreGenerationRule>();
 
         private void Awake()
         {
@@ -112,6 +115,12 @@ namespace Astrodiver.Stages.Generation
                 return;
             }
 
+            if (!TryValidateOreRules(out string oreError))
+            {
+                Debug.LogError($"StageGenerator: {oreError}", this);
+                return;
+            }
+
             int seed = _useFixedSeed ? _fixedSeed : Guid.NewGuid().GetHashCode();
             StageGenerationBuffer buffer = new(cellBounds);
             new PerlinTerrainRule(_horizontalScale, _verticalScale, _broadLayer, _detailLayer, seed)
@@ -120,6 +129,7 @@ namespace Astrodiver.Stages.Generation
             new SpawnGuaranteeRule(airBounds, floorBounds, _guaranteeFloor,
                     _airTransitionCells, _floorTransitionCells, _density)
                 .Apply(buffer);
+            new OreDepositRule(_oreRules, seed).Apply(buffer);
 
             TileBase[] tiles = new TileBase[buffer.CellCount];
             for (int i = 0; i < tiles.Length; i++)
@@ -128,8 +138,35 @@ namespace Astrodiver.Stages.Generation
                     tiles[i] = _terrainTile;
             }
 
-            stageMap.ApplyGeneratedTiles(cellBounds, tiles);
+            OreDefinition[] orePalette = new OreDefinition[_oreRules.Length];
+            for (int i = 0; i < orePalette.Length; i++)
+                orePalette[i] = _oreRules[i] != null && _oreRules[i].IsActive ? _oreRules[i].Ore : null;
+
+            stageMap.ApplyGeneratedTiles(cellBounds, tiles,
+                new StageOreLayerData(orePalette, buffer.OreIndex, buffer.OreRichness));
             Debug.Log($"StageGenerator: Generated {cellBounds.size.x}x{cellBounds.size.y} cells with seed {seed}.", this);
+        }
+
+        private bool TryValidateOreRules(out string error)
+        {
+            _oreRules ??= Array.Empty<OreGenerationRule>();
+            if (_oreRules.Length > sbyte.MaxValue)
+            {
+                error = $"At most {sbyte.MaxValue} ore rules are supported.";
+                return false;
+            }
+
+            for (int i = 0; i < _oreRules.Length; i++)
+            {
+                if (_oreRules[i] != null && !_oreRules[i].TryValidate(out error))
+                {
+                    error = $"Ore rule {i}: {error}";
+                    return false;
+                }
+            }
+
+            error = string.Empty;
+            return true;
         }
 
         private bool TryGetGenerationBounds(out BoundsInt bounds)
